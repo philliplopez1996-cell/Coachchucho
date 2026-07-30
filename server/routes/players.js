@@ -1,5 +1,5 @@
 const express = require('express');
-const { db } = require('../db');
+const { db, recordPlayerProgress } = require('../db');
 const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
@@ -94,7 +94,9 @@ router.post('/', (req, res) => {
   });
 
   const playerId = createPlayer();
-  res.status(201).json({ player: serializePlayer(playerId) });
+  const player = serializePlayer(playerId);
+  recordPlayerProgress(playerId, player.overall, player.attributes.map((a) => ({ attribute_id: a.attribute_id, name: a.name, value: a.value })));
+  res.status(201).json({ player });
 });
 
 function clampValue(v) {
@@ -106,7 +108,14 @@ function clampValue(v) {
 router.put('/:id', (req, res) => {
   const owned = getOwnedPlayer(req.params.id, req.coachId);
   if (!owned) return res.status(404).json({ error: 'Player not found' });
-  const { name, number, position, photo, nationality, parent_email, parent_phone, attributes } = req.body || {};
+  const { name, number, position, photo, nationality, parent_email, parent_phone, team_id, attributes } = req.body || {};
+
+  let destinationTeamId = owned.team_id;
+  if (team_id !== undefined && Number(team_id) !== owned.team_id) {
+    const destTeam = db.prepare('SELECT * FROM teams WHERE id = ? AND coach_id = ?').get(team_id, req.coachId);
+    if (!destTeam) return res.status(404).json({ error: 'Destination team not found' });
+    destinationTeamId = destTeam.id;
+  }
 
   const updatePlayer = db.transaction(() => {
     db.prepare(
@@ -118,6 +127,7 @@ router.put('/:id', (req, res) => {
         nationality = ?,
         parent_email = ?,
         parent_phone = ?,
+        team_id = ?,
         updated_at = datetime('now')
        WHERE id = ?`
     ).run(
@@ -128,6 +138,7 @@ router.put('/:id', (req, res) => {
       nationality !== undefined ? nationality : owned.nationality,
       parent_email !== undefined ? parent_email : owned.parent_email,
       parent_phone !== undefined ? parent_phone : owned.parent_phone,
+      destinationTeamId,
       owned.id
     );
 
@@ -143,7 +154,21 @@ router.put('/:id', (req, res) => {
   });
 
   updatePlayer();
-  res.json({ player: serializePlayer(owned.id) });
+  const player = serializePlayer(owned.id);
+  if (attributes && typeof attributes === 'object') {
+    recordPlayerProgress(owned.id, player.overall, player.attributes.map((a) => ({ attribute_id: a.attribute_id, name: a.name, value: a.value })));
+  }
+  res.json({ player });
+});
+
+router.get('/:id/progress', (req, res) => {
+  const owned = getOwnedPlayer(req.params.id, req.coachId);
+  if (!owned) return res.status(404).json({ error: 'Player not found' });
+  const snapshots = db
+    .prepare('SELECT id, overall, attributes_json, recorded_at FROM player_progress WHERE player_id = ? ORDER BY recorded_at ASC')
+    .all(owned.id)
+    .map((s) => ({ id: s.id, overall: s.overall, attributes: JSON.parse(s.attributes_json), recorded_at: s.recorded_at }));
+  res.json({ progress: snapshots });
 });
 
 router.delete('/:id', (req, res) => {

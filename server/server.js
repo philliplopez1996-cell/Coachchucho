@@ -10,6 +10,7 @@ const attributeRoutes = require('./routes/attributes');
 const teamRoutes = require('./routes/teams');
 const playerRoutes = require('./routes/players');
 const formationRoutes = require('./routes/formations');
+const parentRoutes = require('./routes/parent');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,6 +24,7 @@ app.use('/api/attributes', attributeRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/players', playerRoutes);
 app.use('/api/formations', formationRoutes);
+app.use('/api/parent', parentRoutes);
 
 const repoRoot = path.join(__dirname, '..');
 app.use('/app', express.static(path.join(repoRoot, 'app')));

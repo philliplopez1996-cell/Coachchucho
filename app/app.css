@@ -178,6 +178,17 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
 
 .team-header-actions { display: flex; align-items: center; gap: 8px; }
 
+.roster-toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+.roster-toolbar input[type=search] {
+  flex: 2; min-width: 160px; padding: 10px 14px; background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(74,255,63,0.25); border-radius: 9px; color: #eafff0; font-size: 13.5px; outline: none;
+}
+.roster-toolbar input[type=search]:focus { border-color: var(--lime); }
+.roster-toolbar select {
+  flex: 1; min-width: 130px; padding: 10px 12px; background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(74,255,63,0.25); border-radius: 9px; color: #eafff0; font-size: 13.5px;
+}
+
 /* ============ PLAYER CARDS (FIFA style) ============ */
 .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 18px; }
 
@@ -301,6 +312,18 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
 .player-info-value a:hover { text-decoration: underline; }
 .player-info-value.muted { color: #6f9a7c; font-style: italic; }
 
+.progress-section {
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(74,255,63,0.15); border-radius: 12px;
+  padding: 16px 18px; margin-bottom: 20px;
+}
+.progress-header { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+.progress-header h3 { flex: 1; font-size: 15px; color: var(--lime); }
+.progress-header select {
+  padding: 7px 10px; background: rgba(255,255,255,0.07); border: 1px solid rgba(74,255,63,0.25);
+  border-radius: 8px; color: #eafff0; font-size: 12.5px;
+}
+#progressChartWrap { display: flex; justify-content: center; }
+
 .big-attrs { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
 .big-attr-row { display: flex; flex-direction: column; gap: 6px; }
 .big-attr-top { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: #dff5e4; }
@@ -349,6 +372,13 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
 .compare-attr-name { flex: 1.2; text-align: center; font-size: 12.5px; color: #dff5e4; }
 
 /* ============ TACTICAL PITCH ============ */
+.lineup-type-tabs { display: flex; gap: 8px; margin-bottom: 14px; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 5px; }
+.lineup-type-tab {
+  flex: 1; padding: 10px 8px; border: none; border-radius: 9px; background: transparent;
+  color: #9fd8ae; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s;
+}
+.lineup-type-tab.active { background: var(--lime); color: #06210f; }
+
 .pitch-controls { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
 .formation-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
 .formation-btn {

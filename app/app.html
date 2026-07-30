@@ -20,6 +20,7 @@
     <div class="auth-tabs">
       <button class="auth-tab active" data-auth-tab="login">Log In</button>
       <button class="auth-tab" data-auth-tab="signup">Sign Up</button>
+      <button class="auth-tab" data-auth-tab="parent">Parent</button>
     </div>
 
     <form id="loginForm" class="auth-form active">
@@ -41,7 +42,35 @@
       <div class="auth-error" id="signupError"></div>
       <button type="submit" class="btn-primary">Create Account</button>
     </form>
+
+    <form id="parentForm" class="auth-form">
+      <label>Your Email</label>
+      <input type="email" id="parentEmail" required autocomplete="username">
+      <label>Team Password <span class="hint">(ask your coach)</span></label>
+      <input type="password" id="parentPassword" required autocomplete="current-password">
+      <div class="auth-error" id="parentError"></div>
+      <button type="submit" class="btn-primary">View My Player</button>
+    </form>
   </div>
+</div>
+
+<!-- ============ PARENT PORTAL SHELL ============ -->
+<div id="parentShell" class="app-shell hidden">
+  <header class="topbar">
+    <div class="topbar-title">COACH<span>CHUCHO</span></div>
+    <div class="topbar-spacer"></div>
+    <button class="btn-ghost-sm" id="parentLogoutBtn">Log Out</button>
+  </header>
+  <main class="main-content">
+    <div class="section-header">
+      <h2>My Player Card</h2>
+    </div>
+    <div class="card-grid" id="parentCardGrid"></div>
+    <div class="empty-state hidden" id="parentEmptyState">
+      <div class="empty-icon">🃏</div>
+      <p>No players found for this account yet. Double-check your email and team password with your coach.</p>
+    </div>
+  </main>
 </div>
 
 <!-- ============ APP SHELL ============ -->
@@ -105,10 +134,28 @@
             <button class="btn-accent" id="addPlayerBtn">+ Add Player</button>
           </div>
         </div>
+        <div class="roster-toolbar">
+          <input type="search" id="rosterSearchInput" placeholder="Search players by name…">
+          <select id="rosterPositionFilter">
+            <option value="">All positions</option>
+          </select>
+          <select id="rosterSortSelect">
+            <option value="name_asc">Name (A–Z)</option>
+            <option value="name_desc">Name (Z–A)</option>
+            <option value="overall_desc">Overall (High–Low)</option>
+            <option value="overall_asc">Overall (Low–High)</option>
+            <option value="number_asc">Jersey # (Low–High)</option>
+            <option value="position_asc">Position</option>
+          </select>
+        </div>
         <div class="card-grid" id="playerCardGrid"></div>
         <div class="empty-state hidden" id="teamEmptyState">
           <div class="empty-icon">🃏</div>
           <p>No players in this team yet. Add your first player card.</p>
+        </div>
+        <div class="empty-state hidden" id="teamNoMatchState">
+          <div class="empty-icon">🔍</div>
+          <p>No players match your search/filter.</p>
         </div>
       </div>
     </section>
@@ -157,6 +204,11 @@
       <div class="section-header">
         <h2>Tactical Pitch</h2>
         <select id="pitchTeamSelect"><option value="">Select team…</option></select>
+      </div>
+      <div class="lineup-type-tabs hidden" id="lineupTypeTabs">
+        <button type="button" class="lineup-type-tab" data-lineup="defensive">🛡️ Defensive</button>
+        <button type="button" class="lineup-type-tab active" data-lineup="balanced">⚖️ Balanced</button>
+        <button type="button" class="lineup-type-tab" data-lineup="attacking">⚔️ Attacking</button>
       </div>
       <div class="pitch-controls hidden" id="pitchControls">
         <div class="formation-buttons" id="formationButtons"></div>
@@ -213,6 +265,13 @@
     </div>
     <div class="modal-body">
       <form id="profileForm">
+        <div class="edit-photo-row">
+          <div class="edit-photo-preview" id="profilePhotoPreview">?</div>
+          <div>
+            <input type="file" id="profilePhotoInput" accept="image/*">
+            <button type="button" class="btn-ghost-sm" id="clearProfilePhotoBtn">Remove photo</button>
+          </div>
+        </div>
         <div class="form-row">
           <div class="form-grp">
             <label>Name</label>
@@ -308,6 +367,13 @@
           <label>Team Color</label>
           <div class="color-swatches" id="teamColorSwatches"></div>
         </div>
+        <div class="divider"></div>
+        <div class="form-grp">
+          <label>Parent Portal Password <span class="hint" id="parentPasswordStatus"></span></label>
+          <input type="text" id="teamParentPassword" placeholder="Leave blank to keep current" maxlength="40">
+          <p class="section-hint">Share this with parents so they can log in and view their own player's card.</p>
+          <button type="button" class="btn-ghost-sm hidden" id="clearParentPasswordBtn">Remove parent access</button>
+        </div>
         <div class="form-msg" id="teamMsg"></div>
         <button type="submit" class="btn-primary">Save Team</button>
       </form>
@@ -337,6 +403,15 @@
           </div>
         </div>
         <div class="player-info-box" id="playerInfoBox"></div>
+
+        <div class="progress-section">
+          <div class="progress-header">
+            <h3>Progress</h3>
+            <select id="progressMetricSelect"><option value="overall">Overall</option></select>
+          </div>
+          <div id="progressChartWrap"></div>
+        </div>
+
         <div class="big-attrs" id="bigAttrs"></div>
       </div>
 
@@ -368,6 +443,10 @@
             <div class="form-grp">
               <label>Nationality</label>
               <select id="editPlayerNationality"></select>
+            </div>
+            <div class="form-grp hidden" id="moveTeamRow">
+              <label>Team</label>
+              <select id="editPlayerTeam"></select>
             </div>
           </div>
 

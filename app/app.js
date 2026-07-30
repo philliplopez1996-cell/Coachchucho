@@ -5,6 +5,7 @@
      CONSTANTS
   ============================================================ */
   const TOKEN_KEY = 'cc_token';
+  const ROLE_KEY = 'cc_role';
   const POSITIONS = ['GK', 'LB', 'CB', 'RB', 'CDM', 'CM', 'CAM', 'LM', 'RM', 'LW', 'RW', 'ST'];
   const TEAM_COLORS = ['#4AFF3F', '#00D9FF', '#FFD700', '#FF6B35', '#FF3F8E', '#8B5CF6', '#3F8CFF'];
 
@@ -70,14 +71,16 @@
   ============================================================ */
   const state = {
     token: localStorage.getItem(TOKEN_KEY) || null,
+    role: localStorage.getItem(ROLE_KEY) || 'coach',
     coach: null,
+    parentPlayers: [],
     attributes: [],
     teams: [],
     players: [],
     currentTeamId: null,
     currentPlayerId: null,
     playerModalMode: 'view',
-    pitch: { teamId: null, players: [], placed: [], formationName: '4-3-3' },
+    pitch: { teamId: null, players: [], lineupType: 'balanced', formations: {} },
     drag: null,
   };
 
@@ -114,6 +117,13 @@
     return ((parts[0] || '')[0] || '?').toUpperCase() + ((parts[1] || '')[0] || '').toUpperCase();
   }
 
+  function renderSidebarAvatar(coach) {
+    const el = document.getElementById('sidebarAvatar');
+    el.innerHTML = coach.photo
+      ? `<img src="${coach.photo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`
+      : initials(coach.name);
+  }
+
   function tierClass(ovr) {
     if (ovr >= 85) return 'tier-elite';
     if (ovr >= 75) return 'tier-gold';
@@ -130,30 +140,84 @@
   ============================================================ */
   async function boot() {
     if (!state.token) return showAuth();
+    if (state.role === 'parent') {
+      try {
+        await enterParentPortal();
+      } catch (e) {
+        logoutToAuth();
+      }
+      return;
+    }
     try {
       const { coach } = await api('/coach/me');
       state.coach = coach;
       await enterApp();
     } catch (e) {
-      state.token = null;
-      localStorage.removeItem(TOKEN_KEY);
-      showAuth();
+      logoutToAuth();
     }
   }
 
   function showAuth() {
     document.getElementById('authScreen').classList.remove('hidden');
     document.getElementById('appShell').classList.add('hidden');
+    document.getElementById('parentShell').classList.add('hidden');
+  }
+
+  function logoutToAuth() {
+    state.token = null;
+    state.coach = null;
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(ROLE_KEY);
+    showAuth();
   }
 
   async function enterApp() {
     document.getElementById('authScreen').classList.add('hidden');
+    document.getElementById('parentShell').classList.add('hidden');
     document.getElementById('appShell').classList.remove('hidden');
     document.getElementById('sidebarName').textContent = state.coach.name;
     document.getElementById('sidebarEmail').textContent = state.coach.email;
-    document.getElementById('sidebarAvatar').textContent = initials(state.coach.name);
+    renderSidebarAvatar(state.coach);
     await loadAll();
   }
+
+  async function enterParentPortal() {
+    const { players } = await api('/parent/players');
+    state.parentPlayers = players;
+    document.getElementById('authScreen').classList.add('hidden');
+    document.getElementById('appShell').classList.add('hidden');
+    document.getElementById('parentShell').classList.remove('hidden');
+    const grid = document.getElementById('parentCardGrid');
+    const empty = document.getElementById('parentEmptyState');
+    grid.innerHTML = '';
+    empty.classList.toggle('hidden', players.length > 0);
+    players.forEach((p) => {
+      const card = buildPlayerCardEl(p);
+      grid.appendChild(card);
+    });
+  }
+
+  document.getElementById('parentForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const errEl = document.getElementById('parentError');
+    errEl.textContent = '';
+    try {
+      const email = document.getElementById('parentEmail').value.trim();
+      const password = document.getElementById('parentPassword').value;
+      const data = await api('/auth/parent-login', { method: 'POST', body: { email, password } });
+      state.token = data.token;
+      state.role = 'parent';
+      localStorage.setItem(TOKEN_KEY, state.token);
+      localStorage.setItem(ROLE_KEY, 'parent');
+      await enterParentPortal();
+    } catch (err) {
+      errEl.textContent = err.message;
+    }
+  });
+
+  document.getElementById('parentLogoutBtn').addEventListener('click', () => {
+    logoutToAuth();
+  });
 
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -164,8 +228,10 @@
       const password = document.getElementById('loginPassword').value;
       const data = await api('/auth/login', { method: 'POST', body: { email, password } });
       state.token = data.token;
+      state.role = 'coach';
       state.coach = data.coach;
       localStorage.setItem(TOKEN_KEY, state.token);
+      localStorage.setItem(ROLE_KEY, 'coach');
       await enterApp();
     } catch (err) {
       errEl.textContent = err.message;
@@ -182,8 +248,10 @@
       const password = document.getElementById('signupPassword').value;
       const data = await api('/auth/signup', { method: 'POST', body: { name, email, password } });
       state.token = data.token;
+      state.role = 'coach';
       state.coach = data.coach;
       localStorage.setItem(TOKEN_KEY, state.token);
+      localStorage.setItem(ROLE_KEY, 'coach');
       await enterApp();
     } catch (err) {
       errEl.textContent = err.message;
@@ -201,11 +269,8 @@
 
   document.getElementById('navLogout').addEventListener('click', () => {
     if (!confirm('Log out of your coach account?')) return;
-    state.token = null;
-    state.coach = null;
-    localStorage.removeItem(TOKEN_KEY);
     closeSidebar();
-    showAuth();
+    logoutToAuth();
   });
 
   /* ============================================================
@@ -283,6 +348,30 @@
   /* ============================================================
      COACH PROFILE MODAL
   ============================================================ */
+  let profilePhotoDataUrl = null;
+
+  function updateProfilePhotoPreview() {
+    const preview = document.getElementById('profilePhotoPreview');
+    if (profilePhotoDataUrl) {
+      preview.innerHTML = `<img src="${profilePhotoDataUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+    } else {
+      preview.textContent = initials(document.getElementById('profileName').value || state.coach.name);
+    }
+  }
+
+  document.getElementById('profilePhotoInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => { profilePhotoDataUrl = reader.result; updateProfilePhotoPreview(); };
+    reader.readAsDataURL(file);
+  });
+  document.getElementById('clearProfilePhotoBtn').addEventListener('click', () => {
+    profilePhotoDataUrl = null;
+    document.getElementById('profilePhotoInput').value = '';
+    updateProfilePhotoPreview();
+  });
+
   function openProfileModal() {
     document.getElementById('profileName').value = state.coach.name;
     document.getElementById('profileEmail').value = state.coach.email;
@@ -290,9 +379,15 @@
     document.getElementById('profileNewPassword').value = '';
     document.getElementById('profileMsg').textContent = '';
     document.getElementById('profileMsg').className = 'form-msg';
+    profilePhotoDataUrl = state.coach.photo || null;
+    updateProfilePhotoPreview();
     renderAttrList();
     openModal('profile');
   }
+
+  document.getElementById('profileName').addEventListener('input', () => {
+    if (!profilePhotoDataUrl) updateProfilePhotoPreview();
+  });
 
   document.getElementById('profileForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -302,6 +397,7 @@
     const body = {
       name: document.getElementById('profileName').value.trim(),
       email: document.getElementById('profileEmail').value.trim(),
+      photo: profilePhotoDataUrl,
     };
     const newPassword = document.getElementById('profileNewPassword').value;
     if (newPassword) {
@@ -313,7 +409,7 @@
       state.coach = coach;
       document.getElementById('sidebarName').textContent = coach.name;
       document.getElementById('sidebarEmail').textContent = coach.email;
-      document.getElementById('sidebarAvatar').textContent = initials(coach.name);
+      renderSidebarAvatar(coach);
       document.getElementById('profileCurrentPassword').value = '';
       document.getElementById('profileNewPassword').value = '';
       msgEl.textContent = 'Profile saved!';
@@ -392,8 +488,16 @@
     document.getElementById('rosterTeamView').classList.remove('hidden');
     const team = state.teams.find((t) => t.id === teamId);
     document.getElementById('rosterTeamName').textContent = team ? team.name : 'Team';
+    document.getElementById('rosterSearchInput').value = '';
+    document.getElementById('rosterPositionFilter').value = '';
     renderPlayerCardsForCurrentTeam();
   }
+
+  document.getElementById('rosterPositionFilter').innerHTML =
+    '<option value="">All positions</option>' + POSITIONS.map((p) => `<option value="${p}">${p}</option>`).join('');
+  document.getElementById('rosterSearchInput').addEventListener('input', renderPlayerCardsForCurrentTeam);
+  document.getElementById('rosterPositionFilter').addEventListener('change', renderPlayerCardsForCurrentTeam);
+  document.getElementById('rosterSortSelect').addEventListener('change', renderPlayerCardsForCurrentTeam);
 
   document.getElementById('backToFoldersBtn').addEventListener('click', () => {
     state.currentTeamId = null;
@@ -433,8 +537,23 @@
       });
       swatchWrap.appendChild(sw);
     });
+
+    document.getElementById('teamParentPassword').value = '';
+    document.getElementById('parentPasswordStatus').textContent = team
+      ? (team.has_parent_password ? '(password is set)' : '(not set yet)')
+      : '';
+    document.getElementById('clearParentPasswordBtn').classList.toggle('hidden', !(team && team.has_parent_password));
+    document.getElementById('teamForm').dataset.clearParentPassword = '';
+
     openModal('team');
   }
+
+  document.getElementById('clearParentPasswordBtn').addEventListener('click', () => {
+    document.getElementById('teamForm').dataset.clearParentPassword = '1';
+    document.getElementById('teamParentPassword').value = '';
+    document.getElementById('parentPasswordStatus').textContent = '(will be removed on save)';
+    document.getElementById('clearParentPasswordBtn').classList.add('hidden');
+  });
 
   document.getElementById('teamForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -442,12 +561,17 @@
     const name = document.getElementById('teamNameInput').value.trim();
     const selectedSwatch = document.querySelector('#teamColorSwatches .color-swatch.selected');
     const color = selectedSwatch ? selectedSwatch.dataset.color : TEAM_COLORS[0];
+    const parentPassword = document.getElementById('teamParentPassword').value.trim();
+    const clearParentPassword = document.getElementById('teamForm').dataset.clearParentPassword === '1';
     if (!name) { msgEl.textContent = 'Team name is required'; return; }
     try {
+      const body = { name, color };
+      if (parentPassword) body.parent_password = parentPassword;
+      if (clearParentPassword) body.clear_parent_password = true;
       if (teamModalEditingId) {
-        await api('/teams/' + teamModalEditingId, { method: 'PUT', body: { name, color } });
+        await api('/teams/' + teamModalEditingId, { method: 'PUT', body });
       } else {
-        await api('/teams', { method: 'POST', body: { name, color } });
+        await api('/teams', { method: 'POST', body });
       }
       closeModal('team');
       await loadAll();
@@ -489,13 +613,34 @@
     return card;
   }
 
+  const SORTERS = {
+    name_asc: (a, b) => a.name.localeCompare(b.name),
+    name_desc: (a, b) => b.name.localeCompare(a.name),
+    overall_desc: (a, b) => b.overall - a.overall,
+    overall_asc: (a, b) => a.overall - b.overall,
+    number_asc: (a, b) => (a.number ?? 999) - (b.number ?? 999),
+    position_asc: (a, b) => a.position.localeCompare(b.position) || a.name.localeCompare(b.name),
+  };
+
   function renderPlayerCardsForCurrentTeam() {
     if (!state.currentTeamId) return;
     const grid = document.getElementById('playerCardGrid');
     const empty = document.getElementById('teamEmptyState');
+    const noMatch = document.getElementById('teamNoMatchState');
+
+    const allTeamPlayers = state.players.filter((p) => p.team_id === state.currentTeamId);
+    const search = document.getElementById('rosterSearchInput').value.trim().toLowerCase();
+    const positionFilter = document.getElementById('rosterPositionFilter').value;
+    const sortKey = document.getElementById('rosterSortSelect').value;
+
+    let players = allTeamPlayers;
+    if (search) players = players.filter((p) => p.name.toLowerCase().includes(search));
+    if (positionFilter) players = players.filter((p) => p.position === positionFilter);
+    players = players.slice().sort(SORTERS[sortKey] || SORTERS.name_asc);
+
     grid.innerHTML = '';
-    const players = state.players.filter((p) => p.team_id === state.currentTeamId);
-    empty.classList.toggle('hidden', players.length > 0);
+    empty.classList.toggle('hidden', allTeamPlayers.length > 0);
+    noMatch.classList.toggle('hidden', allTeamPlayers.length === 0 || players.length > 0);
     players.forEach((p) => grid.appendChild(buildPlayerCardEl(p)));
   }
 
@@ -506,15 +651,18 @@
   ============================================================ */
   function openPlayerModal(playerId, teamIdForCreate) {
     state.currentPlayerId = playerId;
-    const isCreate = !playerId;
+    const isParent = state.role === 'parent';
+    const isCreate = !playerId && !isParent;
     document.getElementById('playerModalTitle').textContent = isCreate ? 'New Player' : 'Player';
-    document.getElementById('playerDeleteBtn').classList.toggle('hidden', isCreate);
-    document.getElementById('playerEditToggleBtn').classList.toggle('hidden', isCreate);
+    document.getElementById('playerDeleteBtn').classList.toggle('hidden', isCreate || isParent);
+    document.getElementById('playerEditToggleBtn').classList.toggle('hidden', isCreate || isParent);
 
     if (isCreate) {
       enterPlayerEditMode(null, teamIdForCreate);
     } else {
-      const player = state.players.find((p) => p.id === playerId);
+      const player = isParent
+        ? state.parentPlayers.find((p) => p.id === playerId)
+        : state.players.find((p) => p.id === playerId);
       renderPlayerViewMode(player);
       document.getElementById('playerViewMode').classList.remove('hidden');
       document.getElementById('playerEditMode').classList.add('hidden');
@@ -534,25 +682,30 @@
     ], 260);
 
     const infoBox = document.getElementById('playerInfoBox');
-    const emailVal = player.parent_email
-      ? `<a href="mailto:${escapeHtml(player.parent_email)}">${escapeHtml(player.parent_email)}</a>`
-      : '<span class="muted">Not provided</span>';
-    const phoneVal = player.parent_phone
-      ? `<a href="tel:${escapeHtml(player.parent_phone)}">${escapeHtml(player.parent_phone)}</a>`
-      : '<span class="muted">Not provided</span>';
-    infoBox.innerHTML = `
+    const natRow = `
       <div class="player-info-item">
         <div class="player-info-label">Nationality</div>
         <div class="player-info-value">${flagEmoji(player.nationality)} ${escapeHtml(player.nationality) || '<span class="muted">Not set</span>'}</div>
-      </div>
-      <div class="player-info-item">
-        <div class="player-info-label">Parent Email</div>
-        <div class="player-info-value">${emailVal}</div>
-      </div>
-      <div class="player-info-item">
-        <div class="player-info-label">Parent Phone</div>
-        <div class="player-info-value">${phoneVal}</div>
       </div>`;
+    if (state.role === 'parent') {
+      infoBox.innerHTML = natRow;
+    } else {
+      const emailVal = player.parent_email
+        ? `<a href="mailto:${escapeHtml(player.parent_email)}">${escapeHtml(player.parent_email)}</a>`
+        : '<span class="muted">Not provided</span>';
+      const phoneVal = player.parent_phone
+        ? `<a href="tel:${escapeHtml(player.parent_phone)}">${escapeHtml(player.parent_phone)}</a>`
+        : '<span class="muted">Not provided</span>';
+      infoBox.innerHTML = natRow + `
+        <div class="player-info-item">
+          <div class="player-info-label">Parent Email</div>
+          <div class="player-info-value">${emailVal}</div>
+        </div>
+        <div class="player-info-item">
+          <div class="player-info-label">Parent Phone</div>
+          <div class="player-info-value">${phoneVal}</div>
+        </div>`;
+    }
 
     const bigAttrs = document.getElementById('bigAttrs');
     bigAttrs.innerHTML = player.attributes.map((a) => `
@@ -560,7 +713,37 @@
         <div class="big-attr-top"><span>${escapeHtml(a.name)}</span><span class="big-attr-value">${a.value}</span></div>
         <div class="big-attr-bar-track"><div class="big-attr-bar-fill" style="width:${a.value}%"></div></div>
       </div>`).join('');
+
+    const metricSelect = document.getElementById('progressMetricSelect');
+    metricSelect.innerHTML = '<option value="overall">Overall</option>' +
+      player.attributes.map((a) => `<option value="${a.attribute_id}">${escapeHtml(a.name)}</option>`).join('');
+    metricSelect.value = 'overall';
+    loadProgressForPlayer(player.id);
   }
+
+  let currentProgressSnapshots = [];
+
+  async function loadProgressForPlayer(playerId) {
+    currentProgressSnapshots = [];
+    try {
+      const path = state.role === 'parent' ? `/parent/players/${playerId}/progress` : `/players/${playerId}/progress`;
+      const { progress } = await api(path);
+      currentProgressSnapshots = progress;
+    } catch (e) { /* leave empty on failure */ }
+    renderProgressChart();
+  }
+
+  function renderProgressChart() {
+    const metric = document.getElementById('progressMetricSelect').value;
+    const wrap = document.getElementById('progressChartWrap');
+    const values = currentProgressSnapshots.map((s) =>
+      metric === 'overall' ? s.overall : (s.attributes.find((a) => String(a.attribute_id) === metric) || { value: 0 }).value
+    );
+    const dates = currentProgressSnapshots.map((s) => formatShortDate(s.recorded_at));
+    wrap.innerHTML = buildLineChartSVG(values, dates, '#4AFF3F');
+  }
+
+  document.getElementById('progressMetricSelect').addEventListener('change', renderProgressChart);
 
   document.getElementById('playerEditToggleBtn').addEventListener('click', () => {
     const player = state.players.find((p) => p.id === state.currentPlayerId);
@@ -591,6 +774,14 @@
     natSelect.value = player && player.nationality ? player.nationality : '';
     document.getElementById('editParentEmail').value = player && player.parent_email ? player.parent_email : '';
     document.getElementById('editParentPhone').value = player && player.parent_phone ? player.parent_phone : '';
+
+    const moveRow = document.getElementById('moveTeamRow');
+    const teamSelect = document.getElementById('editPlayerTeam');
+    moveRow.classList.toggle('hidden', !player);
+    if (player) {
+      teamSelect.innerHTML = state.teams.map((t) => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
+      teamSelect.value = player.team_id;
+    }
 
     const sliders = document.getElementById('attrSliders');
     const attrValues = player ? player.attributes : state.attributes.map((a) => ({ attribute_id: a.id, name: a.name, value: 50 }));
@@ -658,6 +849,7 @@
     try {
       let player;
       if (form.dataset.mode === 'edit') {
+        body.team_id = Number(document.getElementById('editPlayerTeam').value);
         const res = await api('/players/' + state.currentPlayerId, { method: 'PUT', body });
         player = res.player;
       } else {
@@ -674,6 +866,7 @@
       document.getElementById('playerEditToggleBtn').classList.remove('hidden');
       document.getElementById('playerModalTitle').textContent = 'Player';
       renderPlayerViewMode(updated);
+      renderFolders();
       renderPlayerCardsForCurrentTeam();
       renderRadarPickers();
     } catch (err) {
@@ -741,6 +934,54 @@
         svg += `<circle cx="${x}" cy="${y}" r="3.2" fill="${s.color}"/>`;
       });
     });
+
+    svg += '</svg>';
+    return svg;
+  }
+
+  function formatShortDate(isoLike) {
+    const d = new Date(isoLike.replace(' ', 'T') + 'Z');
+    if (Number.isNaN(d.getTime())) return isoLike;
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
+  function buildLineChartSVG(values, dates, color) {
+    const width = 480, height = 200;
+    const padL = 34, padR = 16, padT = 16, padB = 30;
+    const plotW = width - padL - padR, plotH = height - padT - padB;
+    const n = values.length;
+
+    if (n < 2) {
+      return `<div style="color:#9fd8ae;font-size:13px;padding:24px 8px;text-align:center;">
+        Not enough history yet — a new point is recorded every time you save this player's ratings.</div>`;
+    }
+
+    const xAt = (i) => padL + (n === 1 ? plotW / 2 : (i / (n - 1)) * plotW);
+    const yAt = (v) => padT + plotH - (Math.max(0, Math.min(99, v)) / 99) * plotH;
+
+    let svg = `<svg viewBox="0 0 ${width} ${height}" width="100%" style="max-width:${width}px">`;
+
+    [0, 25, 50, 75, 99].forEach((v) => {
+      const y = yAt(v);
+      svg += `<line x1="${padL}" y1="${y}" x2="${width - padR}" y2="${y}" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>`;
+      svg += `<text x="${padL - 8}" y="${y}" fill="#7fae8b" font-size="10" font-family="JetBrains Mono, monospace" text-anchor="end" dominant-baseline="middle">${v}</text>`;
+    });
+
+    const points = values.map((v, i) => [xAt(i), yAt(v)]);
+    const linePts = points.map((p) => p.join(',')).join(' ');
+    const areaPts = `${padL},${padT + plotH} ${linePts} ${width - padR},${padT + plotH}`;
+    svg += `<polygon points="${areaPts}" fill="${color}" fill-opacity="0.15"/>`;
+    svg += `<polyline points="${linePts}" fill="none" stroke="${color}" stroke-width="2.5"/>`;
+
+    points.forEach(([x, y], i) => {
+      svg += `<circle cx="${x}" cy="${y}" r="3.5" fill="${color}"/>`;
+      const labelStep = Math.max(1, Math.ceil(n / 6));
+      if (i === 0 || i === n - 1 || i % labelStep === 0) {
+        svg += `<text x="${x}" y="${height - 8}" fill="#7fae8b" font-size="9.5" font-family="Poppins, sans-serif" text-anchor="middle">${escapeHtml(dates[i])}</text>`;
+      }
+    });
+    const last = points[points.length - 1];
+    svg += `<text x="${last[0]}" y="${last[1] - 10}" fill="${color}" font-size="13" font-weight="700" font-family="JetBrains Mono, monospace" text-anchor="middle">${values[values.length - 1]}</text>`;
 
     svg += '</svg>';
     return svg;
@@ -819,9 +1060,12 @@
     if (state.teams.some((t) => String(t.id) === prev)) sel.value = prev;
   }
 
+  const LINEUP_TYPES = ['defensive', 'balanced', 'attacking'];
+
   document.getElementById('pitchTeamSelect').addEventListener('change', async (e) => {
     const teamId = e.target.value;
     if (!teamId) {
+      document.getElementById('lineupTypeTabs').classList.add('hidden');
       document.getElementById('pitchControls').classList.add('hidden');
       document.getElementById('pitchWrap').classList.add('hidden');
       document.getElementById('pitchEmptyState').classList.remove('hidden');
@@ -830,20 +1074,30 @@
     await loadPitchForTeam(Number(teamId));
   });
 
+  function currentLineup() {
+    return state.pitch.formations[state.pitch.lineupType];
+  }
+
   async function loadPitchForTeam(teamId) {
     const players = state.players.filter((p) => p.team_id === teamId);
-    let formationName = '4-3-3', positions = [];
+    let raw = {};
     try {
       const res = await api('/formations/' + teamId);
-      formationName = res.formation.formation_name || '4-3-3';
-      positions = res.formation.positions || [];
-    } catch (e) { /* no formation yet */ }
+      raw = res.formations || {};
+    } catch (e) { /* fall back to defaults below */ }
 
-    const placed = positions
-      .filter((pos) => players.some((pl) => pl.id === pos.player_id))
-      .map((pos) => ({ player_id: pos.player_id, x: pos.x, y: pos.y }));
+    const formations = {};
+    LINEUP_TYPES.forEach((type) => {
+      const data = raw[type] || { formation_name: '4-3-3', positions: [] };
+      const placed = (data.positions || [])
+        .filter((pos) => players.some((pl) => pl.id === pos.player_id))
+        .map((pos) => ({ player_id: pos.player_id, x: pos.x, y: pos.y }));
+      formations[type] = { formationName: data.formation_name || '4-3-3', placed };
+    });
 
-    state.pitch = { teamId, players, placed, formationName };
+    state.pitch = { teamId, players, lineupType: 'balanced', formations };
+    document.querySelectorAll('.lineup-type-tab').forEach((b) => b.classList.toggle('active', b.dataset.lineup === 'balanced'));
+    document.getElementById('lineupTypeTabs').classList.remove('hidden');
     document.getElementById('pitchControls').classList.remove('hidden');
     document.getElementById('pitchWrap').classList.remove('hidden');
     document.getElementById('pitchEmptyState').classList.add('hidden');
@@ -851,10 +1105,21 @@
     renderPitch();
   }
 
+  document.querySelectorAll('.lineup-type-tab').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (!state.pitch.teamId) return;
+      state.pitch.lineupType = btn.dataset.lineup;
+      document.querySelectorAll('.lineup-type-tab').forEach((b) => b.classList.toggle('active', b === btn));
+      renderFormationButtons();
+      renderPitch();
+    });
+  });
+
   function renderFormationButtons() {
     const wrap = document.getElementById('formationButtons');
+    const activeName = currentLineup().formationName;
     wrap.innerHTML = Object.keys(FORMATIONS).map((name) =>
-      `<button type="button" class="formation-btn ${name === state.pitch.formationName ? 'active' : ''}" data-formation="${name}">${name}</button>`
+      `<button type="button" class="formation-btn ${name === activeName ? 'active' : ''}" data-formation="${name}">${name}</button>`
     ).join('');
     wrap.querySelectorAll('.formation-btn').forEach((btn) => {
       btn.addEventListener('click', () => applyFormation(btn.dataset.formation));
@@ -863,32 +1128,33 @@
 
   function applyFormation(name) {
     const template = FORMATIONS[name];
+    const lineup = currentLineup();
     const allPlayers = state.pitch.players;
-    const currentlyPlaced = state.pitch.placed.map((p) => p.player_id);
+    const currentlyPlaced = lineup.placed.map((p) => p.player_id);
     const bench = allPlayers.filter((p) => !currentlyPlaced.includes(p.id));
-    const ordered = state.pitch.placed.map((p) => p.player_id).concat(bench.map((p) => p.id));
-    const placed = ordered.slice(0, template.length).map((playerId, i) => ({
+    const ordered = lineup.placed.map((p) => p.player_id).concat(bench.map((p) => p.id));
+    lineup.placed = ordered.slice(0, template.length).map((playerId, i) => ({
       player_id: playerId, x: template[i].x, y: template[i].y,
     }));
-    state.pitch.placed = placed;
-    state.pitch.formationName = name;
+    lineup.formationName = name;
     document.querySelectorAll('.formation-btn').forEach((b) => b.classList.toggle('active', b.dataset.formation === name));
     renderPitch();
   }
 
   document.getElementById('clearPitchBtn').addEventListener('click', () => {
-    state.pitch.placed = [];
+    currentLineup().placed = [];
     renderPitch();
   });
 
   document.getElementById('saveFormationBtn').addEventListener('click', async (e) => {
     const btn = e.target;
+    const lineup = currentLineup();
     try {
-      await api('/formations/' + state.pitch.teamId, {
+      await api(`/formations/${state.pitch.teamId}/${state.pitch.lineupType}`, {
         method: 'PUT',
         body: {
-          formation_name: state.pitch.formationName,
-          positions: state.pitch.placed.map((p) => ({ player_id: p.player_id, x: p.x, y: p.y })),
+          formation_name: lineup.formationName,
+          positions: lineup.placed.map((p) => ({ player_id: p.player_id, x: p.x, y: p.y })),
         },
       });
       const original = btn.textContent;
@@ -914,11 +1180,12 @@
     const benchWrap = document.getElementById('pitchBenchList');
     slotsWrap.innerHTML = '';
     benchWrap.innerHTML = '';
+    const lineup = currentLineup();
 
-    const placedIds = state.pitch.placed.map((p) => p.player_id);
+    const placedIds = lineup.placed.map((p) => p.player_id);
     const bench = state.pitch.players.filter((p) => !placedIds.includes(p.id));
 
-    state.pitch.placed.forEach((pos) => {
+    lineup.placed.forEach((pos) => {
       const player = state.pitch.players.find((pl) => pl.id === pos.player_id);
       if (!player) return;
       const chip = document.createElement('div');
@@ -936,7 +1203,7 @@
       removeEl.innerHTML = '&times;';
       removeEl.addEventListener('click', (ev) => {
         ev.stopPropagation();
-        state.pitch.placed = state.pitch.placed.filter((x) => x.player_id !== player.id);
+        lineup.placed = lineup.placed.filter((x) => x.player_id !== player.id);
         renderPitch();
       });
       chip.appendChild(removeEl);
@@ -991,13 +1258,14 @@
         const rect = board.getBoundingClientRect();
         const overPitch = ev.clientX >= rect.left && ev.clientX <= rect.right && ev.clientY >= rect.top && ev.clientY <= rect.bottom;
 
+        const lineup = currentLineup();
         if (overPitch) {
           const x = Math.max(2, Math.min(98, ((ev.clientX - rect.left) / rect.width) * 100));
           const y = Math.max(2, Math.min(98, ((ev.clientY - rect.top) / rect.height) * 100));
-          state.pitch.placed = state.pitch.placed.filter((pl) => pl.player_id !== playerId);
-          state.pitch.placed.push({ player_id: playerId, x, y });
+          lineup.placed = lineup.placed.filter((pl) => pl.player_id !== playerId);
+          lineup.placed.push({ player_id: playerId, x, y });
         } else if (type === 'chip') {
-          state.pitch.placed = state.pitch.placed.filter((pl) => pl.player_id !== playerId);
+          lineup.placed = lineup.placed.filter((pl) => pl.player_id !== playerId);
         }
         renderPitch();
       }

@@ -15,6 +15,7 @@ db.exec(`
     name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
+    photo TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
@@ -33,6 +34,7 @@ db.exec(`
     coach_id INTEGER NOT NULL REFERENCES coaches(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     color TEXT NOT NULL DEFAULT '#4AFF3F',
+    parent_password_hash TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
@@ -59,10 +61,20 @@ db.exec(`
 
   CREATE TABLE IF NOT EXISTS formations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    team_id INTEGER NOT NULL UNIQUE REFERENCES teams(id) ON DELETE CASCADE,
+    team_id INTEGER NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+    lineup_type TEXT NOT NULL DEFAULT 'balanced',
     formation_name TEXT NOT NULL DEFAULT '4-3-3',
     positions TEXT NOT NULL DEFAULT '[]',
-    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(team_id, lineup_type)
+  );
+
+  CREATE TABLE IF NOT EXISTS player_progress (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    player_id INTEGER NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+    overall INTEGER NOT NULL,
+    attributes_json TEXT NOT NULL,
+    recorded_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 `);
 
@@ -75,6 +87,31 @@ function ensureColumn(table, column, definition) {
 ensureColumn('players', 'nationality', 'TEXT');
 ensureColumn('players', 'parent_email', 'TEXT');
 ensureColumn('players', 'parent_phone', 'TEXT');
+ensureColumn('coaches', 'photo', 'TEXT');
+ensureColumn('teams', 'parent_password_hash', 'TEXT');
+
+function migrateFormationsTable() {
+  const cols = db.prepare('PRAGMA table_info(formations)').all().map((c) => c.name);
+  if (cols.includes('lineup_type')) return;
+  db.exec(`
+    ALTER TABLE formations RENAME TO formations_old;
+    CREATE TABLE formations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      team_id INTEGER NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+      lineup_type TEXT NOT NULL DEFAULT 'balanced',
+      formation_name TEXT NOT NULL DEFAULT '4-3-3',
+      positions TEXT NOT NULL DEFAULT '[]',
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      UNIQUE(team_id, lineup_type)
+    );
+    INSERT INTO formations (team_id, lineup_type, formation_name, positions, updated_at)
+      SELECT team_id, 'balanced', formation_name, positions, updated_at FROM formations_old;
+    DROP TABLE formations_old;
+  `);
+}
+migrateFormationsTable();
+
+const LINEUP_TYPES = ['defensive', 'balanced', 'attacking'];
 
 const DEFAULT_ATTRIBUTES = ['Pace', 'Shooting', 'Passing', 'Dribbling', 'Defending', 'Physical'];
 
@@ -94,4 +131,17 @@ function seedDefaultAttributes(coachId) {
   seedAll();
 }
 
-module.exports = { db, slugify, seedDefaultAttributes, DEFAULT_ATTRIBUTES };
+function recordPlayerProgress(playerId, overall, attributes) {
+  db.prepare(
+    'INSERT INTO player_progress (player_id, overall, attributes_json) VALUES (?, ?, ?)'
+  ).run(playerId, overall, JSON.stringify(attributes));
+}
+
+module.exports = {
+  db,
+  slugify,
+  seedDefaultAttributes,
+  DEFAULT_ATTRIBUTES,
+  LINEUP_TYPES,
+  recordPlayerProgress,
+};

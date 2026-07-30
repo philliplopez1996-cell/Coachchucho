@@ -28,15 +28,22 @@ The SQLite database file is created automatically at `server/data/coachchucho.sq
 
 ### What's in the app
 
-- **Sign up / log in** — each coach has their own account (name, email, password).
+- **Sign up / log in** — each coach has their own account (name, email, password, profile photo).
 - **Side menu** (top-left hamburger) — Coach Profile and FAQs.
-- **Coach Profile** — edit name/email/password, plus add or delete the custom attributes
+- **Coach Profile** — edit name/email/password/photo, plus add or delete the custom attributes
   (Pace, Shooting, Passing, Dribbling, Defending, Physical by default) used on every player card
   and the radar chart.
-- **Roster tab** — team folders, each holding FIFA-style player cards. Tap a card to view its radar
-  chart and full attribute breakdown, or tap the pencil icon to edit name/number/position/photo and
-  attribute ratings.
+- **Roster tab** — team folders, each holding FIFA-style player cards, with search/filter (by
+  position) and sort (name, overall, number, position). Tap a card to view its radar chart, full
+  attribute breakdown, and progress-over-time chart, or tap the pencil icon to edit
+  name/number/position/nationality/photo/parent contact info/attribute ratings, and to move a
+  player to a different team.
 - **Roster Radar tab** — pick any two players for an overlaid radar chart and a side-by-side stat
   comparison with the higher value highlighted.
-- **Tactical Pitch tab** — pick a team, apply a formation (4-3-3, 4-4-2, 4-2-3-1, 3-5-2, 4-1-4-1), and
-  drag players between the bench and the pitch. Save to persist the lineup per team.
+- **Tactical Pitch tab** — pick a team and a lineup type (Defensive / Balanced / Attacking — each
+  saved independently), apply a formation (4-3-3, 4-4-2, 4-2-3-1, 3-5-2, 4-1-4-1), and drag players
+  between the bench and the pitch as small tiered mini-cards. Save to persist that lineup.
+- **Parent portal** — a separate "Parent" login on the auth screen. A coach sets a shared parent
+  password per team (in the team's edit modal); parents log in with their own email (matched
+  against the parent email on file) plus that password, and see a read-only view of just their own
+  child's card, radar, and progress chart — no roster, tactics, or other players' data.
