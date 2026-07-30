@@ -1,10 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Coach Chucho Elite Training</title>
-  <style>
     /* Fonts embedded inline so the page never depends on an external font CDN */
     @font-face {
       font-family: 'Poppins';
@@ -193,6 +186,11 @@
       border-color: rgba(255,103,102,0.3);
       color: var(--lime);
     }
+    .nav-item.active {
+      background: rgba(255,103,102,0.15);
+      border-color: rgba(255,103,102,0.4);
+      color: var(--lime);
+    }
     .nav-item .icon {
       font-size: 22px;
       width: 32px;
@@ -297,6 +295,78 @@
       padding: 36px 40px;
       background: rgba(0,0,0,0.5);
       text-align: center;
+    }
+    .program-group {
+      margin-bottom: 56px;
+    }
+    .program-group:last-child {
+      margin-bottom: 0;
+    }
+    .program-desc {
+      max-width: 620px;
+      margin: 0 auto 24px;
+      color: #FFB173;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .eval-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      max-width: 1000px;
+      margin: 0 auto 48px;
+      padding: 28px 32px;
+      background: rgba(255,227,179,0.08);
+      border: 2px solid rgba(255,227,179,0.4);
+      border-radius: 16px;
+      box-shadow: 0 0 30px rgba(255,227,179,0.15);
+      text-align: left;
+    }
+    .eval-banner h3 {
+      font-family: 'Big Shoulders Display', sans-serif;
+      font-weight: 900;
+      font-size: 18px;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .eval-banner p {
+      font-size: 13px;
+      color: #FFB173;
+      line-height: 1.6;
+      max-width: 520px;
+    }
+    .eval-price {
+      flex-shrink: 0;
+      text-align: center;
+    }
+    .eval-price .price-total {
+      font-size: 30px;
+    }
+    .eval-price .price-btn {
+      width: auto;
+      padding: 10px 20px;
+      white-space: nowrap;
+    }
+    .cta-btn {
+      display: inline-block;
+      padding: 14px 32px;
+      background: linear-gradient(135deg, var(--gold), var(--lime));
+      color: var(--dark);
+      border: none;
+      border-radius: 10px;
+      font-weight: 900;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .cta-btn:hover {
+      box-shadow: 0 0 30px rgba(255,103,102,0.6);
+      transform: translateY(-2px);
     }
     .section-title {
       font-family: 'Oswald', sans-serif;
@@ -485,69 +555,45 @@
     }
     .testi-card.expanded .testi-read { display: none; }
 
-    /* ── CONTENT PANEL (for About, FAQ, Videos) ── */
-    .panel {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      z-index: 600;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0,0,0,0.75);
-      backdrop-filter: blur(6px);
-    }
-    .panel.show { display: flex; }
-    .panel-box {
-      background: rgba(13,18,40,0.97);
-      border: 2px solid rgba(255,103,102,0.3);
-      border-radius: 20px;
-      padding: 48px;
-      max-width: 700px;
-      width: 90%;
-      max-height: 80vh;
-      overflow-y: auto;
-      animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
-    }
     @keyframes popIn {
       from { transform: scale(0.85); opacity: 0; }
       to { transform: scale(1); opacity: 1; }
     }
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 28px;
-      padding-bottom: 16px;
-      border-bottom: 2px solid rgba(255,103,102,0.2);
+
+    /* ── DEDICATED PAGE HEADER (About / FAQ / Programs) ── */
+    .page-hero {
+      padding: 140px 40px 30px;
+      text-align: center;
+      background: rgba(0,0,0,0.5);
     }
-    .panel-header h2 {
+    .page-title {
       font-family: 'Big Shoulders Display', sans-serif;
       font-weight: 900;
-      font-size: 24px;
+      font-size: clamp(28px, 5vw, 42px);
       color: var(--lime);
       text-transform: uppercase;
+      margin-bottom: 12px;
     }
-    .close-btn {
-      background: none;
-      border: none;
-      color: var(--gold);
-      font-size: 30px;
-      cursor: pointer;
-      transition: all 0.2s;
+    .page-subtitle {
+      color: #FFB173;
+      font-size: 15px;
+      max-width: 620px;
+      margin: 0 auto;
+      line-height: 1.6;
     }
-    .close-btn:hover {
-      color: var(--lime);
-      transform: scale(1.2);
+    .page-content {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 40px 40px 90px;
     }
-    .panel-body p {
+    .page-content p {
       font-size: 15px;
       line-height: 1.85;
       color: #FFB173;
       margin-bottom: 16px;
     }
 
-    /* FAQ in panel */
+    /* FAQ */
     .faq-item {
       background: rgba(255,255,255,0.06);
       border: 1px solid rgba(255,255,255,0.12);
@@ -721,6 +767,9 @@
       .hero { padding: 80px 20px 30px; }
       .pricing-home, .testimonials-home { padding: 35px 18px; }
       .form-row { grid-template-columns: 1fr; }
+      .eval-banner { flex-direction: column; text-align: center; }
+      .eval-banner p { max-width: 100%; }
+      .page-hero { padding: 120px 20px 25px; }
       
       /* Ensure images don't overflow on mobile */
       img {
@@ -770,306 +819,3 @@
         -webkit-line-clamp: 2;
       }
     }
-  </style>
-</head>
-<body>
-
-<!-- PARALLAX GLOW ORBS -->
-<div class="glow-orb orb-1" aria-hidden="true"></div>
-<div class="glow-orb orb-2" aria-hidden="true"></div>
-
-<!-- HAMBURGER -->
-<button class="hamburger" id="menuBtn" onclick="toggleMenu()">
-  <span></span><span></span><span></span>
-</button>
-
-<!-- SIDEBAR -->
-<div class="sidebar" id="sidebar">
-  <a class="nav-item" onclick="closeMenu()">
-    <span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span> Home
-  </a>
-  <a class="nav-item" onclick="openPanel('about')">
-    <span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/><circle cx="5" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="19" cy="5" r="1"/><circle cx="19" cy="19" r="1"/><circle cx="5" cy="5" r="1"/><circle cx="5" cy="19" r="1"/></svg></span> About Me
-  </a>
-  <a class="nav-item" onclick="openPanel('faq')">
-    <span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></span> FAQ
-  </a>
-</div>
-<div class="overlay" id="overlay" onclick="closeMenu()"></div>
-
-<!-- MAIN PAGE -->
-<div class="page">
-
-  <!-- HERO -->
-  <section class="hero">
-    <h1>Coach Chucho<br>Elite Training</h1>
-    <p class="tagline">Private soccer coaching for young players</p>
-    <p class="creds">U-6 through U-16</p>
-    <div class="stats">
-      <div class="stat-card">
-        <div class="stat-number">20+</div>
-        <div class="stat-label">Years playing</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number">3+</div>
-        <div class="stat-label">Years coaching</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-number">100%</div>
-        <div class="stat-label">Dedicated</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- PRICING -->
-  <section class="pricing-home reveal">
-    <h2 class="section-title">Choose your plan</h2>
-    <div class="pricing-grid">
-      <div class="price-card">
-        <div class="price-icon"><svg class="price-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2L4.5 13.5H11L10 22L20 9.5H13.5L13 2Z" stroke="#CA2851" stroke-width="1.8" stroke-linejoin="round" fill="none"/></svg></div>
-        <h3>Single session</h3>
-        <div class="price-total">$40</div>
-        <div class="price-per">per hour</div>
-        <ul class="price-features">
-          <li>✓ 15-minute increments</li>
-          <li>✓ Flexible scheduling</li>
-          <li>✓ Personal attention</li>
-        </ul>
-        <button class="price-btn" onclick="openModal('Single Session — $40/hr')">Book now</button>
-      </div>
-      <div class="price-card featured">
-        <div class="price-badge">Popular</div>
-        <div class="price-icon"><svg class="price-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L3 6V12C3 16.5 7 20.7 12 22C17 20.7 21 16.5 21 12V6L12 2Z" stroke="#FFE3B3" stroke-width="1.8" stroke-linejoin="round" fill="none"/></svg></div>
-        <h3>5-session plan</h3>
-        <div class="price-total">$175</div>
-        <div class="price-per">$35 per session</div>
-        <ul class="price-features">
-          <li>✓ Save $25 total</li>
-          <li>✓ Consistent progress</li>
-          <li>✓ Personalized plan</li>
-        </ul>
-        <button class="price-btn" onclick="openModal('5-Session Plan — $175')">Get started</button>
-      </div>
-      <div class="price-card">
-        <div class="price-icon"><svg class="price-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polygon points="12,2 15.1,8.5 22,9.5 17,14.4 18.2,21.3 12,18 5.8,21.3 7,14.4 2,9.5 8.9,8.5" stroke="#FF6766" stroke-width="1.8" stroke-linejoin="round" fill="none"/></svg></div>
-        <h3>10-session plan</h3>
-        <div class="price-total">$330</div>
-        <div class="price-per">$33 per session</div>
-        <ul class="price-features">
-          <li>✓ Save $70 total</li>
-          <li>✓ Best value</li>
-          <li>✓ Long-term gains</li>
-        </ul>
-        <button class="price-btn" onclick="openModal('10-Session Plan — $330')">Reserve yours</button>
-      </div>
-    </div>
-    <div style="text-align: center; margin-top: 32px; padding: 20px; background: rgba(255,103,102,0.08); border: 1px solid rgba(255,103,102,0.2); border-radius: 12px;">
-      <p style="font-size: 15px; color: var(--gold); font-weight: 600;">50% deposit required to complete booking</p>
-    </div>
-  </section>
-
-  <!-- TESTIMONIALS -->
-  <section class="testimonials-home reveal">
-    <h2 class="section-title">What parents are saying</h2>
-    <div class="testi-grid">
-      <div class="testi-card" onclick="this.classList.toggle('expanded')">
-        <div class="stars">★★★★★</div>
-        <div class="testi-preview">"Coach Chucho transformed my son's confidence on the field..."</div>
-        <div class="testi-full">"Coach Chucho transformed my son's confidence on the field. His technique is incredible and he makes every session fun."</div>
-        <div class="testi-author">— Maria S., Parent</div>
-        <span class="testi-read">Read more</span>
-      </div>
-      <div class="testi-card" onclick="this.classList.toggle('expanded')">
-        <div class="stars">★★★★★</div>
-        <div class="testi-preview">"Best investment in my daughter's soccer development..."</div>
-        <div class="testi-full">"Best investment in my daughter's soccer development. She's improved so much in just a few months. Highly recommend!"</div>
-        <div class="testi-author">— James T., Parent</div>
-        <span class="testi-read">Read more</span>
-      </div>
-      <div class="testi-card" onclick="this.classList.toggle('expanded')">
-        <div class="stars">★★★★★</div>
-        <div class="testi-preview">"Coach Chucho is patient, knowledgeable, and really cares..."</div>
-        <div class="testi-full">"Coach Chucho is patient, knowledgeable, and really cares about each player's growth. Our kids ask to go to practice every week!"</div>
-        <div class="testi-author">— Lisa M., Parent</div>
-        <span class="testi-read">Read more</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- SOCIALS -->
-  <section class="socials reveal">
-    <a href="#" class="social-btn" title="Instagram">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="2" y="2" width="20" height="20" rx="5"/>
-        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-        <circle cx="17.5" cy="6.5" r="1.5"/>
-      </svg>
-    </a>
-    <a href="#" class="social-btn" title="TikTok">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/>
-      </svg>
-    </a>
-  </section>
-</div>
-
-<!-- PANELS (About / FAQ) -->
-<div class="panel" id="panel-about">
-  <div class="panel-box">
-    <div class="panel-header">
-      <h2>About Coach Chucho</h2>
-      <button class="close-btn" onclick="closePanel('about')">&times;</button>
-    </div>
-    <div class="panel-body">
-      <p>With over 20 years of playing experience and 3+ years of coaching at the academy, SSCL, and high school levels, I bring professional expertise and passion to every session.</p>
-      <p>I work with all skill levels and focus on building confidence, technical skills, and tactical awareness in every player. Every session is personalized to your child's goals.</p>
-      <p>My experience spans all age groups from U-6 through U-16, ensuring every player gets exactly what they need to improve and grow.</p>
-    </div>
-  </div>
-</div>
-
-<div class="panel" id="panel-faq">
-  <div class="panel-box">
-    <div class="panel-header">
-      <h2>Frequently asked questions</h2>
-      <button class="close-btn" onclick="closePanel('faq')">&times;</button>
-    </div>
-    <div class="panel-body">
-      <div class="faq-item open">
-        <div class="faq-q"><span>What age groups do you coach?</span><span class="faq-arrow">▼</span></div>
-        <div class="faq-a">I coach players from U-6 through U-16. Whether your child is just learning or training competitively, I have programs tailored to their level.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q"><span>How long are sessions?</span><span class="faq-arrow">▼</span></div>
-        <div class="faq-a">One session is 75 minutes. Sessions are flexible and billed in 15-minute increments as needed.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q"><span>Where do sessions take place?</span><span class="faq-arrow">▼</span></div>
-        <div class="faq-a">Sessions are held at two main field locations in the area. You'll select your preferred field when booking.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q"><span>Can I buy sessions to use later?</span><span class="faq-arrow">▼</span></div>
-        <div class="faq-a">Yes! The 5-session and 10-session plans don't expire so you can use them at your own pace.</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q"><span>What if my child is a beginner?</span><span class="faq-arrow">▼</span></div>
-        <div class="faq-a">No problem! I work with all skill levels and will create a personalized training plan for your child.</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- BOOKING MODAL -->
-<div class="modal" id="bookingModal">
-  <div class="modal-box">
-    <div class="modal-title">Book Now</div>
-    <div class="modal-plan" id="planLabel"></div>
-    <form onsubmit="submitBooking(event)">
-      <div class="form-row">
-        <div class="form-grp">
-          <label>Your name</label>
-          <input type="text" id="parentName" placeholder="John Doe" required>
-        </div>
-        <div class="form-grp">
-          <label>Kid's name</label>
-          <input type="text" id="kidsName" placeholder="Alex" required>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-grp">
-          <label>Kid's age</label>
-          <input type="number" id="kidsAge" placeholder="10" min="1" max="20" required>
-        </div>
-        <div class="form-grp">
-          <label>Phone number</label>
-          <input type="tel" id="phone" placeholder="(555) 123-4567" required>
-        </div>
-      </div>
-      <div class="form-grp">
-        <label>Email</label>
-        <input type="email" id="email" placeholder="you@email.com" required>
-      </div>
-      <div class="form-grp">
-        <label>Position(s) played</label>
-        <input type="text" id="positions" placeholder="e.g., Forward, Midfielder" required>
-      </div>
-      <div class="form-grp">
-        <label>Additional notes</label>
-        <textarea id="notes" placeholder="Any injuries, goals, or special requests..." style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,103,102,0.2); border-radius: 8px; font-family: 'Poppins', sans-serif; color: #FFB173; font-size: 14px; resize: vertical; min-height: 80px;"></textarea>
-      </div>
-      <div style="background: rgba(255,103,102,0.1); border: 1px solid rgba(255,103,102,0.3); border-radius: 8px; padding: 12px; margin-bottom: 18px; font-size: 13px; color: var(--gold); text-align: center;">
-        <strong>50% deposit required</strong> to complete this booking
-      </div>
-      <div class="modal-actions">
-        <button type="submit" class="send-btn">Send inquiry</button>
-        <button type="button" class="cancel-btn" onclick="closeModal()">Cancel</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<script>
-  function toggleMenu() {
-    document.getElementById('sidebar').classList.toggle('open');
-    document.getElementById('overlay').classList.toggle('show');
-  }
-  function closeMenu() {
-    document.getElementById('sidebar').classList.remove('open');
-    document.getElementById('overlay').classList.remove('show');
-  }
-  function openPanel(id) {
-    closeMenu();
-    document.getElementById('panel-' + id).classList.add('show');
-  }
-  function closePanel(id) {
-    document.getElementById('panel-' + id).classList.remove('show');
-  }
-  function openModal(plan) {
-    document.getElementById('planLabel').textContent = plan;
-    document.getElementById('bookingModal').classList.add('show');
-  }
-  function closeModal() {
-    document.getElementById('bookingModal').classList.remove('show');
-  }
-  function submitBooking(e) {
-    e.preventDefault();
-    const name = document.getElementById('parentName').value;
-    alert('Thank you ' + name + '! Your inquiry has been sent. We will be in touch soon!');
-    e.target.reset();
-    closeModal();
-  }
-  document.getElementById('bookingModal').addEventListener('click', function(e) {
-    if (e.target === this) closeModal();
-  });
-  document.querySelectorAll('.faq-q').forEach(q => {
-    q.addEventListener('click', () => q.closest('.faq-item').classList.toggle('open'));
-  });
-
-  // Parallax glow orbs — drift at different rates as the page scrolls
-  const orb1 = document.querySelector('.orb-1');
-  const orb2 = document.querySelector('.orb-2');
-  let ticking = false;
-  window.addEventListener('scroll', () => {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(() => {
-      const y = window.scrollY;
-      orb1.style.transform = `translateY(${y * 0.18}px)`;
-      orb2.style.transform = `translateY(${y * -0.12}px)`;
-      ticking = false;
-    });
-  }, { passive: true });
-
-  // Scroll reveal — sections fade/slide in as they enter the viewport
-  const revealObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('in-view');
-        revealObserver.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.15 });
-  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
-</script>
-</body>
-</html>
