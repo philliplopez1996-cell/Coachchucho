@@ -233,9 +233,15 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
 
 .pc-name { font-weight: 800; font-size: 13px; text-align: center; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 8px; }
 .pc-divider { width: 70%; height: 1px; background: rgba(0,0,0,0.25); margin-bottom: 6px; }
-.pc-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px; width: 100%; font-family: 'JetBrains Mono', monospace; }
-.pc-stat { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; }
-.pc-stat-label { opacity: 0.75; }
+.pc-stats {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 3px 10px; width: 100%; font-family: 'JetBrains Mono', monospace;
+  background: rgba(0,0,0,0.32); border-radius: 8px; padding: 6px 8px;
+}
+.pc-stat { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 700; }
+.pc-stat-label { color: rgba(255,255,255,0.85); }
+.pc-stat-value { display: flex; align-items: center; gap: 3px; color: var(--lime); font-weight: 800; }
+.attr-icon { flex-shrink: 0; }
+.pc-stat-value .attr-icon { width: 10px; height: 10px; }
 
 /* ============ MODALS ============ */
 .modal {
@@ -333,8 +339,9 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
 
 .big-attrs { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
 .big-attr-row { display: flex; flex-direction: column; gap: 6px; }
-.big-attr-top { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: #dff5e4; }
-.big-attr-value { font-family: 'JetBrains Mono', monospace; color: var(--gold); }
+.big-attr-top { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; color: #dff5e4; }
+.big-attr-value { display: flex; align-items: center; gap: 5px; font-family: 'JetBrains Mono', monospace; color: var(--gold); }
+.big-attr-value .attr-icon { width: 13px; height: 13px; }
 .big-attr-bar-track { height: 8px; border-radius: 6px; background: rgba(255,255,255,0.1); overflow: hidden; }
 .big-attr-bar-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--lime), var(--cyan)); }
 

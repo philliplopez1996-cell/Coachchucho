@@ -135,6 +135,22 @@
     return String(name || '').trim().slice(0, 3).toUpperCase();
   }
 
+  const ATTRIBUTE_ICON_PATHS = {
+    pace: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+    shooting: '<circle cx="12" cy="12" r="9"/><line x1="21" y1="12" x2="17" y2="12"/><line x1="7" y1="12" x2="3" y2="12"/><line x1="12" y1="3" x2="12" y2="7"/><line x1="12" y1="21" x2="12" y2="17"/>',
+    passing: '<line x1="4" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/>',
+    dribbling: '<polyline points="22 12 18 12 15 20 9 4 6 12 2 12"/>',
+    defending: '<path d="M12 21s7-3.5 7-9V6l-7-3-7 3v6c0 5.5 7 9 7 9z"/>',
+    physical: '<rect x="1" y="9" width="3" height="6" rx="1"/><rect x="20" y="9" width="3" height="6" rx="1"/><rect x="4" y="10" width="2.5" height="4"/><rect x="17.5" y="10" width="2.5" height="4"/><line x1="6.5" y1="12" x2="17.5" y2="12"/>',
+  };
+  const ATTRIBUTE_ICON_FALLBACK = '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>';
+
+  function attributeIconSvg(name) {
+    const key = String(name || '').trim().toLowerCase();
+    const inner = ATTRIBUTE_ICON_PATHS[key] || ATTRIBUTE_ICON_FALLBACK;
+    return `<svg class="attr-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+  }
+
   /* ============================================================
      AUTH FLOW
   ============================================================ */
@@ -616,7 +632,7 @@
       <div class="pc-name">${escapeHtml(player.name)}</div>
       <div class="pc-divider"></div>
       <div class="pc-stats">
-        ${shown.map((a) => `<div class="pc-stat"><span class="pc-stat-label">${abbr(a.name)}</span><span>${a.value}</span></div>`).join('')}
+        ${shown.map((a) => `<div class="pc-stat"><span class="pc-stat-label">${abbr(a.name)}</span><span class="pc-stat-value">${attributeIconSvg(a.name)}${a.value}</span></div>`).join('')}
       </div>`;
     card.addEventListener('click', () => openPlayerModal(player.id));
     return card;
@@ -719,7 +735,7 @@
     const bigAttrs = document.getElementById('bigAttrs');
     bigAttrs.innerHTML = player.attributes.map((a) => `
       <div class="big-attr-row">
-        <div class="big-attr-top"><span>${escapeHtml(a.name)}</span><span class="big-attr-value">${a.value}</span></div>
+        <div class="big-attr-top"><span>${escapeHtml(a.name)}</span><span class="big-attr-value">${attributeIconSvg(a.name)}${a.value}</span></div>
         <div class="big-attr-bar-track"><div class="big-attr-bar-fill" style="width:${a.value}%"></div></div>
       </div>`).join('');
 
