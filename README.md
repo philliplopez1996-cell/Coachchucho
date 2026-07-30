@@ -1,6 +1,6 @@
-# Photography Portfolio
+# Photography Portfolio — "35mm"
 
-A minimal, gallery-style photography portfolio site. Pure HTML/CSS/JS — no build step, no dependencies.
+A high-contrast, film-canister-inspired photography portfolio site: black ground, Kodak-yellow accent, sprocket holes, frame counters. Pure HTML/CSS/JS — no build step, no dependencies.
 
 ## Structure
 
@@ -23,7 +23,8 @@ Every photo slot right now is a placeholder tile (a gray diagonal pattern with a
 
 ## Customizing
 
-- **Site name**: currently "Aperture" — replace it in the `.brand` link in the `<header>` of each page.
+- **Site name**: currently "35mm" — replace it in the `.brand` link in the `<header>` of each page, and in `.footer-brand`.
+- **Colors**: black `#000000`, off-white `#f5f3ec`, Kodak yellow `#ffc72c` — defined as CSS custom properties at the top of `assets/css/style.css` (`--black`, `--paper`, `--yellow`).
 - **Categories**: currently Portraits / Landscapes / Street / Travel. Update the filter buttons in `portfolio.html` and the `data-category` attribute on each `.portfolio-item` to match your own categories.
 - **Bio**: edit the text in `about.html`.
 - **Contact email / social links**: replace `hello@example.com` and the Instagram/500px links in the footer and about page.

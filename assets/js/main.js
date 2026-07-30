@@ -15,6 +15,13 @@ if (navToggle && mainNav) {
 // Portfolio category filter
 const filterButtons = document.querySelectorAll('.filter-btn');
 const portfolioItems = document.querySelectorAll('.portfolio-item');
+const frameCount = document.querySelector('.frame-count');
+
+function updateFrameCount() {
+  if (!frameCount) return;
+  const visible = document.querySelectorAll('.portfolio-item:not(.hidden)').length;
+  frameCount.textContent = `${visible} FRAME${visible === 1 ? '' : 'S'}`;
+}
 
 filterButtons.forEach((btn) => {
   btn.addEventListener('click', () => {
@@ -27,8 +34,12 @@ filterButtons.forEach((btn) => {
       const match = category === 'all' || item.dataset.category === category;
       item.classList.toggle('hidden', !match);
     });
+
+    updateFrameCount();
   });
 });
+
+updateFrameCount();
 
 // Lightbox
 const lightbox = document.querySelector('.lightbox');
@@ -59,8 +70,10 @@ if (lightbox) {
   function renderLightbox() {
     const item = activeItems[activeIndex];
     const label = item.querySelector('.ph-tile').dataset.label;
+    const frame = String(activeIndex + 1).padStart(2, '0');
+    const total = String(activeItems.length).padStart(2, '0');
     lightboxTile.dataset.label = label;
-    lightboxCaption.textContent = label;
+    lightboxCaption.textContent = `FRAME ${frame} / ${total} — ${label}`;
   }
 
   function step(delta) {
