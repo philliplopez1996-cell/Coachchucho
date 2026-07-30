@@ -49,10 +49,13 @@
 
     /* ── ABOUT PAGE HERO PHOTO ── */
     .page-hero.with-photo {
-      min-height: 48vh;
+      aspect-ratio: 1800 / 1012;
+      min-height: 0;
+      padding-top: 40px;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-end;
+      align-items: center;
       background:
         radial-gradient(circle at 18% 12%, rgba(198,255,61,0.12), transparent 45%),
         linear-gradient(180deg, rgba(6,6,6,0.35) 0%, rgba(8,8,8,0.55) 55%, rgba(10,10,10,0.88) 100%),
