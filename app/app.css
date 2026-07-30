@@ -320,7 +320,7 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
 .pc-ovr {
   font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 32px;
   text-shadow: 0 0 12px rgba(255,215,0,1), 0 0 24px rgba(255,215,0,0.7), 0 0 40px rgba(255,215,0,0.4), 0 0 60px rgba(255,215,0,0.2);
-  color: #FFD700;
+  color: #FFFFFF;
   line-height: 1;
 }
 .pc-pos { font-size: 11px; font-weight: 700; margin-top: 4px; letter-spacing: 0.5px; }
