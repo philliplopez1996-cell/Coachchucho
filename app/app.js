@@ -8,6 +8,30 @@
   const POSITIONS = ['GK', 'LB', 'CB', 'RB', 'CDM', 'CM', 'CAM', 'LM', 'RM', 'LW', 'RW', 'ST'];
   const TEAM_COLORS = ['#4AFF3F', '#00D9FF', '#FFD700', '#FF6B35', '#FF3F8E', '#8B5CF6', '#3F8CFF'];
 
+  const COUNTRIES = [
+    ['United States', 'US'], ['Mexico', 'MX'], ['Canada', 'CA'], ['Brazil', 'BR'], ['Argentina', 'AR'],
+    ['Colombia', 'CO'], ['Venezuela', 'VE'], ['Chile', 'CL'], ['Peru', 'PE'], ['Ecuador', 'EC'],
+    ['Uruguay', 'UY'], ['Paraguay', 'PY'], ['Bolivia', 'BO'], ['Honduras', 'HN'], ['El Salvador', 'SV'],
+    ['Guatemala', 'GT'], ['Nicaragua', 'NI'], ['Costa Rica', 'CR'], ['Panama', 'PA'],
+    ['Dominican Republic', 'DO'], ['Puerto Rico', 'PR'], ['Cuba', 'CU'], ['Jamaica', 'JM'],
+    ['Haiti', 'HT'], ['Spain', 'ES'], ['Portugal', 'PT'], ['England', 'GB'], ['Scotland', 'GB'],
+    ['Wales', 'GB'], ['Ireland', 'IE'], ['France', 'FR'], ['Germany', 'DE'], ['Italy', 'IT'],
+    ['Netherlands', 'NL'], ['Belgium', 'BE'], ['Switzerland', 'CH'], ['Austria', 'AT'],
+    ['Sweden', 'SE'], ['Norway', 'NO'], ['Denmark', 'DK'], ['Poland', 'PL'], ['Croatia', 'HR'],
+    ['Serbia', 'RS'], ['Greece', 'GR'], ['Turkey', 'TR'], ['Ukraine', 'UA'], ['Russia', 'RU'],
+    ['Morocco', 'MA'], ['Algeria', 'DZ'], ['Tunisia', 'TN'], ['Egypt', 'EG'], ['Nigeria', 'NG'],
+    ['Ghana', 'GH'], ['Senegal', 'SN'], ['Ivory Coast', 'CI'], ['Cameroon', 'CM'],
+    ['South Africa', 'ZA'], ['Japan', 'JP'], ['South Korea', 'KR'], ['China', 'CN'], ['India', 'IN'],
+    ['Philippines', 'PH'], ['Vietnam', 'VN'], ['Australia', 'AU'], ['New Zealand', 'NZ'],
+  ];
+  const COUNTRY_CODE_BY_NAME = Object.fromEntries(COUNTRIES);
+
+  function flagEmoji(countryName) {
+    const code = COUNTRY_CODE_BY_NAME[countryName];
+    if (!code) return '🏳️';
+    return String.fromCodePoint(...[...code.toUpperCase()].map((c) => 127397 + c.charCodeAt(0)));
+  }
+
   const FORMATIONS = {
     '4-3-3': [
       { label: 'GK', x: 6, y: 50 }, { label: 'LB', x: 20, y: 18 }, { label: 'CB', x: 16, y: 40 },
@@ -128,7 +152,6 @@
     document.getElementById('sidebarName').textContent = state.coach.name;
     document.getElementById('sidebarEmail').textContent = state.coach.email;
     document.getElementById('sidebarAvatar').textContent = initials(state.coach.name);
-    document.getElementById('homeCoachName').textContent = state.coach.name.split(' ')[0];
     await loadAll();
   }
 
@@ -195,22 +218,11 @@
     state.attributes = attrsRes.attributes;
     state.teams = teamsRes.teams;
     state.players = playersRes.players;
-    renderHomeStats();
     renderFolders();
     renderPlayerCardsForCurrentTeam();
     renderRadarPickers();
     renderPitchTeamSelect();
     renderAttrList();
-  }
-
-  function renderHomeStats() {
-    document.getElementById('statTeams').textContent = state.teams.length;
-    document.getElementById('statPlayers').textContent = state.players.length;
-    document.getElementById('statAttrs').textContent = state.attributes.length;
-    const avg = state.players.length
-      ? Math.round(state.players.reduce((s, p) => s + p.overall, 0) / state.players.length)
-      : 0;
-    document.getElementById('statAvgOvr').textContent = avg;
   }
 
   /* ============================================================
@@ -267,9 +279,6 @@
   document.querySelectorAll('.bottom-tab').forEach((btn) => {
     btn.addEventListener('click', () => goToTab(btn.dataset.tab));
   });
-  document.querySelectorAll('[data-goto-tab]').forEach((btn) => {
-    btn.addEventListener('click', () => goToTab(btn.dataset.gotoTab));
-  });
 
   /* ============================================================
      COACH PROFILE MODAL
@@ -305,7 +314,6 @@
       document.getElementById('sidebarName').textContent = coach.name;
       document.getElementById('sidebarEmail').textContent = coach.email;
       document.getElementById('sidebarAvatar').textContent = initials(coach.name);
-      document.getElementById('homeCoachName').textContent = coach.name.split(' ')[0];
       document.getElementById('profileCurrentPassword').value = '';
       document.getElementById('profileNewPassword').value = '';
       msgEl.textContent = 'Profile saved!';
@@ -468,6 +476,7 @@
           <div class="pc-ovr">${player.overall}</div>
           <div class="pc-pos">${escapeHtml(player.position)}</div>
         </div>
+        <div class="pc-flag" title="${escapeHtml(player.nationality || '')}">${flagEmoji(player.nationality)}</div>
         <div class="pc-number">${player.number != null ? player.number : '–'}</div>
       </div>
       <div class="pc-photo-wrap">${photoHtml}</div>
@@ -524,6 +533,27 @@
       { color: '#4AFF3F', values: player.attributes.map((a) => ({ name: a.name, value: a.value })) },
     ], 260);
 
+    const infoBox = document.getElementById('playerInfoBox');
+    const emailVal = player.parent_email
+      ? `<a href="mailto:${escapeHtml(player.parent_email)}">${escapeHtml(player.parent_email)}</a>`
+      : '<span class="muted">Not provided</span>';
+    const phoneVal = player.parent_phone
+      ? `<a href="tel:${escapeHtml(player.parent_phone)}">${escapeHtml(player.parent_phone)}</a>`
+      : '<span class="muted">Not provided</span>';
+    infoBox.innerHTML = `
+      <div class="player-info-item">
+        <div class="player-info-label">Nationality</div>
+        <div class="player-info-value">${flagEmoji(player.nationality)} ${escapeHtml(player.nationality) || '<span class="muted">Not set</span>'}</div>
+      </div>
+      <div class="player-info-item">
+        <div class="player-info-label">Parent Email</div>
+        <div class="player-info-value">${emailVal}</div>
+      </div>
+      <div class="player-info-item">
+        <div class="player-info-label">Parent Phone</div>
+        <div class="player-info-value">${phoneVal}</div>
+      </div>`;
+
     const bigAttrs = document.getElementById('bigAttrs');
     bigAttrs.innerHTML = player.attributes.map((a) => `
       <div class="big-attr-row">
@@ -547,6 +577,10 @@
     const posSelect = document.getElementById('editPlayerPosition');
     posSelect.innerHTML = POSITIONS.map((p) => `<option value="${p}">${p}</option>`).join('');
 
+    const natSelect = document.getElementById('editPlayerNationality');
+    natSelect.innerHTML = '<option value="">Select…</option>' + COUNTRIES.map(([name]) =>
+      `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('');
+
     editPhotoDataUrl = player ? player.photo : null;
     const preview = document.getElementById('editPhotoPreview');
     updatePhotoPreview();
@@ -554,6 +588,9 @@
     document.getElementById('editPlayerName').value = player ? player.name : '';
     document.getElementById('editPlayerNumber').value = player && player.number != null ? player.number : '';
     posSelect.value = player ? player.position : 'ST';
+    natSelect.value = player && player.nationality ? player.nationality : '';
+    document.getElementById('editParentEmail').value = player && player.parent_email ? player.parent_email : '';
+    document.getElementById('editParentPhone').value = player && player.parent_phone ? player.parent_phone : '';
 
     const sliders = document.getElementById('attrSliders');
     const attrValues = player ? player.attributes : state.attributes.map((a) => ({ attribute_id: a.id, name: a.name, value: 50 }));
@@ -612,6 +649,9 @@
       number: document.getElementById('editPlayerNumber').value === '' ? null : Number(document.getElementById('editPlayerNumber').value),
       position: document.getElementById('editPlayerPosition').value,
       photo: editPhotoDataUrl,
+      nationality: document.getElementById('editPlayerNationality').value,
+      parent_email: document.getElementById('editParentEmail').value.trim(),
+      parent_phone: document.getElementById('editParentPhone').value.trim(),
       attributes: attrs,
     };
     if (!body.name) { msgEl.textContent = 'Player name is required'; return; }
@@ -635,7 +675,6 @@
       document.getElementById('playerModalTitle').textContent = 'Player';
       renderPlayerViewMode(updated);
       renderPlayerCardsForCurrentTeam();
-      renderHomeStats();
       renderRadarPickers();
     } catch (err) {
       msgEl.textContent = err.message;
@@ -650,7 +689,6 @@
     closeModal('player');
     await refreshPlayersCache();
     renderPlayerCardsForCurrentTeam();
-    renderHomeStats();
     renderRadarPickers();
   });
 
@@ -802,12 +840,8 @@
     } catch (e) { /* no formation yet */ }
 
     const placed = positions
-      .map((pos) => {
-        const p = players.find((pl) => pl.id === pos.player_id);
-        if (!p) return null;
-        return { player_id: p.id, name: p.name, number: p.number, x: pos.x, y: pos.y };
-      })
-      .filter(Boolean);
+      .filter((pos) => players.some((pl) => pl.id === pos.player_id))
+      .map((pos) => ({ player_id: pos.player_id, x: pos.x, y: pos.y }));
 
     state.pitch = { teamId, players, placed, formationName };
     document.getElementById('pitchControls').classList.remove('hidden');
@@ -832,9 +866,9 @@
     const allPlayers = state.pitch.players;
     const currentlyPlaced = state.pitch.placed.map((p) => p.player_id);
     const bench = allPlayers.filter((p) => !currentlyPlaced.includes(p.id));
-    const ordered = state.pitch.placed.concat(bench.map((p) => ({ player_id: p.id, name: p.name, number: p.number })));
-    const placed = ordered.slice(0, template.length).map((p, i) => ({
-      player_id: p.player_id, name: p.name, number: p.number, x: template[i].x, y: template[i].y,
+    const ordered = state.pitch.placed.map((p) => p.player_id).concat(bench.map((p) => p.id));
+    const placed = ordered.slice(0, template.length).map((playerId, i) => ({
+      player_id: playerId, x: template[i].x, y: template[i].y,
     }));
     state.pitch.placed = placed;
     state.pitch.formationName = name;
@@ -865,6 +899,16 @@
     }
   });
 
+  function buildMiniCardEl(player) {
+    const mini = document.createElement('div');
+    mini.className = 'mini-card ' + tierClass(player.overall);
+    mini.innerHTML = `
+      <div class="mini-card-ovr">${player.overall}</div>
+      <div class="mini-card-pos">${escapeHtml(player.position)}</div>
+      <div class="mini-card-flag" title="${escapeHtml(player.nationality || '')}">${flagEmoji(player.nationality)}</div>`;
+    return mini;
+  }
+
   function renderPitch() {
     const slotsWrap = document.getElementById('pitchSlots');
     const benchWrap = document.getElementById('pitchBenchList');
@@ -874,34 +918,45 @@
     const placedIds = state.pitch.placed.map((p) => p.player_id);
     const bench = state.pitch.players.filter((p) => !placedIds.includes(p.id));
 
-    state.pitch.placed.forEach((p) => {
+    state.pitch.placed.forEach((pos) => {
+      const player = state.pitch.players.find((pl) => pl.id === pos.player_id);
+      if (!player) return;
       const chip = document.createElement('div');
       chip.className = 'pitch-chip';
-      chip.style.left = p.x + '%';
-      chip.style.top = p.y + '%';
-      chip.dataset.playerId = p.player_id;
-      chip.innerHTML = `<span class="chip-num">${p.number != null ? p.number : '–'}</span>
-        <span class="chip-name">${escapeHtml(p.name)}</span>
-        <span class="chip-remove">&times;</span>`;
-      chip.querySelector('.chip-remove').addEventListener('click', (ev) => {
+      chip.style.left = pos.x + '%';
+      chip.style.top = pos.y + '%';
+      chip.dataset.playerId = player.id;
+      chip.appendChild(buildMiniCardEl(player));
+      const nameEl = document.createElement('span');
+      nameEl.className = 'chip-name';
+      nameEl.textContent = player.name;
+      chip.appendChild(nameEl);
+      const removeEl = document.createElement('span');
+      removeEl.className = 'chip-remove';
+      removeEl.innerHTML = '&times;';
+      removeEl.addEventListener('click', (ev) => {
         ev.stopPropagation();
-        state.pitch.placed = state.pitch.placed.filter((x) => x.player_id !== p.player_id);
+        state.pitch.placed = state.pitch.placed.filter((x) => x.player_id !== player.id);
         renderPitch();
       });
-      attachDrag(chip, 'chip', p.player_id);
+      chip.appendChild(removeEl);
+      attachDrag(chip, 'chip', player.id);
       slotsWrap.appendChild(chip);
     });
 
     if (bench.length === 0) {
       benchWrap.innerHTML = '<div style="font-size:12px;color:#7fae8b;">All players are on the pitch.</div>';
     }
-    bench.forEach((p) => {
+    bench.forEach((player) => {
       const chip = document.createElement('div');
       chip.className = 'bench-chip';
-      chip.dataset.playerId = p.id;
-      chip.innerHTML = `<div class="bench-chip-circle">${p.number != null ? p.number : '–'}</div>
-        <div class="bench-chip-name">${escapeHtml(p.name.split(' ')[0])}</div>`;
-      attachDrag(chip, 'bench', p.id);
+      chip.dataset.playerId = player.id;
+      chip.appendChild(buildMiniCardEl(player));
+      const nameEl = document.createElement('div');
+      nameEl.className = 'bench-chip-name';
+      nameEl.textContent = player.name.split(' ')[0];
+      chip.appendChild(nameEl);
+      attachDrag(chip, 'bench', player.id);
       benchWrap.appendChild(chip);
     });
   }
@@ -910,27 +965,21 @@
     el.addEventListener('pointerdown', (e) => {
       if (e.target.classList.contains('chip-remove')) return;
       e.preventDefault();
+      const player = state.pitch.players.find((pl) => pl.id === playerId);
       const ghost = document.createElement('div');
-      ghost.className = type === 'chip' ? 'pitch-chip' : 'bench-chip-circle';
       ghost.style.position = 'fixed';
-      ghost.style.left = e.clientX - 22 + 'px';
-      ghost.style.top = e.clientY - 22 + 'px';
+      ghost.style.left = e.clientX - 26 + 'px';
+      ghost.style.top = e.clientY - 33 + 'px';
       ghost.style.zIndex = 9999;
       ghost.style.pointerEvents = 'none';
       ghost.style.opacity = '0.85';
-      if (type === 'chip') {
-        const num = el.querySelector('.chip-num').textContent;
-        ghost.innerHTML = `<span class="chip-num">${num}</span>`;
-      } else {
-        ghost.style.width = '40px'; ghost.style.height = '40px';
-        ghost.textContent = el.querySelector('.bench-chip-circle').textContent;
-      }
+      ghost.appendChild(buildMiniCardEl(player));
       document.body.appendChild(ghost);
       el.style.opacity = '0.35';
 
       function onMove(ev) {
-        ghost.style.left = ev.clientX - 22 + 'px';
-        ghost.style.top = ev.clientY - 22 + 'px';
+        ghost.style.left = ev.clientX - 26 + 'px';
+        ghost.style.top = ev.clientY - 33 + 'px';
       }
       function onUp(ev) {
         window.removeEventListener('pointermove', onMove);
@@ -945,9 +994,8 @@
         if (overPitch) {
           const x = Math.max(2, Math.min(98, ((ev.clientX - rect.left) / rect.width) * 100));
           const y = Math.max(2, Math.min(98, ((ev.clientY - rect.top) / rect.height) * 100));
-          const player = state.pitch.players.find((pl) => pl.id === playerId);
           state.pitch.placed = state.pitch.placed.filter((pl) => pl.player_id !== playerId);
-          state.pitch.placed.push({ player_id: playerId, name: player.name, number: player.number, x, y });
+          state.pitch.placed.push({ player_id: playerId, x, y });
         } else if (type === 'chip') {
           state.pitch.placed = state.pitch.placed.filter((pl) => pl.player_id !== playerId);
         }

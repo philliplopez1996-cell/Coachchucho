@@ -57,7 +57,7 @@ router.get('/:id', (req, res) => {
 });
 
 router.post('/', (req, res) => {
-  const { team_id, name, number, position, photo, attributes } = req.body || {};
+  const { team_id, name, number, position, photo, nationality, parent_email, parent_phone, attributes } = req.body || {};
   if (!team_id || !name || !name.trim()) {
     return res.status(400).json({ error: 'team_id and name are required' });
   }
@@ -67,9 +67,19 @@ router.post('/', (req, res) => {
   const createPlayer = db.transaction(() => {
     const info = db
       .prepare(
-        'INSERT INTO players (team_id, name, number, position, photo) VALUES (?, ?, ?, ?, ?)'
+        `INSERT INTO players (team_id, name, number, position, photo, nationality, parent_email, parent_phone)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
       )
-      .run(team_id, name.trim(), number || null, position || 'MID', photo || null);
+      .run(
+        team_id,
+        name.trim(),
+        number || null,
+        position || 'MID',
+        photo || null,
+        nationality || null,
+        parent_email || null,
+        parent_phone || null
+      );
     const playerId = info.lastInsertRowid;
 
     const coachAttrs = db.prepare('SELECT id FROM attributes WHERE coach_id = ?').all(req.coachId);
@@ -96,7 +106,7 @@ function clampValue(v) {
 router.put('/:id', (req, res) => {
   const owned = getOwnedPlayer(req.params.id, req.coachId);
   if (!owned) return res.status(404).json({ error: 'Player not found' });
-  const { name, number, position, photo, attributes } = req.body || {};
+  const { name, number, position, photo, nationality, parent_email, parent_phone, attributes } = req.body || {};
 
   const updatePlayer = db.transaction(() => {
     db.prepare(
@@ -105,6 +115,9 @@ router.put('/:id', (req, res) => {
         number = ?,
         position = COALESCE(?, position),
         photo = ?,
+        nationality = ?,
+        parent_email = ?,
+        parent_phone = ?,
         updated_at = datetime('now')
        WHERE id = ?`
     ).run(
@@ -112,6 +125,9 @@ router.put('/:id', (req, res) => {
       number !== undefined ? number : owned.number,
       position || null,
       photo !== undefined ? photo : owned.photo,
+      nationality !== undefined ? nationality : owned.nationality,
+      parent_email !== undefined ? parent_email : owned.parent_email,
+      parent_phone !== undefined ? parent_phone : owned.parent_phone,
       owned.id
     );
 

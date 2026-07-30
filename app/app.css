@@ -164,27 +164,6 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
 .empty-state { text-align: center; padding: 60px 20px; color: #7fae8b; }
 .empty-icon { font-size: 46px; margin-bottom: 12px; }
 
-/* ---- HOME ---- */
-.home-hero { margin-bottom: 24px; }
-.home-greeting { font-family: 'Audiowide', sans-serif; font-size: 22px; color: var(--lime); }
-.home-greeting span { color: var(--gold); }
-.home-sub { color: #9fd8ae; font-size: 14px; margin-top: 4px; }
-.home-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 26px; }
-.home-stat-card {
-  background: var(--card-bg); border: 1px solid rgba(74,255,63,0.22); border-radius: 14px;
-  padding: 16px 10px; text-align: center;
-}
-.home-stat-num { font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 700; color: var(--gold); }
-.home-stat-label { font-size: 11.5px; color: #9fd8ae; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-.home-quicklinks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-.quicklink-card {
-  background: var(--card-bg); border: 1px solid rgba(74,255,63,0.22); border-radius: 16px;
-  padding: 26px 10px; display: flex; flex-direction: column; align-items: center; gap: 10px;
-  color: #eafff0; font-weight: 700; font-size: 13.5px; cursor: pointer; transition: all 0.2s;
-}
-.quicklink-card:hover { border-color: var(--lime); transform: translateY(-2px); }
-.ql-icon { font-size: 30px; }
-
 /* ---- ROSTER FOLDERS ---- */
 .folder-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
 .folder-card {
@@ -225,7 +204,8 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
 .pc-ovr-pos { display: flex; flex-direction: column; align-items: center; line-height: 1; }
 .pc-ovr { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 26px; }
 .pc-pos { font-size: 11px; font-weight: 700; margin-top: 2px; letter-spacing: 0.5px; }
-.pc-number { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 15px; opacity: 0.75; background: rgba(0,0,0,0.15); border-radius: 50%; width: 26px; height: 26px; display:flex; align-items:center; justify-content:center; }
+.pc-flag { margin-left: auto; font-size: 22px; line-height: 1; align-self: center; }
+.pc-number { margin-left: 8px; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 15px; opacity: 0.75; background: rgba(0,0,0,0.15); border-radius: 50%; width: 26px; height: 26px; display:flex; align-items:center; justify-content:center; flex-shrink: 0; }
 
 .pc-photo-wrap { flex: 1; display: flex; align-items: center; justify-content: center; margin: 4px 0; }
 .pc-photo-img { width: 74px; height: 74px; border-radius: 50%; object-fit: cover; border: 2px solid rgba(255,255,255,0.5); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
@@ -308,6 +288,19 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
 .player-detail-card .player-card { aspect-ratio: 2/2.9; cursor: default; }
 .player-detail-card .player-card:hover { transform: none; }
 .player-detail-radar { flex: 1; min-width: 260px; display: flex; justify-content: center; }
+
+.player-info-box {
+  display: flex; flex-wrap: wrap; gap: 10px 28px; justify-content: center;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(74,255,63,0.18); border-radius: 12px;
+  padding: 14px 20px; margin-bottom: 20px;
+}
+.player-info-item { display: flex; flex-direction: column; gap: 2px; align-items: center; }
+.player-info-label { font-size: 10.5px; color: #9fd8ae; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+.player-info-value { font-size: 13.5px; font-weight: 600; color: #eafff0; }
+.player-info-value a { color: var(--cyan); text-decoration: none; }
+.player-info-value a:hover { text-decoration: underline; }
+.player-info-value.muted { color: #6f9a7c; font-style: italic; }
+
 .big-attrs { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
 .big-attr-row { display: flex; flex-direction: column; gap: 6px; }
 .big-attr-top { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: #dff5e4; }
@@ -375,22 +368,31 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
 .pitch-line, .pitch-line-fill { fill: none; stroke: rgba(255,255,255,0.55); stroke-width: 0.4; }
 .pitch-slots { position: absolute; inset: 0; }
 
+/* Mini FIFA-style card shared by pitch chips and bench chips */
+.mini-card {
+  width: 52px; height: 66px; border-radius: 8px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.45); border: 1.5px solid rgba(255,255,255,0.55);
+  font-family: 'JetBrains Mono', monospace; flex-shrink: 0;
+}
+.mini-card-ovr { font-size: 16px; font-weight: 800; line-height: 1; }
+.mini-card-pos { font-size: 8.5px; font-weight: 700; letter-spacing: 0.3px; line-height: 1.3; }
+.mini-card-flag { font-size: 14px; line-height: 1; margin-top: 1px; }
+
 .pitch-chip {
-  position: absolute; width: 44px; height: 44px; margin-left: -22px; margin-top: -22px;
-  border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  background: linear-gradient(160deg, var(--gold), #b8890c); color: #2b1c00; font-weight: 800;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.5); cursor: grab; touch-action: none; z-index: 5; border: 2px solid rgba(255,255,255,0.6);
+  position: absolute; width: 52px; margin-left: -26px; margin-top: -33px;
+  display: flex; flex-direction: column; align-items: center;
+  cursor: grab; touch-action: none; z-index: 5;
 }
 .pitch-chip:active { cursor: grabbing; z-index: 20; }
-.pitch-chip .chip-num { font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1; }
 .pitch-chip .chip-name {
-  position: absolute; top: 100%; margin-top: 3px; font-size: 9.5px; font-weight: 700; color: #eafff0;
-  background: rgba(0,0,0,0.6); padding: 1px 6px; border-radius: 5px; white-space: nowrap; max-width: 90px; overflow: hidden; text-overflow: ellipsis;
+  margin-top: 3px; font-size: 9px; font-weight: 700; color: #eafff0;
+  background: rgba(0,0,0,0.6); padding: 1px 6px; border-radius: 5px; white-space: nowrap; max-width: 68px; overflow: hidden; text-overflow: ellipsis;
 }
 .pitch-chip .chip-remove {
-  position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%;
+  position: absolute; top: -6px; right: 0; width: 18px; height: 18px; border-radius: 50%;
   background: var(--orange); color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center;
-  cursor: pointer; border: 1px solid rgba(255,255,255,0.6);
+  cursor: pointer; border: 1px solid rgba(255,255,255,0.6); z-index: 6;
 }
 
 .pitch-bench { background: var(--card-bg); border: 1px solid rgba(74,255,63,0.2); border-radius: 14px; padding: 14px; }
@@ -398,11 +400,6 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
 .pitch-bench-list { display: flex; gap: 12px; flex-wrap: wrap; }
 .bench-chip {
   width: 52px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: grab; touch-action: none;
-}
-.bench-chip-circle {
-  width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(160deg, rgba(255,255,255,0.15), rgba(255,255,255,0.03));
-  border: 2px solid rgba(74,255,63,0.35); display: flex; align-items: center; justify-content: center;
-  font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--lime); font-size: 13px;
 }
 .bench-chip-name { font-size: 9px; color: #9fd8ae; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
 
@@ -422,8 +419,6 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
 
 /* ============ RESPONSIVE ============ */
 @media (max-width: 640px) {
-  .home-stats { grid-template-columns: repeat(2, 1fr); }
-  .home-quicklinks { grid-template-columns: 1fr; }
   .radar-content { flex-direction: column; }
   .compare-head, .compare-row { font-size: 12px; }
 }

@@ -43,6 +43,9 @@ db.exec(`
     number INTEGER,
     position TEXT NOT NULL DEFAULT 'MID',
     photo TEXT,
+    nationality TEXT,
+    parent_email TEXT,
+    parent_phone TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
@@ -62,6 +65,16 @@ db.exec(`
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 `);
+
+function ensureColumn(table, column, definition) {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name);
+  if (!cols.includes(column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+  }
+}
+ensureColumn('players', 'nationality', 'TEXT');
+ensureColumn('players', 'parent_email', 'TEXT');
+ensureColumn('players', 'parent_phone', 'TEXT');
 
 const DEFAULT_ATTRIBUTES = ['Pace', 'Shooting', 'Passing', 'Dribbling', 'Defending', 'Physical'];
 

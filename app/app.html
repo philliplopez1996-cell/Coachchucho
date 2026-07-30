@@ -81,48 +81,8 @@
   <!-- Main content -->
   <main class="main-content">
 
-    <!-- HOME TAB -->
-    <section class="tab-pane active" id="tab-home">
-      <div class="home-hero">
-        <div class="home-greeting">Welcome back, <span id="homeCoachName">Coach</span></div>
-        <div class="home-sub">Here's your squad at a glance</div>
-      </div>
-      <div class="home-stats">
-        <div class="home-stat-card">
-          <div class="home-stat-num" id="statTeams">0</div>
-          <div class="home-stat-label">Teams</div>
-        </div>
-        <div class="home-stat-card">
-          <div class="home-stat-num" id="statPlayers">0</div>
-          <div class="home-stat-label">Players</div>
-        </div>
-        <div class="home-stat-card">
-          <div class="home-stat-num" id="statAttrs">0</div>
-          <div class="home-stat-label">Attributes</div>
-        </div>
-        <div class="home-stat-card">
-          <div class="home-stat-num" id="statAvgOvr">0</div>
-          <div class="home-stat-label">Avg OVR</div>
-        </div>
-      </div>
-      <div class="home-quicklinks">
-        <button class="quicklink-card" data-goto-tab="roster">
-          <span class="ql-icon">🗂️</span>
-          <span>Manage Roster</span>
-        </button>
-        <button class="quicklink-card" data-goto-tab="radar">
-          <span class="ql-icon">📊</span>
-          <span>Compare Players</span>
-        </button>
-        <button class="quicklink-card" data-goto-tab="pitch">
-          <span class="ql-icon">⚽</span>
-          <span>Tactical Pitch</span>
-        </button>
-      </div>
-    </section>
-
     <!-- ROSTER TAB -->
-    <section class="tab-pane" id="tab-roster">
+    <section class="tab-pane active" id="tab-roster">
       <div class="roster-folders-view" id="rosterFoldersView">
         <div class="section-header">
           <h2>Roster</h2>
@@ -236,8 +196,7 @@
 
   <!-- Bottom tab bar -->
   <nav class="bottom-tabs">
-    <button class="bottom-tab active" data-tab="home"><span class="bt-icon">🏠</span><span>Home</span></button>
-    <button class="bottom-tab" data-tab="roster"><span class="bt-icon">🗂️</span><span>Roster</span></button>
+    <button class="bottom-tab active" data-tab="roster"><span class="bt-icon">🗂️</span><span>Roster</span></button>
     <button class="bottom-tab" data-tab="radar"><span class="bt-icon">📊</span><span>Radar</span></button>
     <button class="bottom-tab" data-tab="pitch"><span class="bt-icon">⚽</span><span>Pitch</span></button>
   </nav>
@@ -306,7 +265,7 @@
       </div>
       <div class="faq-item">
         <div class="faq-q"><span>How do I add or edit players?</span><span class="faq-arrow">▼</span></div>
-        <div class="faq-a">Open a team folder and tap "+ Add Player", or tap any existing player card to view it, then tap Edit to change their name, number, position, photo, and attribute ratings.</div>
+        <div class="faq-a">Open a team folder and tap "+ Add Player", or tap any existing player card to view it, then tap Edit to change their name, number, position, nationality, photo, parent contact info, and attribute ratings.</div>
       </div>
       <div class="faq-item">
         <div class="faq-q"><span>How are attributes and OVR calculated?</span><span class="faq-arrow">▼</span></div>
@@ -377,6 +336,7 @@
             <div id="playerRadarSvg"></div>
           </div>
         </div>
+        <div class="player-info-box" id="playerInfoBox"></div>
         <div class="big-attrs" id="bigAttrs"></div>
       </div>
 
@@ -404,6 +364,26 @@
               <select id="editPlayerPosition"></select>
             </div>
           </div>
+          <div class="form-row">
+            <div class="form-grp">
+              <label>Nationality</label>
+              <select id="editPlayerNationality"></select>
+            </div>
+          </div>
+
+          <h3>Parent / Guardian Contact</h3>
+          <p class="section-hint">For easier contact — not shown on the player card.</p>
+          <div class="form-row">
+            <div class="form-grp">
+              <label>Parent Email</label>
+              <input type="email" id="editParentEmail" placeholder="parent@email.com">
+            </div>
+            <div class="form-grp">
+              <label>Parent Phone</label>
+              <input type="tel" id="editParentPhone" placeholder="(555) 555-5555">
+            </div>
+          </div>
+
           <h3>Attributes</h3>
           <div class="attr-sliders" id="attrSliders"></div>
           <div class="form-msg" id="playerEditMsg"></div>
