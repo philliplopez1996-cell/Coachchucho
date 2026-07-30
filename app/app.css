@@ -221,6 +221,18 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
   border: 1px solid color-mix(in srgb, var(--lime) 25%, transparent); border-radius: 9px; color: var(--text-primary); font-size: 13.5px;
 }
 
+.leaderboard-box {
+  background: rgba(255,255,255,0.04); border: 1px solid color-mix(in srgb, var(--lime) 18%, transparent);
+  border-radius: 12px; padding: 14px 18px; margin-bottom: 18px;
+}
+.leaderboard-box h3 { font-size: 13px; color: var(--lime); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+.leaderboard-row { display: flex; align-items: center; gap: 12px; padding: 7px 0; font-size: 13.5px; }
+.leaderboard-row + .leaderboard-row { border-top: 1px solid color-mix(in srgb, var(--lime) 10%, transparent); }
+.leaderboard-rank { width: 20px; text-align: center; font-weight: 800; color: var(--text-secondary); flex-shrink: 0; }
+.leaderboard-name { flex: 1; font-weight: 600; color: var(--text-primary); }
+.leaderboard-stat { display: flex; align-items: center; gap: 5px; font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--gold); min-width: 40px; }
+.leaderboard-icon { width: 15px; height: 15px; flex-shrink: 0; }
+
 /* ============ PLAYER CARDS (FIFA style) ============ */
 .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 18px; }
 
@@ -367,6 +379,15 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
 .player-info-value a { color: var(--cyan); text-decoration: none; }
 .player-info-value a:hover { text-decoration: underline; }
 .player-info-value.muted { color: #6f9a7c; font-style: italic; }
+
+.player-stats-box { display: flex; gap: 12px; margin-bottom: 20px; }
+.player-stat-chip {
+  flex: 1; display: flex; align-items: center; gap: 10px; padding: 12px 16px;
+  background: rgba(255,255,255,0.04); border: 1px solid color-mix(in srgb, var(--lime) 18%, transparent); border-radius: 12px;
+}
+.player-stat-icon { width: 22px; height: 22px; color: var(--gold); flex-shrink: 0; }
+.player-stat-value { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 800; color: var(--text-primary); line-height: 1.1; }
+.player-stat-label { font-size: 10.5px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 700; }
 
 .progress-section {
   background: rgba(255,255,255,0.03); border: 1px solid color-mix(in srgb, var(--lime) 15%, transparent); border-radius: 12px;
@@ -556,6 +577,30 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
 .calendar-event-meta { font-size: 11.5px; color: var(--text-secondary); margin-top: 2px; }
 .calendar-event-score { font-family: 'JetBrains Mono', monospace; font-weight: 800; color: var(--gold); font-size: 14px; white-space: nowrap; }
 .calendar-event-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.calendar-event-scorers, .calendar-event-potm {
+  font-size: 11px; color: var(--text-secondary); margin-top: 4px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+}
+.calendar-event-potm { color: var(--gold); font-weight: 600; }
+.calendar-event-potm svg { width: 12px; height: 12px; flex-shrink: 0; }
+.calendar-event-scorers strong { color: var(--text-primary); font-weight: 700; }
+
+.goal-scorer-add-row { display: flex; gap: 8px; }
+.goal-scorer-add-row select { flex: 1; }
+.goal-scorer-add-row button { white-space: nowrap; }
+.goal-scorer-list { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.goal-scorer-item {
+  display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+  background: rgba(255,255,255,0.05); border: 1px solid color-mix(in srgb, var(--lime) 18%, transparent);
+  border-radius: 8px; font-size: 13px;
+}
+.goal-scorer-item span { flex: 1; }
+.goal-item-icon { width: 15px; height: 15px; color: var(--lime); flex-shrink: 0; }
+.btn-icon-sm {
+  width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  border-radius: 50%; border: none; background: rgba(255,255,255,0.08); color: var(--text-secondary);
+  font-size: 15px; line-height: 1; cursor: pointer; transition: all 0.2s;
+}
+.btn-icon-sm:hover { background: rgba(255,80,80,0.25); color: #ff9999; }
 
 .event-type-tabs { display: flex; gap: 8px; margin-bottom: 18px; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 5px; }
 .event-type-tab {

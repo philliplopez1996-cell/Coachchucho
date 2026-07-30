@@ -1,5 +1,5 @@
 const express = require('express');
-const { db } = require('../db');
+const { db, getPlayerStats } = require('../db');
 const { requireParentAuth } = require('../middleware/auth');
 
 const router = express.Router();
@@ -49,6 +49,12 @@ router.get('/players/:id/progress', (req, res) => {
     .all(req.params.id)
     .map((s) => ({ id: s.id, overall: s.overall, attributes: JSON.parse(s.attributes_json), recorded_at: s.recorded_at }));
   res.json({ progress: snapshots });
+});
+
+router.get('/players/:id/stats', (req, res) => {
+  const ids = getMatchedPlayerIds(req);
+  if (!ids.includes(Number(req.params.id))) return res.status(404).json({ error: 'Player not found' });
+  res.json({ stats: getPlayerStats(req.params.id) });
 });
 
 module.exports = router;

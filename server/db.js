@@ -91,8 +91,16 @@ db.exec(`
     score_for INTEGER,
     score_against INTEGER,
     notes TEXT,
+    player_of_match_id INTEGER REFERENCES players(id) ON DELETE SET NULL,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS event_goals (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    player_id INTEGER NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 `);
 
@@ -109,6 +117,7 @@ ensureColumn('coaches', 'photo', 'TEXT');
 ensureColumn('teams', 'parent_password_hash', 'TEXT');
 ensureColumn('teams', 'formation', "TEXT NOT NULL DEFAULT '4-3-3'");
 ensureColumn('coaches', 'theme', "TEXT NOT NULL DEFAULT 'field'");
+ensureColumn('events', 'player_of_match_id', 'INTEGER REFERENCES players(id) ON DELETE SET NULL');
 
 function migrateFormationsTable() {
   const cols = db.prepare('PRAGMA table_info(formations)').all().map((c) => c.name);
@@ -157,6 +166,20 @@ function recordPlayerProgress(playerId, overall, attributes) {
   ).run(playerId, overall, JSON.stringify(attributes));
 }
 
+function getPlayerStats(playerId) {
+  const goals = db.prepare('SELECT COUNT(*) AS c FROM event_goals WHERE player_id = ?').get(playerId).c;
+  const playerOfMatch = db.prepare('SELECT COUNT(*) AS c FROM events WHERE player_of_match_id = ?').get(playerId).c;
+  return { goals, playerOfMatch };
+}
+
+function getTeamLeaderboard(teamId) {
+  const players = db.prepare('SELECT id, name FROM players WHERE team_id = ?').all(teamId);
+  return players
+    .map((p) => ({ player_id: p.id, name: p.name, ...getPlayerStats(p.id) }))
+    .filter((p) => p.goals > 0 || p.playerOfMatch > 0)
+    .sort((a, b) => b.goals - a.goals || b.playerOfMatch - a.playerOfMatch || a.name.localeCompare(b.name));
+}
+
 module.exports = {
   db,
   slugify,
@@ -164,4 +187,6 @@ module.exports = {
   DEFAULT_ATTRIBUTES,
   LINEUP_TYPES,
   recordPlayerProgress,
+  getPlayerStats,
+  getTeamLeaderboard,
 };

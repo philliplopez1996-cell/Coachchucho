@@ -96,7 +96,7 @@
     pitch: { teamId: null, players: [], lineupType: 'balanced', formations: {} },
     drag: null,
     events: [],
-    calendar: { year: 0, month: 0, selectedDate: null, editingEventId: null },
+    calendar: { year: 0, month: 0, selectedDate: null, editingEventId: null, formGoals: [] },
   };
 
   /* ============================================================
@@ -164,6 +164,14 @@
     const key = String(name || '').trim().toLowerCase();
     const inner = ATTRIBUTE_ICON_PATHS[key] || ATTRIBUTE_ICON_FALLBACK;
     return `<svg class="attr-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+  }
+
+  function starIconSvg(cls) {
+    return `<svg class="${cls || 'stat-icon'}" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+  }
+
+  function ballIconSvg(cls) {
+    return `<svg class="${cls || 'stat-icon'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 6.5l3.5 2.6-1.3 4.1h-4.4l-1.3-4.1z"/><path d="M12 6.5V3.2M15.5 9.1l3-1.9M13.9 13.2l1.9 3.6M8.6 13.2l-1.9 3.6M8.5 9.1l-3-1.9"/></svg>`;
   }
 
   /* ============================================================
@@ -647,12 +655,24 @@
     const scoreHtml = ev.type === 'game' && ev.score_for != null && ev.score_against != null
       ? `<div class="calendar-event-score">${ev.score_for}–${ev.score_against}</div>`
       : '';
+    let scorersHtml = '';
+    if (ev.type === 'game' && ev.goals && ev.goals.length) {
+      const counts = new Map();
+      ev.goals.forEach((g) => counts.set(g.player_name, (counts.get(g.player_name) || 0) + 1));
+      const parts = [...counts.entries()].map(([name, n]) => escapeHtml(name) + (n > 1 ? ` (${n})` : ''));
+      scorersHtml = `<div class="calendar-event-scorers"><strong>Goals:</strong> ${parts.join(', ')}</div>`;
+    }
+    const potmHtml = ev.type === 'game' && ev.player_of_match
+      ? `<div class="calendar-event-potm">${starIconSvg()} Player of the Match: ${escapeHtml(ev.player_of_match.name)}</div>`
+      : '';
     return `
       <div class="calendar-event-row type-${ev.type}">
         <div class="calendar-event-icon">${icon}</div>
         <div class="calendar-event-body">
           <div class="calendar-event-title">${escapeHtml(ev.title)}</div>
           <div class="calendar-event-meta">${metaParts.join(' · ')}</div>
+          ${scorersHtml}
+          ${potmHtml}
         </div>
         ${scoreHtml}
         <div class="calendar-event-actions">
@@ -716,6 +736,51 @@
     loadEventsForMonth();
   });
 
+  function populateGoalScorerSelects(selectedTeamId, potmPlayerId) {
+    const teamId = selectedTeamId ? Number(selectedTeamId) : null;
+    const rosterPlayers = teamId ? state.players.filter((p) => p.team_id === teamId) : [];
+    const scorerSelect = document.getElementById('goalScorerSelect');
+    const potmSelect = document.getElementById('potmSelect');
+    scorerSelect.innerHTML = '<option value="">Select player…</option>' +
+      rosterPlayers.map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
+    potmSelect.innerHTML = '<option value="">None selected</option>' +
+      rosterPlayers.map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
+    potmSelect.value = potmPlayerId ? String(potmPlayerId) : '';
+    scorerSelect.disabled = potmSelect.disabled = !teamId;
+    document.getElementById('addGoalBtn').disabled = !teamId;
+  }
+
+  function renderGoalScorerList() {
+    const list = document.getElementById('goalScorerList');
+    const teamId = document.getElementById('eventTeam').value ? Number(document.getElementById('eventTeam').value) : null;
+    list.innerHTML = state.calendar.formGoals.map((playerId, idx) => {
+      const player = state.players.find((p) => p.id === playerId);
+      const name = player ? escapeHtml(player.name) : 'Unknown player';
+      return `<li class="goal-scorer-item">${ballIconSvg('goal-item-icon')}<span>${name}</span>
+        <button type="button" class="btn-icon-sm remove-goal-btn" data-idx="${idx}" title="Remove goal">&times;</button></li>`;
+    }).join('');
+    list.querySelectorAll('.remove-goal-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        state.calendar.formGoals.splice(Number(btn.dataset.idx), 1);
+        renderGoalScorerList();
+      });
+    });
+    if (!teamId) list.innerHTML = '';
+  }
+
+  document.getElementById('addGoalBtn').addEventListener('click', () => {
+    const scorerSelect = document.getElementById('goalScorerSelect');
+    if (!scorerSelect.value) return;
+    state.calendar.formGoals.push(Number(scorerSelect.value));
+    renderGoalScorerList();
+  });
+
+  document.getElementById('eventTeam').addEventListener('change', (e) => {
+    state.calendar.formGoals = [];
+    populateGoalScorerSelects(e.target.value, null);
+    renderGoalScorerList();
+  });
+
   function openEventForm(event) {
     state.calendar.editingEventId = event ? event.id : null;
     document.getElementById('eventMsg').textContent = '';
@@ -737,6 +802,10 @@
     document.getElementById('eventScoreFor').value = event && event.score_for != null ? event.score_for : '';
     document.getElementById('eventScoreAgainst').value = event && event.score_against != null ? event.score_against : '';
     document.getElementById('eventNotes').value = event && event.notes ? event.notes : '';
+
+    state.calendar.formGoals = event && event.goals ? event.goals.map((g) => g.player_id) : [];
+    populateGoalScorerSelects(teamSelect.value, event && event.player_of_match ? event.player_of_match.id : null);
+    renderGoalScorerList();
 
     showEventFormView();
   }
@@ -770,10 +839,15 @@
       body.opponent = document.getElementById('eventOpponent').value.trim();
       body.score_for = document.getElementById('eventScoreFor').value;
       body.score_against = document.getElementById('eventScoreAgainst').value;
+      body.goals = state.calendar.formGoals;
+      const potmValue = document.getElementById('potmSelect').value;
+      body.player_of_match_id = potmValue ? Number(potmValue) : null;
     } else {
       body.opponent = '';
       body.score_for = '';
       body.score_against = '';
+      body.goals = [];
+      body.player_of_match_id = null;
     }
     if (!body.title) { msgEl.textContent = 'Title is required'; return; }
     if (!body.event_date) { msgEl.textContent = 'Date is required'; return; }
@@ -825,6 +899,25 @@
     document.getElementById('rosterSearchInput').value = '';
     document.getElementById('rosterPositionFilter').value = '';
     renderPlayerCardsForCurrentTeam();
+    loadTeamLeaderboard(teamId);
+  }
+
+  async function loadTeamLeaderboard(teamId) {
+    const box = document.getElementById('teamLeaderboardBox');
+    const list = document.getElementById('teamLeaderboardList');
+    try {
+      const { leaderboard } = await api(`/teams/${teamId}/leaderboard`);
+      box.classList.toggle('hidden', leaderboard.length === 0);
+      list.innerHTML = leaderboard.map((row, idx) => `
+        <div class="leaderboard-row">
+          <span class="leaderboard-rank">${idx + 1}</span>
+          <span class="leaderboard-name">${escapeHtml(row.name)}</span>
+          <span class="leaderboard-stat">${ballIconSvg('leaderboard-icon')}${row.goals}</span>
+          <span class="leaderboard-stat">${starIconSvg('leaderboard-icon')}${row.playerOfMatch}</span>
+        </div>`).join('');
+    } catch (e) {
+      box.classList.add('hidden');
+    }
   }
 
   document.getElementById('rosterPositionFilter').innerHTML =
@@ -1058,6 +1151,25 @@
       player.attributes.map((a) => `<option value="${a.attribute_id}">${escapeHtml(a.name)}</option>`).join('');
     metricSelect.value = 'overall';
     loadProgressForPlayer(player.id);
+    loadStatsForPlayer(player.id);
+  }
+
+  async function loadStatsForPlayer(playerId) {
+    const box = document.getElementById('playerStatsBox');
+    box.innerHTML = '';
+    try {
+      const path = state.role === 'parent' ? `/parent/players/${playerId}/stats` : `/players/${playerId}/stats`;
+      const { stats } = await api(path);
+      box.innerHTML = `
+        <div class="player-stat-chip">
+          ${ballIconSvg('player-stat-icon')}
+          <div><div class="player-stat-value">${stats.goals}</div><div class="player-stat-label">Goals</div></div>
+        </div>
+        <div class="player-stat-chip">
+          ${starIconSvg('player-stat-icon')}
+          <div><div class="player-stat-value">${stats.playerOfMatch}</div><div class="player-stat-label">Player of the Match</div></div>
+        </div>`;
+    } catch (e) { /* leave empty on failure */ }
   }
 
   let currentProgressSnapshots = [];

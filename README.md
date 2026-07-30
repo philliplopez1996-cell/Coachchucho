@@ -34,14 +34,18 @@ The SQLite database file is created automatically at `server/data/coachchucho.sq
   the custom attributes (Pace, Shooting, Passing, Dribbling, Defending, Physical by default) used
   on every player card and the radar chart.
 - **Calendar** — a month view for scheduling games and practices per team. Games can be updated
-  with a final score once played; each day shows a dot for practices and a different one for games.
+  with a final score once played, along with who scored each goal and who was Player of the Match;
+  each day shows a dot for practices and a different one for games, and the agenda lists scorers
+  and POTM under each game.
 - **Themes** — "Field" (the default green/lime look) and "Midnight" (a navy/cyan look), switchable
   from Coach Profile. Midnight is flagged as a Premium theme in the UI and unlocked for everyone
   during the current free period; the app has no real payment processing yet — that would need a
   native iOS/Android build with in-app purchases, which is a separate project from this web app.
 - **Roster tab** — team folders, each holding FIFA-style player cards, with search/filter (by
-  position) and sort (name, overall, number, position). Tap a card to view its radar chart, full
-  attribute breakdown, and progress-over-time chart, or tap the pencil icon to edit
+  position) and sort (name, overall, number, position). A Top Scorers leaderboard (goals + Player
+  of the Match count per player) sits above the roster whenever a team has recorded game stats.
+  Tap a card to view its radar chart, full attribute breakdown, career Goals/Player-of-the-Match
+  totals, and progress-over-time chart, or tap the pencil icon to edit
   name/number/position/nationality/photo/parent contact info/attribute ratings, and to move a
   player to a different team.
 - **Roster Radar tab** — pick any two players for an overlaid radar chart and a side-by-side stat

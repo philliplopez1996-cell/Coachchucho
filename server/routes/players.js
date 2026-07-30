@@ -1,5 +1,5 @@
 const express = require('express');
-const { db, recordPlayerProgress } = require('../db');
+const { db, recordPlayerProgress, getPlayerStats } = require('../db');
 const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
@@ -169,6 +169,12 @@ router.get('/:id/progress', (req, res) => {
     .all(owned.id)
     .map((s) => ({ id: s.id, overall: s.overall, attributes: JSON.parse(s.attributes_json), recorded_at: s.recorded_at }));
   res.json({ progress: snapshots });
+});
+
+router.get('/:id/stats', (req, res) => {
+  const owned = getOwnedPlayer(req.params.id, req.coachId);
+  if (!owned) return res.status(404).json({ error: 'Player not found' });
+  res.json({ stats: getPlayerStats(owned.id) });
 });
 
 router.delete('/:id', (req, res) => {

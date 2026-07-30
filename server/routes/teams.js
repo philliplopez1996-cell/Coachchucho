@@ -1,6 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const { db } = require('../db');
+const { db, getTeamLeaderboard } = require('../db');
 const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
@@ -61,6 +61,12 @@ router.put('/:id', (req, res) => {
     team.id
   );
   res.json({ team: serializeTeam(db.prepare('SELECT * FROM teams WHERE id = ?').get(team.id)) });
+});
+
+router.get('/:id/leaderboard', (req, res) => {
+  const team = getOwnedTeam(req.params.id, req.coachId);
+  if (!team) return res.status(404).json({ error: 'Team not found' });
+  res.json({ leaderboard: getTeamLeaderboard(team.id) });
 });
 
 router.delete('/:id', (req, res) => {
