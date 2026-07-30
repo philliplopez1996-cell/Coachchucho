@@ -100,7 +100,16 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
     player_id INTEGER NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+    assist_player_id INTEGER REFERENCES players(id) ON DELETE SET NULL,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS event_clean_sheets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    player_id INTEGER NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(event_id, player_id)
   );
 `);
 
@@ -118,6 +127,7 @@ ensureColumn('teams', 'parent_password_hash', 'TEXT');
 ensureColumn('teams', 'formation', "TEXT NOT NULL DEFAULT '4-3-3'");
 ensureColumn('coaches', 'theme', "TEXT NOT NULL DEFAULT 'field'");
 ensureColumn('events', 'player_of_match_id', 'INTEGER REFERENCES players(id) ON DELETE SET NULL');
+ensureColumn('event_goals', 'assist_player_id', 'INTEGER REFERENCES players(id) ON DELETE SET NULL');
 
 function migrateFormationsTable() {
   const cols = db.prepare('PRAGMA table_info(formations)').all().map((c) => c.name);
@@ -168,16 +178,24 @@ function recordPlayerProgress(playerId, overall, attributes) {
 
 function getPlayerStats(playerId) {
   const goals = db.prepare('SELECT COUNT(*) AS c FROM event_goals WHERE player_id = ?').get(playerId).c;
+  const assists = db.prepare('SELECT COUNT(*) AS c FROM event_goals WHERE assist_player_id = ?').get(playerId).c;
   const playerOfMatch = db.prepare('SELECT COUNT(*) AS c FROM events WHERE player_of_match_id = ?').get(playerId).c;
-  return { goals, playerOfMatch };
+  const cleanSheets = db.prepare('SELECT COUNT(*) AS c FROM event_clean_sheets WHERE player_id = ?').get(playerId).c;
+  return { goals, assists, playerOfMatch, cleanSheets };
 }
 
 function getTeamLeaderboard(teamId) {
   const players = db.prepare('SELECT id, name FROM players WHERE team_id = ?').all(teamId);
   return players
     .map((p) => ({ player_id: p.id, name: p.name, ...getPlayerStats(p.id) }))
-    .filter((p) => p.goals > 0 || p.playerOfMatch > 0)
-    .sort((a, b) => b.goals - a.goals || b.playerOfMatch - a.playerOfMatch || a.name.localeCompare(b.name));
+    .filter((p) => p.goals > 0 || p.assists > 0 || p.playerOfMatch > 0 || p.cleanSheets > 0)
+    .sort((a, b) =>
+      b.goals - a.goals ||
+      b.assists - a.assists ||
+      b.playerOfMatch - a.playerOfMatch ||
+      b.cleanSheets - a.cleanSheets ||
+      a.name.localeCompare(b.name)
+    );
 }
 
 function getTeamRecord(teamId) {

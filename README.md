@@ -34,23 +34,27 @@ The SQLite database file is created automatically at `server/data/coachchucho.sq
   the custom attributes (Pace, Shooting, Passing, Dribbling, Defending, Physical by default) used
   on every player card and the radar chart.
 - **Calendar** — a month view for scheduling games and practices per team. Games can be updated
-  with a final score once played, along with who scored each goal and who was Player of the Match;
-  each day shows a dot for practices and a different one for games, and the agenda lists scorers
-  and POTM under each game.
+  with a final score once played, along with who scored each goal (and who assisted it), who was
+  Player of the Match, and — when the game finished 0 against — which players (usually the keeper
+  and defenders) get credited with a clean sheet; each day shows a dot for practices and a
+  different one for games, and the agenda lists scorers, assists, POTM, and clean sheets under
+  each game.
 - **Themes** — "Field" (the default green/lime look) and "Midnight" (a navy/cyan look), switchable
   from Coach Profile. Midnight is flagged as a Premium theme in the UI and unlocked for everyone
   during the current free period; the app has no real payment processing yet — that would need a
   native iOS/Android build with in-app purchases, which is a separate project from this web app.
 - **Roster tab** — team folders, each holding FIFA-style player cards, with search/filter (by
   position) and sort (name, overall, number, position). A team record box (Wins/Losses/Ties and
-  Goals For/Against, tallied from played games) and a Top Scorers leaderboard (goals + Player of
-  the Match count per player) sit above the roster whenever a team has recorded game stats.
-  Tap a card to view its radar chart, full attribute breakdown, career Goals/Player-of-the-Match
-  totals, and progress-over-time chart, or tap the pencil icon to edit
-  name/number/position/nationality/photo/parent contact info/attribute ratings, and to move a
-  player to a different team.
-- **Roster Radar tab** — pick any two players for an overlaid radar chart and a side-by-side stat
-  comparison with the higher value highlighted.
+  Goals For/Against, tallied from played games), a Top Scorers leaderboard (goals, assists, and
+  Player of the Match count per player), and a Clean Sheets leaderboard sit above the roster
+  whenever a team has recorded game stats. Tap a card to view its radar chart, full attribute
+  breakdown, career Goals/Assists/Player-of-the-Match/Clean-Sheet totals, and progress-over-time
+  chart, or tap the pencil icon to edit name/number/position/nationality/photo/parent contact
+  info/attribute ratings, and to move a player to a different team.
+- **Roster Radar tab** — pick any two players for a head-to-head comparison: mini player cards
+  with photo/position/overall, a larger overlaid radar chart, an attribute-by-attribute table
+  color-coded to whichever player leads each stat, a career stats comparison (goals, assists,
+  Player of the Match, clean sheets), and a "leads in X of Y categories" summary chip.
 - **Tactical Pitch tab** — each team has its own formation (4-3-3, 4-4-2, 4-2-3-1, 3-5-2, or 4-1-4-1),
   set when you create or edit the team. On the pitch, toggle between Defensive / Balanced / Attacking
   to see that same formation shift up or down the field (goalkeeper anchored, outfield players

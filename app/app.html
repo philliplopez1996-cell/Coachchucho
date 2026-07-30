@@ -168,6 +168,11 @@
           <div id="teamLeaderboardList"></div>
         </div>
 
+        <div class="leaderboard-box hidden" id="teamCleanSheetBox">
+          <h3>Clean Sheets</h3>
+          <div id="teamCleanSheetList"></div>
+        </div>
+
         <div class="card-grid" id="playerCardGrid"></div>
         <div class="empty-state hidden" id="teamEmptyState">
           <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div>
@@ -197,21 +202,30 @@
         </div>
       </div>
       <div class="radar-content hidden" id="radarContent">
-        <div class="radar-chart-wrap">
-          <div id="radarChartSvg"></div>
-          <div class="radar-legend">
-            <div class="radar-legend-item"><span class="dot dot-a"></span><span id="legendA">Player A</span></div>
-            <div class="radar-legend-item"><span class="dot dot-b"></span><span id="legendB">Player B</span></div>
+        <div class="radar-vs-header" id="radarVsHeader"></div>
+
+        <div class="radar-columns">
+          <div class="radar-chart-wrap">
+            <div id="radarChartSvg"></div>
+            <div class="radar-legend">
+              <div class="radar-legend-item"><span class="dot dot-a"></span><span id="legendA">Player A</span></div>
+              <div class="radar-legend-item"><span class="dot dot-b"></span><span id="legendB">Player B</span></div>
+            </div>
+          </div>
+
+          <div class="compare-table-wrap">
+            <div class="compare-head">
+              <div class="compare-player compare-player-a" id="compareHeadA"></div>
+              <div class="compare-attr-label">Attribute</div>
+              <div class="compare-player compare-player-b" id="compareHeadB"></div>
+            </div>
+            <div id="compareRows"></div>
+            <div class="compare-section-label">Career Stats</div>
+            <div id="compareCareerRows"></div>
           </div>
         </div>
-        <div class="compare-table-wrap">
-          <div class="compare-head">
-            <div class="compare-player compare-player-a" id="compareHeadA"></div>
-            <div class="compare-attr-label">Attribute</div>
-            <div class="compare-player compare-player-b" id="compareHeadB"></div>
-          </div>
-          <div id="compareRows"></div>
-        </div>
+
+        <div class="radar-summary-chip" id="radarSummaryChip"></div>
       </div>
       <div class="empty-state" id="radarEmptyState">
         <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/></svg></div>
@@ -504,7 +518,8 @@
             <div class="form-grp">
               <label>Goal Scorers <span class="hint">(select the team above first)</span></label>
               <div class="goal-scorer-add-row">
-                <select id="goalScorerSelect"><option value="">Select player…</option></select>
+                <select id="goalScorerSelect"><option value="">Scorer…</option></select>
+                <select id="goalAssistSelect"><option value="">No assist</option></select>
                 <button type="button" class="btn-ghost-sm" id="addGoalBtn">+ Add Goal</button>
               </div>
               <ul class="goal-scorer-list" id="goalScorerList"></ul>
@@ -513,6 +528,11 @@
             <div class="form-grp">
               <label>Player of the Match</label>
               <select id="potmSelect"><option value="">None selected</option></select>
+            </div>
+
+            <div class="form-grp hidden" id="cleanSheetGrp">
+              <label>Clean Sheet <span class="hint">(credit the players responsible — usually the keeper + defenders)</span></label>
+              <div class="clean-sheet-checks" id="cleanSheetChecks"></div>
             </div>
           </div>
 

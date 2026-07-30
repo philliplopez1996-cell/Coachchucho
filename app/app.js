@@ -96,7 +96,7 @@
     pitch: { teamId: null, players: [], lineupType: 'balanced', formations: {} },
     drag: null,
     events: [],
-    calendar: { year: 0, month: 0, selectedDate: null, editingEventId: null, formGoals: [] },
+    calendar: { year: 0, month: 0, selectedDate: null, editingEventId: null, formGoals: [], formCleanSheets: [] },
   };
 
   /* ============================================================
@@ -172,6 +172,14 @@
 
   function ballIconSvg(cls) {
     return `<svg class="${cls || 'stat-icon'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 6.5l3.5 2.6-1.3 4.1h-4.4l-1.3-4.1z"/><path d="M12 6.5V3.2M15.5 9.1l3-1.9M13.9 13.2l1.9 3.6M8.6 13.2l-1.9 3.6M8.5 9.1l-3-1.9"/></svg>`;
+  }
+
+  function assistIconSvg(cls) {
+    return `<svg class="${cls || 'stat-icon'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="17" y2="12"/><polyline points="11 6 17 12 11 18"/></svg>`;
+  }
+
+  function shieldIconSvg(cls) {
+    return `<svg class="${cls || 'stat-icon'}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-3.5 7-9V6l-7-3-7 3v6c0 5.5 7 9 7 9z"/><polyline points="9 12 11 14 15 10"/></svg>`;
   }
 
   /* ============================================================
@@ -656,14 +664,25 @@
       ? `<div class="calendar-event-score">${ev.score_for}–${ev.score_against}</div>`
       : '';
     let scorersHtml = '';
+    let assistsHtml = '';
     if (ev.type === 'game' && ev.goals && ev.goals.length) {
-      const counts = new Map();
-      ev.goals.forEach((g) => counts.set(g.player_name, (counts.get(g.player_name) || 0) + 1));
-      const parts = [...counts.entries()].map(([name, n]) => escapeHtml(name) + (n > 1 ? ` (${n})` : ''));
-      scorersHtml = `<div class="calendar-event-scorers"><strong>Goals:</strong> ${parts.join(', ')}</div>`;
+      const goalCounts = new Map();
+      ev.goals.forEach((g) => goalCounts.set(g.player_name, (goalCounts.get(g.player_name) || 0) + 1));
+      const goalParts = [...goalCounts.entries()].map(([name, n]) => escapeHtml(name) + (n > 1 ? ` (${n})` : ''));
+      scorersHtml = `<div class="calendar-event-scorers"><strong>Goals:</strong> ${goalParts.join(', ')}</div>`;
+
+      const assistCounts = new Map();
+      ev.goals.forEach((g) => { if (g.assist_player_name) assistCounts.set(g.assist_player_name, (assistCounts.get(g.assist_player_name) || 0) + 1); });
+      if (assistCounts.size) {
+        const assistParts = [...assistCounts.entries()].map(([name, n]) => escapeHtml(name) + (n > 1 ? ` (${n})` : ''));
+        assistsHtml = `<div class="calendar-event-scorers"><strong>Assists:</strong> ${assistParts.join(', ')}</div>`;
+      }
     }
     const potmHtml = ev.type === 'game' && ev.player_of_match
       ? `<div class="calendar-event-potm">${starIconSvg()} Player of the Match: ${escapeHtml(ev.player_of_match.name)}</div>`
+      : '';
+    const cleanSheetHtml = ev.type === 'game' && ev.clean_sheets && ev.clean_sheets.length
+      ? `<div class="calendar-event-cleansheet">${shieldIconSvg()} Clean Sheet: ${ev.clean_sheets.map((c) => escapeHtml(c.player_name)).join(', ')}</div>`
       : '';
     return `
       <div class="calendar-event-row type-${ev.type}">
@@ -672,7 +691,9 @@
           <div class="calendar-event-title">${escapeHtml(ev.title)}</div>
           <div class="calendar-event-meta">${metaParts.join(' · ')}</div>
           ${scorersHtml}
+          ${assistsHtml}
           ${potmHtml}
+          ${cleanSheetHtml}
         </div>
         ${scoreHtml}
         <div class="calendar-event-actions">
@@ -740,23 +761,47 @@
     const teamId = selectedTeamId ? Number(selectedTeamId) : null;
     const rosterPlayers = teamId ? state.players.filter((p) => p.team_id === teamId) : [];
     const scorerSelect = document.getElementById('goalScorerSelect');
+    const assistSelect = document.getElementById('goalAssistSelect');
     const potmSelect = document.getElementById('potmSelect');
-    scorerSelect.innerHTML = '<option value="">Select player…</option>' +
-      rosterPlayers.map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
-    potmSelect.innerHTML = '<option value="">None selected</option>' +
-      rosterPlayers.map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
+    const playerOptions = rosterPlayers.map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
+    scorerSelect.innerHTML = '<option value="">Scorer…</option>' + playerOptions;
+    assistSelect.innerHTML = '<option value="">No assist</option>' + playerOptions;
+    potmSelect.innerHTML = '<option value="">None selected</option>' + playerOptions;
     potmSelect.value = potmPlayerId ? String(potmPlayerId) : '';
-    scorerSelect.disabled = potmSelect.disabled = !teamId;
+    scorerSelect.disabled = assistSelect.disabled = potmSelect.disabled = !teamId;
     document.getElementById('addGoalBtn').disabled = !teamId;
+
+    const checksWrap = document.getElementById('cleanSheetChecks');
+    checksWrap.innerHTML = rosterPlayers.map((p) => `
+      <label class="clean-sheet-check">
+        <input type="checkbox" value="${p.id}" ${state.calendar.formCleanSheets.includes(p.id) ? 'checked' : ''}>
+        <span>${escapeHtml(p.name)}</span>
+      </label>`).join('') || '<p class="section-hint">No players on this team yet.</p>';
+    checksWrap.querySelectorAll('input[type=checkbox]').forEach((cb) => {
+      cb.addEventListener('change', () => {
+        const playerId = Number(cb.value);
+        state.calendar.formCleanSheets = cb.checked
+          ? [...state.calendar.formCleanSheets, playerId]
+          : state.calendar.formCleanSheets.filter((id) => id !== playerId);
+      });
+    });
+  }
+
+  function updateCleanSheetVisibility() {
+    const type = document.querySelector('.event-type-tab.active').dataset.type;
+    const scoreAgainst = document.getElementById('eventScoreAgainst').value;
+    document.getElementById('cleanSheetGrp').classList.toggle('hidden', type !== 'game' || scoreAgainst !== '0');
   }
 
   function renderGoalScorerList() {
     const list = document.getElementById('goalScorerList');
     const teamId = document.getElementById('eventTeam').value ? Number(document.getElementById('eventTeam').value) : null;
-    list.innerHTML = state.calendar.formGoals.map((playerId, idx) => {
-      const player = state.players.find((p) => p.id === playerId);
+    list.innerHTML = state.calendar.formGoals.map((goal, idx) => {
+      const player = state.players.find((p) => p.id === goal.playerId);
       const name = player ? escapeHtml(player.name) : 'Unknown player';
-      return `<li class="goal-scorer-item">${ballIconSvg('goal-item-icon')}<span>${name}</span>
+      const assistPlayer = goal.assistId ? state.players.find((p) => p.id === goal.assistId) : null;
+      const assistHtml = assistPlayer ? `<span class="goal-item-assist">${assistIconSvg('goal-item-assist-icon')}${escapeHtml(assistPlayer.name)}</span>` : '';
+      return `<li class="goal-scorer-item">${ballIconSvg('goal-item-icon')}<span class="goal-item-name">${name}</span>${assistHtml}
         <button type="button" class="btn-icon-sm remove-goal-btn" data-idx="${idx}" title="Remove goal">&times;</button></li>`;
     }).join('');
     list.querySelectorAll('.remove-goal-btn').forEach((btn) => {
@@ -770,16 +815,25 @@
 
   document.getElementById('addGoalBtn').addEventListener('click', () => {
     const scorerSelect = document.getElementById('goalScorerSelect');
+    const assistSelect = document.getElementById('goalAssistSelect');
     if (!scorerSelect.value) return;
-    state.calendar.formGoals.push(Number(scorerSelect.value));
+    state.calendar.formGoals.push({
+      playerId: Number(scorerSelect.value),
+      assistId: assistSelect.value && assistSelect.value !== scorerSelect.value ? Number(assistSelect.value) : null,
+    });
     renderGoalScorerList();
+    scorerSelect.value = '';
+    assistSelect.value = '';
   });
 
   document.getElementById('eventTeam').addEventListener('change', (e) => {
     state.calendar.formGoals = [];
+    state.calendar.formCleanSheets = [];
     populateGoalScorerSelects(e.target.value, null);
     renderGoalScorerList();
   });
+
+  document.getElementById('eventScoreAgainst').addEventListener('input', updateCleanSheetVisibility);
 
   function openEventForm(event) {
     state.calendar.editingEventId = event ? event.id : null;
@@ -803,9 +857,13 @@
     document.getElementById('eventScoreAgainst').value = event && event.score_against != null ? event.score_against : '';
     document.getElementById('eventNotes').value = event && event.notes ? event.notes : '';
 
-    state.calendar.formGoals = event && event.goals ? event.goals.map((g) => g.player_id) : [];
+    state.calendar.formGoals = event && event.goals
+      ? event.goals.map((g) => ({ playerId: g.player_id, assistId: g.assist_player_id || null }))
+      : [];
+    state.calendar.formCleanSheets = event && event.clean_sheets ? event.clean_sheets.map((c) => c.player_id) : [];
     populateGoalScorerSelects(teamSelect.value, event && event.player_of_match ? event.player_of_match.id : null);
     renderGoalScorerList();
+    updateCleanSheetVisibility();
 
     showEventFormView();
   }
@@ -817,6 +875,7 @@
     tab.addEventListener('click', () => {
       document.querySelectorAll('.event-type-tab').forEach((t) => t.classList.toggle('active', t === tab));
       document.getElementById('gameFields').classList.toggle('hidden', tab.dataset.type !== 'game');
+      updateCleanSheetVisibility();
     });
   });
 
@@ -839,15 +898,17 @@
       body.opponent = document.getElementById('eventOpponent').value.trim();
       body.score_for = document.getElementById('eventScoreFor').value;
       body.score_against = document.getElementById('eventScoreAgainst').value;
-      body.goals = state.calendar.formGoals;
+      body.goals = state.calendar.formGoals.map((g) => ({ player_id: g.playerId, assist_player_id: g.assistId }));
       const potmValue = document.getElementById('potmSelect').value;
       body.player_of_match_id = potmValue ? Number(potmValue) : null;
+      body.clean_sheet_player_ids = body.score_against === '0' ? state.calendar.formCleanSheets : [];
     } else {
       body.opponent = '';
       body.score_for = '';
       body.score_against = '';
       body.goals = [];
       body.player_of_match_id = null;
+      body.clean_sheet_player_ids = [];
     }
     if (!body.title) { msgEl.textContent = 'Title is required'; return; }
     if (!body.event_date) { msgEl.textContent = 'Date is required'; return; }
@@ -905,16 +966,30 @@
   async function loadTeamLeaderboard(teamId) {
     const box = document.getElementById('teamLeaderboardBox');
     const list = document.getElementById('teamLeaderboardList');
+    const csBox = document.getElementById('teamCleanSheetBox');
+    const csList = document.getElementById('teamCleanSheetList');
     const recordBox = document.getElementById('teamRecordBox');
     try {
       const { leaderboard, record } = await api(`/teams/${teamId}/leaderboard`);
-      box.classList.toggle('hidden', leaderboard.length === 0);
-      list.innerHTML = leaderboard.map((row, idx) => `
+
+      const scorers = leaderboard.filter((row) => row.goals > 0 || row.assists > 0 || row.playerOfMatch > 0);
+      box.classList.toggle('hidden', scorers.length === 0);
+      list.innerHTML = scorers.map((row, idx) => `
         <div class="leaderboard-row">
           <span class="leaderboard-rank">${idx + 1}</span>
           <span class="leaderboard-name">${escapeHtml(row.name)}</span>
           <span class="leaderboard-stat">${ballIconSvg('leaderboard-icon')}${row.goals}</span>
+          <span class="leaderboard-stat">${assistIconSvg('leaderboard-icon')}${row.assists}</span>
           <span class="leaderboard-stat">${starIconSvg('leaderboard-icon')}${row.playerOfMatch}</span>
+        </div>`).join('');
+
+      const keepers = leaderboard.filter((row) => row.cleanSheets > 0).sort((a, b) => b.cleanSheets - a.cleanSheets || a.name.localeCompare(b.name));
+      csBox.classList.toggle('hidden', keepers.length === 0);
+      csList.innerHTML = keepers.map((row, idx) => `
+        <div class="leaderboard-row">
+          <span class="leaderboard-rank">${idx + 1}</span>
+          <span class="leaderboard-name">${escapeHtml(row.name)}</span>
+          <span class="leaderboard-stat">${shieldIconSvg('leaderboard-icon')}${row.cleanSheets}</span>
         </div>`).join('');
 
       recordBox.classList.toggle('hidden', record.gamesPlayed === 0);
@@ -927,6 +1002,7 @@
         <span>${ballIconSvg('record-goals-icon')} Goals Against <strong>${record.goalsAgainst}</strong></span>`;
     } catch (e) {
       box.classList.add('hidden');
+      csBox.classList.add('hidden');
       recordBox.classList.add('hidden');
     }
   }
@@ -1177,8 +1253,16 @@
           <div><div class="player-stat-value">${stats.goals}</div><div class="player-stat-label">Goals</div></div>
         </div>
         <div class="player-stat-chip">
+          ${assistIconSvg('player-stat-icon')}
+          <div><div class="player-stat-value">${stats.assists}</div><div class="player-stat-label">Assists</div></div>
+        </div>
+        <div class="player-stat-chip">
           ${starIconSvg('player-stat-icon')}
           <div><div class="player-stat-value">${stats.playerOfMatch}</div><div class="player-stat-label">Player of the Match</div></div>
+        </div>
+        <div class="player-stat-chip">
+          ${shieldIconSvg('player-stat-icon')}
+          <div><div class="player-stat-value">${stats.cleanSheets}</div><div class="player-stat-label">Clean Sheets</div></div>
         </div>`;
     } catch (e) { /* leave empty on failure */ }
   }
@@ -1375,25 +1459,30 @@
 
     let svg = `<svg viewBox="0 0 ${size} ${size}" width="100%" style="max-width:${size}px">`;
 
-    // grid rings
-    [0.2, 0.4, 0.6, 0.8, 1].forEach((frac) => {
-      const pts = attrNames.map((_, i) => pointAt(i, frac).join(',')).join(' ');
-      svg += `<polygon points="${pts}" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="1"/>`;
+    // soft radial backdrop
+    svg += `<circle cx="${cx}" cy="${cy}" r="${radius * 1.02}" fill="rgba(255,255,255,0.025)"/>`;
+
+    // grid rings — banded, outer ring brighter
+    [0.2, 0.4, 0.6, 0.8, 1].forEach((frac, i) => {
+      const pts = attrNames.map((_, idx) => pointAt(idx, frac).join(',')).join(' ');
+      const isOuter = i === 4;
+      svg += `<polygon points="${pts}" fill="none" stroke="rgba(255,255,255,${isOuter ? 0.22 : 0.12})" stroke-width="${isOuter ? 1.4 : 1}"/>`;
     });
     // axis lines + labels
     attrNames.forEach((name, i) => {
       const [x, y] = pointAt(i, 1);
-      svg += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(255,255,255,0.16)" stroke-width="1"/>`;
-      const [lx, ly] = pointAt(i, 1.16);
-      svg += `<text x="${lx}" y="${ly}" fill="#cfeed6" font-size="${size * 0.032}" font-family="Poppins, sans-serif" font-weight="600" text-anchor="middle" dominant-baseline="middle">${escapeHtml(name)}</text>`;
+      svg += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(255,255,255,0.14)" stroke-width="1"/>`;
+      const [lx, ly] = pointAt(i, 1.17);
+      svg += `<text x="${lx}" y="${ly}" fill="#dff2e2" font-size="${size * 0.034}" font-family="Poppins, sans-serif" font-weight="700" text-anchor="middle" dominant-baseline="middle">${escapeHtml(name)}</text>`;
     });
     // series polygons
     series.forEach((s) => {
       const pts = s.values.map((v, i) => pointAt(i, Math.max(0.03, v.value / 99)).join(',')).join(' ');
-      svg += `<polygon points="${pts}" fill="${s.color}" fill-opacity="0.28" stroke="${s.color}" stroke-width="2.5"/>`;
+      svg += `<polygon points="${pts}" fill="${s.color}" fill-opacity="0.3" stroke="${s.color}" stroke-width="3"/>`;
       s.values.forEach((v, i) => {
         const [x, y] = pointAt(i, Math.max(0.03, v.value / 99));
-        svg += `<circle cx="${x}" cy="${y}" r="3.2" fill="${s.color}"/>`;
+        svg += `<circle cx="${x}" cy="${y}" r="6.5" fill="${s.color}" fill-opacity="0.22"/>`;
+        svg += `<circle cx="${x}" cy="${y}" r="3.6" fill="${s.color}" stroke="rgba(0,0,0,0.5)" stroke-width="1.2"/>`;
       });
     });
 
@@ -1467,7 +1556,29 @@
     renderRadarComparison();
   }
 
-  function renderRadarComparison() {
+  function buildRadarHeadCard(player, side) {
+    const photoHtml = player.photo
+      ? `<img class="radar-head-photo-img" src="${player.photo}" alt="">`
+      : `<div class="radar-head-photo-fallback">${initials(player.name)}</div>`;
+    return `
+      <div class="radar-head-card radar-head-${side}">
+        <div class="radar-head-photo">${photoHtml}</div>
+        <div class="radar-head-info">
+          <div class="radar-head-name">${escapeHtml(player.name)}</div>
+          <div class="radar-head-meta">${escapeHtml(player.position)}${player.number != null ? ' · #' + player.number : ''}</div>
+        </div>
+        <div class="radar-head-ovr">${player.overall}</div>
+      </div>`;
+  }
+
+  const CAREER_STAT_FIELDS = [
+    { key: 'goals', label: 'Goals', icon: () => ballIconSvg('compare-stat-icon') },
+    { key: 'assists', label: 'Assists', icon: () => assistIconSvg('compare-stat-icon') },
+    { key: 'playerOfMatch', label: 'Player of the Match', icon: () => starIconSvg('compare-stat-icon') },
+    { key: 'cleanSheets', label: 'Clean Sheets', icon: () => shieldIconSvg('compare-stat-icon') },
+  ];
+
+  async function renderRadarComparison() {
     const idA = document.getElementById('radarPlayerA').value;
     const idB = document.getElementById('radarPlayerB').value;
     const content = document.getElementById('radarContent');
@@ -1483,30 +1594,69 @@
     content.classList.remove('hidden');
     empty.classList.add('hidden');
 
-    document.getElementById('legendA').textContent = `${playerA.name} (${playerA.overall} OVR)`;
-    document.getElementById('legendB').textContent = `${playerB.name} (${playerB.overall} OVR)`;
+    document.getElementById('radarVsHeader').innerHTML =
+      buildRadarHeadCard(playerA, 'a') + '<div class="radar-head-vs">VS</div>' + buildRadarHeadCard(playerB, 'b');
+
+    document.getElementById('legendA').textContent = playerA.name;
+    document.getElementById('legendB').textContent = playerB.name;
     document.getElementById('compareHeadA').textContent = playerA.name;
     document.getElementById('compareHeadB').textContent = playerB.name;
 
     document.getElementById('radarChartSvg').innerHTML = buildRadarSVG([
       { color: '#4AFF3F', values: playerA.attributes.map((a) => ({ name: a.name, value: a.value })) },
       { color: '#00D9FF', values: playerB.attributes.map((a) => ({ name: a.name, value: a.value })) },
-    ], 300);
+    ], 340);
 
+    let aWinCount = 0, bWinCount = 0;
     const rows = document.getElementById('compareRows');
     rows.innerHTML = playerA.attributes.map((a) => {
       const bAttr = playerB.attributes.find((x) => x.attribute_id === a.attribute_id) || { value: 0 };
       const aWin = a.value > bAttr.value, bWin = bAttr.value > a.value;
+      if (aWin) aWinCount++; else if (bWin) bWinCount++;
       return `<div class="compare-row">
-        <div class="compare-val ${aWin ? 'win' : ''}">${a.value}</div>
+        <div class="compare-val ${aWin ? 'win-a' : ''}">${a.value}</div>
         <div class="compare-attr-name">${escapeHtml(a.name)}</div>
-        <div class="compare-val ${bWin ? 'win' : ''}">${bAttr.value}</div>
+        <div class="compare-val ${bWin ? 'win-b' : ''}">${bAttr.value}</div>
       </div>`;
     }).join('') + `<div class="compare-row" style="border-top:1px solid rgba(74,255,63,0.18);margin-top:6px;padding-top:12px;">
-        <div class="compare-val ${playerA.overall > playerB.overall ? 'win' : ''}" style="font-size:16px;">${playerA.overall}</div>
+        <div class="compare-val ${playerA.overall > playerB.overall ? 'win-a' : ''}" style="font-size:16px;">${playerA.overall}</div>
         <div class="compare-attr-name" style="font-weight:800;color:var(--gold);">OVERALL</div>
-        <div class="compare-val ${playerB.overall > playerA.overall ? 'win' : ''}" style="font-size:16px;">${playerB.overall}</div>
+        <div class="compare-val ${playerB.overall > playerA.overall ? 'win-b' : ''}" style="font-size:16px;">${playerB.overall}</div>
       </div>`;
+    if (playerA.overall > playerB.overall) aWinCount++; else if (playerB.overall > playerA.overall) bWinCount++;
+
+    const careerRows = document.getElementById('compareCareerRows');
+    const summaryChip = document.getElementById('radarSummaryChip');
+    try {
+      const [{ stats: statsA }, { stats: statsB }] = await Promise.all([
+        api(`/players/${playerA.id}/stats`),
+        api(`/players/${playerB.id}/stats`),
+      ]);
+      careerRows.innerHTML = CAREER_STAT_FIELDS.map((f) => {
+        const aVal = statsA[f.key], bVal = statsB[f.key];
+        const aWin = aVal > bVal, bWin = bVal > aVal;
+        if (aWin) aWinCount++; else if (bWin) bWinCount++;
+        return `<div class="compare-row">
+          <div class="compare-val ${aWin ? 'win-a' : ''}">${aVal}</div>
+          <div class="compare-attr-name">${f.icon()}${f.label}</div>
+          <div class="compare-val ${bWin ? 'win-b' : ''}">${bVal}</div>
+        </div>`;
+      }).join('');
+    } catch (e) {
+      careerRows.innerHTML = '';
+    }
+
+    const totalCategories = aWinCount + bWinCount;
+    if (totalCategories === 0) {
+      summaryChip.innerHTML = '';
+    } else if (aWinCount === bWinCount) {
+      summaryChip.innerHTML = `<span class="radar-summary-tie">Dead even — tied across compared categories</span>`;
+    } else {
+      const leader = aWinCount > bWinCount ? playerA : playerB;
+      const leaderSide = aWinCount > bWinCount ? 'a' : 'b';
+      const leadCount = Math.max(aWinCount, bWinCount);
+      summaryChip.innerHTML = `<span class="radar-summary-leader radar-summary-${leaderSide}">${escapeHtml(leader.name)} leads in ${leadCount} of ${totalCategories} categories</span>`;
+    }
   }
 
   document.getElementById('radarPlayerA').addEventListener('change', renderRadarComparison);

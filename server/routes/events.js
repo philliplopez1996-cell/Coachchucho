@@ -16,32 +16,58 @@ function serializeEvent(id) {
   if (!event) return null;
   const goals = db
     .prepare(
-      `SELECT eg.id, eg.player_id, p.name AS player_name
-       FROM event_goals eg JOIN players p ON p.id = eg.player_id
+      `SELECT eg.id, eg.player_id, p.name AS player_name, eg.assist_player_id,
+              ap.name AS assist_player_name
+       FROM event_goals eg
+       JOIN players p ON p.id = eg.player_id
+       LEFT JOIN players ap ON ap.id = eg.assist_player_id
        WHERE eg.event_id = ? ORDER BY eg.id ASC`
+    )
+    .all(id);
+  const cleanSheets = db
+    .prepare(
+      `SELECT ecs.player_id, p.name AS player_name
+       FROM event_clean_sheets ecs JOIN players p ON p.id = ecs.player_id
+       WHERE ecs.event_id = ? ORDER BY p.name ASC`
     )
     .all(id);
   let playerOfMatch = null;
   if (event.player_of_match_id) {
     playerOfMatch = db.prepare('SELECT id, name FROM players WHERE id = ?').get(event.player_of_match_id) || null;
   }
-  return { ...event, goals, player_of_match: playerOfMatch };
+  return { ...event, goals, clean_sheets: cleanSheets, player_of_match: playerOfMatch };
 }
 
-// Replaces the goal list and player-of-the-match for an event. Both are only
-// meaningful when the event has a team (we validate scorers against that
-// team's roster), so anything without a team_id is quietly cleared.
-function setGoalsAndPotm(eventId, teamId, goalPlayerIds, potmPlayerId) {
-  let validGoalIds = [];
+// Replaces the goal list (each with an optional assist), player-of-the-match,
+// and clean sheet credits for an event. All are only meaningful when the
+// event has a team (we validate every player against that team's roster),
+// so anything without a team_id is quietly cleared.
+function setGameStats(eventId, teamId, goals, potmPlayerId, cleanSheetPlayerIds) {
+  let validGoals = [];
   let validPotmId = null;
+  let validCleanSheetIds = [];
 
-  if (teamId && Array.isArray(goalPlayerIds)) {
-    const placeholders = goalPlayerIds.map(() => '?').join(',') || "''";
-    const rosterMatches = goalPlayerIds.length
-      ? db.prepare(`SELECT id FROM players WHERE team_id = ? AND id IN (${placeholders})`).all(teamId, ...goalPlayerIds)
-      : [];
-    const rosterIds = new Set(rosterMatches.map((p) => p.id));
-    validGoalIds = goalPlayerIds.filter((id) => rosterIds.has(Number(id))).map(Number);
+  const rosterIdSet = (ids) => {
+    const unique = [...new Set(ids.map(Number).filter((n) => !Number.isNaN(n)))];
+    if (!unique.length) return new Set();
+    const placeholders = unique.map(() => '?').join(',');
+    const matches = db.prepare(`SELECT id FROM players WHERE team_id = ? AND id IN (${placeholders})`).all(teamId, ...unique);
+    return new Set(matches.map((p) => p.id));
+  };
+
+  if (teamId && Array.isArray(goals)) {
+    const scorerIds = goals.map((g) => Number(g && g.player_id));
+    const assistIds = goals.map((g) => (g && g.assist_player_id ? Number(g.assist_player_id) : null)).filter((id) => id != null);
+    const rosterIds = rosterIdSet([...scorerIds, ...assistIds]);
+    validGoals = goals
+      .filter((g) => g && rosterIds.has(Number(g.player_id)))
+      .map((g) => {
+        const assistId = g.assist_player_id ? Number(g.assist_player_id) : null;
+        return {
+          playerId: Number(g.player_id),
+          assistId: assistId && rosterIds.has(assistId) && assistId !== Number(g.player_id) ? assistId : null,
+        };
+      });
   }
 
   if (teamId && potmPlayerId) {
@@ -49,11 +75,21 @@ function setGoalsAndPotm(eventId, teamId, goalPlayerIds, potmPlayerId) {
     if (potmMatch) validPotmId = potmMatch.id;
   }
 
+  if (teamId && Array.isArray(cleanSheetPlayerIds)) {
+    const rosterIds = rosterIdSet(cleanSheetPlayerIds);
+    validCleanSheetIds = [...new Set(cleanSheetPlayerIds.map(Number).filter((id) => rosterIds.has(id)))];
+  }
+
   const tx = db.transaction(() => {
     db.prepare('DELETE FROM event_goals WHERE event_id = ?').run(eventId);
-    const insertGoal = db.prepare('INSERT INTO event_goals (event_id, player_id) VALUES (?, ?)');
-    validGoalIds.forEach((playerId) => insertGoal.run(eventId, playerId));
+    const insertGoal = db.prepare('INSERT INTO event_goals (event_id, player_id, assist_player_id) VALUES (?, ?, ?)');
+    validGoals.forEach((g) => insertGoal.run(eventId, g.playerId, g.assistId));
+
     db.prepare('UPDATE events SET player_of_match_id = ? WHERE id = ?').run(validPotmId, eventId);
+
+    db.prepare('DELETE FROM event_clean_sheets WHERE event_id = ?').run(eventId);
+    const insertCleanSheet = db.prepare('INSERT INTO event_clean_sheets (event_id, player_id) VALUES (?, ?)');
+    validCleanSheetIds.forEach((playerId) => insertCleanSheet.run(eventId, playerId));
   });
   tx();
 }
@@ -72,7 +108,10 @@ router.get('/', (req, res) => {
 });
 
 router.post('/', (req, res) => {
-  const { team_id, type, title, event_date, event_time, location, opponent, score_for, score_against, notes, goals, player_of_match_id } = req.body || {};
+  const {
+    team_id, type, title, event_date, event_time, location, opponent,
+    score_for, score_against, notes, goals, player_of_match_id, clean_sheet_player_ids,
+  } = req.body || {};
   if (!event_date) return res.status(400).json({ error: 'Event date is required' });
   const eventType = EVENT_TYPES.includes(type) ? type : 'practice';
   if (!title || !title.trim()) return res.status(400).json({ error: 'Title is required' });
@@ -102,14 +141,17 @@ router.post('/', (req, res) => {
       score_against !== undefined && score_against !== '' ? Number(score_against) : null,
       notes || null
     );
-  setGoalsAndPotm(info.lastInsertRowid, teamId, goals, player_of_match_id);
+  setGameStats(info.lastInsertRowid, teamId, goals, player_of_match_id, clean_sheet_player_ids);
   res.status(201).json({ event: serializeEvent(info.lastInsertRowid) });
 });
 
 router.put('/:id', (req, res) => {
   const existing = getOwnedEvent(req.params.id, req.coachId);
   if (!existing) return res.status(404).json({ error: 'Event not found' });
-  const { team_id, type, title, event_date, event_time, location, opponent, score_for, score_against, notes, goals, player_of_match_id } = req.body || {};
+  const {
+    team_id, type, title, event_date, event_time, location, opponent,
+    score_for, score_against, notes, goals, player_of_match_id, clean_sheet_player_ids,
+  } = req.body || {};
 
   let teamId = existing.team_id;
   if (team_id !== undefined) {
@@ -150,11 +192,18 @@ router.put('/:id', (req, res) => {
     existing.id
   );
 
-  if (goals !== undefined || player_of_match_id !== undefined) {
-    setGoalsAndPotm(existing.id, teamId, goals !== undefined ? goals : [], player_of_match_id !== undefined ? player_of_match_id : null);
+  const statsSupplied = goals !== undefined || player_of_match_id !== undefined || clean_sheet_player_ids !== undefined;
+  if (statsSupplied) {
+    setGameStats(
+      existing.id,
+      teamId,
+      goals !== undefined ? goals : [],
+      player_of_match_id !== undefined ? player_of_match_id : null,
+      clean_sheet_player_ids !== undefined ? clean_sheet_player_ids : []
+    );
   } else if (team_id !== undefined && teamId !== existing.team_id) {
-    // Team changed without new goals/POTM supplied — old scorers no longer apply.
-    setGoalsAndPotm(existing.id, teamId, [], null);
+    // Team changed without new stats supplied — old scorers/POTM/clean sheets no longer apply.
+    setGameStats(existing.id, teamId, [], null, []);
   }
 
   res.json({ event: serializeEvent(existing.id) });
