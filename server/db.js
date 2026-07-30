@@ -77,6 +77,23 @@ db.exec(`
     attributes_json TEXT NOT NULL,
     recorded_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    coach_id INTEGER NOT NULL REFERENCES coaches(id) ON DELETE CASCADE,
+    team_id INTEGER REFERENCES teams(id) ON DELETE CASCADE,
+    type TEXT NOT NULL DEFAULT 'practice',
+    title TEXT NOT NULL,
+    event_date TEXT NOT NULL,
+    event_time TEXT,
+    location TEXT,
+    opponent TEXT,
+    score_for INTEGER,
+    score_against INTEGER,
+    notes TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `);
 
 function ensureColumn(table, column, definition) {
@@ -91,6 +108,7 @@ ensureColumn('players', 'parent_phone', 'TEXT');
 ensureColumn('coaches', 'photo', 'TEXT');
 ensureColumn('teams', 'parent_password_hash', 'TEXT');
 ensureColumn('teams', 'formation', "TEXT NOT NULL DEFAULT '4-3-3'");
+ensureColumn('coaches', 'theme', "TEXT NOT NULL DEFAULT 'field'");
 
 function migrateFormationsTable() {
   const cols = db.prepare('PRAGMA table_info(formations)').all().map((c) => c.name);

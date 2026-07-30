@@ -98,6 +98,9 @@
     <a class="nav-item" id="navProfile">
       <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span> Coach Profile
     </a>
+    <a class="nav-item" id="navCalendar">
+      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span> Calendar
+    </a>
     <a class="nav-item" id="navFaq">
       <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> FAQs
     </a>
@@ -331,6 +334,13 @@
 
       <div class="divider"></div>
 
+      <h3>Appearance</h3>
+      <p class="section-hint">Pick a color theme for the app.</p>
+      <div class="theme-swatches" id="themeSwatches"></div>
+      <div class="form-msg" id="themeMsg"></div>
+
+      <div class="divider"></div>
+
       <h3>Player Card &amp; Radar Attributes</h3>
       <p class="section-hint">These are the stats shown on every player card and the radar chart. Add or remove them to fit how you evaluate players.</p>
       <div class="attr-list" id="attrList"></div>
@@ -379,6 +389,122 @@
         <div class="faq-q"><span>Is my data saved?</span><span class="faq-arrow">▼</span></div>
         <div class="faq-a">Yes — everything is saved to your coach account on the server, so it's there whenever you log back in from any device.</div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Calendar Modal -->
+<div class="modal" id="modal-calendar">
+  <div class="modal-box modal-box-lg">
+    <div class="modal-header">
+      <h2>Calendar</h2>
+      <button class="close-btn" data-close-modal="calendar">&times;</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- CALENDAR VIEW -->
+      <div id="calendarView">
+        <div class="calendar-toolbar">
+          <button type="button" class="btn-icon-only" id="calPrevMonthBtn" title="Previous month">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <div class="calendar-month-label" id="calMonthLabel">Month Year</div>
+          <button type="button" class="btn-icon-only" id="calNextMonthBtn" title="Next month">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button type="button" class="btn-ghost-sm" id="calTodayBtn">Today</button>
+        </div>
+        <div class="calendar-legend">
+          <span class="calendar-legend-item"><span class="calendar-dot dot-practice"></span>Practice</span>
+          <span class="calendar-legend-item"><span class="calendar-dot dot-game"></span>Game</span>
+        </div>
+        <div class="calendar-weekdays">
+          <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+
+        <div class="calendar-agenda">
+          <div class="calendar-agenda-header">
+            <h3 id="calAgendaDate">Select a day</h3>
+            <button class="btn-accent" id="addEventBtn">+ Add Event</button>
+          </div>
+          <div id="calAgendaList"></div>
+          <div class="empty-state hidden" id="calAgendaEmpty">
+            <p>No events on this day.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- EVENT FORM -->
+      <div id="calendarEventForm" class="hidden">
+        <form id="eventForm">
+          <div class="event-type-tabs" id="eventTypeTabs">
+            <button type="button" class="event-type-tab active" data-type="practice">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+              Practice
+            </button>
+            <button type="button" class="event-type-tab" data-type="game">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="12" y1="4" x2="12" y2="20"/><circle cx="12" cy="12" r="3.2"/></svg>
+              Game
+            </button>
+          </div>
+
+          <div class="form-row">
+            <div class="form-grp">
+              <label>Title</label>
+              <input type="text" id="eventTitle" required maxlength="60" placeholder="e.g. Weekly Practice">
+            </div>
+            <div class="form-grp">
+              <label>Team <span class="hint">(optional)</span></label>
+              <select id="eventTeam"><option value="">No specific team</option></select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-grp">
+              <label>Date</label>
+              <input type="date" id="eventDate" required>
+            </div>
+            <div class="form-grp form-grp-sm">
+              <label>Time <span class="hint">(optional)</span></label>
+              <input type="time" id="eventTime">
+            </div>
+          </div>
+          <div class="form-grp">
+            <label>Location <span class="hint">(optional)</span></label>
+            <input type="text" id="eventLocation" maxlength="60" placeholder="e.g. Field 2">
+          </div>
+
+          <div id="gameFields" class="hidden">
+            <div class="form-grp">
+              <label>Opponent</label>
+              <input type="text" id="eventOpponent" maxlength="60" placeholder="e.g. Eagles FC">
+            </div>
+            <h3>Final Score <span class="hint" style="font-family:inherit;font-weight:400;">(add once the game is played)</span></h3>
+            <div class="form-row">
+              <div class="form-grp form-grp-sm">
+                <label>Us</label>
+                <input type="number" id="eventScoreFor" min="0" max="99">
+              </div>
+              <div class="form-grp form-grp-sm">
+                <label>Them</label>
+                <input type="number" id="eventScoreAgainst" min="0" max="99">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-grp">
+            <label>Notes <span class="hint">(optional)</span></label>
+            <textarea id="eventNotes" rows="2" placeholder="Anything the team should know…"></textarea>
+          </div>
+
+          <div class="form-msg" id="eventMsg"></div>
+          <div class="event-form-actions">
+            <button type="button" class="btn-ghost-sm" id="cancelEventBtn">Cancel</button>
+            <button type="submit" class="btn-primary">Save Event</button>
+          </div>
+        </form>
+      </div>
+
     </div>
   </div>
 </div>

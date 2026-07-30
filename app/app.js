@@ -9,6 +9,19 @@
   const POSITIONS = ['GK', 'LB', 'CB', 'RB', 'CDM', 'CM', 'CAM', 'LM', 'RM', 'LW', 'RW', 'ST'];
   const TEAM_COLORS = ['#4AFF3F', '#00D9FF', '#FFD700', '#FF6B35', '#FF3F8E', '#8B5CF6', '#3F8CFF'];
 
+  const THEMES = [
+    { key: 'field', label: 'Field', premium: false, previewBg: '#0a1f10', previewDots: ['#4AFF3F', '#00D9FF', '#FFD700'] },
+    { key: 'midnight', label: 'Midnight', premium: true, previewBg: '#0b1220', previewDots: ['#38BDF8', '#A78BFA', '#FFD700'] },
+  ];
+  // Premium themes are unlocked for everyone during the free period.
+  // Flip this once real in-app purchases are wired up in a packaged app.
+  const PREMIUM_UNLOCKED = true;
+
+  function applyTheme(themeKey) {
+    const theme = THEMES.find((t) => t.key === themeKey) || THEMES[0];
+    document.documentElement.setAttribute('data-theme', theme.key);
+  }
+
   const COUNTRIES = [
     ['United States', 'US'], ['Mexico', 'MX'], ['Canada', 'CA'], ['Brazil', 'BR'], ['Argentina', 'AR'],
     ['Colombia', 'CO'], ['Venezuela', 'VE'], ['Chile', 'CL'], ['Peru', 'PE'], ['Ecuador', 'EC'],
@@ -82,6 +95,8 @@
     playerModalMode: 'view',
     pitch: { teamId: null, players: [], lineupType: 'balanced', formations: {} },
     drag: null,
+    events: [],
+    calendar: { year: 0, month: 0, selectedDate: null, editingEventId: null },
   };
 
   /* ============================================================
@@ -194,6 +209,7 @@
     document.getElementById('sidebarName').textContent = state.coach.name;
     document.getElementById('sidebarEmail').textContent = state.coach.email;
     renderSidebarAvatar(state.coach);
+    applyTheme(state.coach.theme);
     await loadAll();
   }
 
@@ -332,6 +348,10 @@
     closeSidebar();
     openModal('faq');
   });
+  document.getElementById('navCalendar').addEventListener('click', () => {
+    closeSidebar();
+    openCalendarModal();
+  });
 
   /* ============================================================
      GENERIC MODAL HELPERS
@@ -397,8 +417,47 @@
     document.getElementById('profileMsg').className = 'form-msg';
     profilePhotoDataUrl = state.coach.photo || null;
     updateProfilePhotoPreview();
+    renderThemeSwatches();
     renderAttrList();
     openModal('profile');
+  }
+
+  function renderThemeSwatches() {
+    const wrap = document.getElementById('themeSwatches');
+    const current = state.coach.theme || 'field';
+    wrap.innerHTML = THEMES.map((t) => `
+      <div class="theme-swatch ${t.key === current ? 'selected' : ''}" data-theme-key="${t.key}">
+        <div class="theme-swatch-preview" style="background:${t.previewBg}">
+          ${t.previewDots.map((c) => `<span class="theme-swatch-dot" style="background:${c}"></span>`).join('')}
+        </div>
+        <div class="theme-swatch-label">
+          <span>${escapeHtml(t.label)}</span>
+          ${t.premium ? '<span class="theme-swatch-pro">PRO</span>' : ''}
+        </div>
+      </div>`).join('');
+    wrap.querySelectorAll('.theme-swatch').forEach((el) => {
+      el.addEventListener('click', () => selectTheme(el.dataset.themeKey));
+    });
+  }
+
+  async function selectTheme(themeKey) {
+    const theme = THEMES.find((t) => t.key === themeKey);
+    const msgEl = document.getElementById('themeMsg');
+    msgEl.className = 'form-msg';
+    if (theme.premium && !PREMIUM_UNLOCKED) {
+      msgEl.textContent = `${theme.label} is a Premium theme. Upgrade to unlock it.`;
+      return;
+    }
+    applyTheme(themeKey);
+    try {
+      const { coach } = await api('/coach/me', { method: 'PUT', body: { theme: themeKey } });
+      state.coach = coach;
+      renderThemeSwatches();
+      msgEl.textContent = 'Theme saved!';
+      msgEl.className = 'form-msg success';
+    } catch (err) {
+      msgEl.textContent = err.message;
+    }
   }
 
   document.getElementById('profileName').addEventListener('input', () => {
@@ -478,6 +537,261 @@
   ============================================================ */
   document.querySelectorAll('#modal-faq .faq-item').forEach((item) => {
     item.querySelector('.faq-q').addEventListener('click', () => item.classList.toggle('open'));
+  });
+
+  /* ============================================================
+     CALENDAR
+  ============================================================ */
+  function pad2(n) { return String(n).padStart(2, '0'); }
+  function dateStrFromDate(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
+  function formatLongDate(dateStr) {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
+  }
+
+  function openCalendarModal() {
+    if (!state.calendar.year) {
+      const now = new Date();
+      state.calendar.year = now.getFullYear();
+      state.calendar.month = now.getMonth();
+      state.calendar.selectedDate = dateStrFromDate(now);
+    }
+    showCalendarView();
+    loadEventsForMonth();
+    openModal('calendar');
+  }
+
+  function showCalendarView() {
+    document.getElementById('calendarView').classList.remove('hidden');
+    document.getElementById('calendarEventForm').classList.add('hidden');
+  }
+  function showEventFormView() {
+    document.getElementById('calendarView').classList.add('hidden');
+    document.getElementById('calendarEventForm').classList.remove('hidden');
+  }
+
+  async function loadEventsForMonth() {
+    const y = state.calendar.year, m = state.calendar.month;
+    const start = `${y}-${pad2(m + 1)}-01`;
+    const end = `${y}-${pad2(m + 1)}-${pad2(new Date(y, m + 1, 0).getDate())}`;
+    try {
+      const { events } = await api(`/events?start=${start}&end=${end}`);
+      state.events = events;
+    } catch (e) {
+      state.events = [];
+    }
+    renderCalendarGrid();
+    renderAgenda();
+  }
+
+  function renderCalendarGrid() {
+    const y = state.calendar.year, m = state.calendar.month;
+    document.getElementById('calMonthLabel').textContent = new Date(y, m, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+
+    const firstWeekday = new Date(y, m, 1).getDay();
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    const daysInPrevMonth = new Date(y, m, 0).getDate();
+    const todayStr = dateStrFromDate(new Date());
+
+    const cells = [];
+    for (let i = firstWeekday - 1; i >= 0; i--) cells.push({ day: daysInPrevMonth - i, otherMonth: true });
+    for (let d = 1; d <= daysInMonth; d++) cells.push({ day: d, otherMonth: false });
+    const trailing = (7 - (cells.length % 7)) % 7;
+    for (let d = 1; d <= trailing; d++) cells.push({ day: d, otherMonth: true });
+
+    const grid = document.getElementById('calendarGrid');
+    grid.innerHTML = '';
+    cells.forEach((cell) => {
+      const cellDateStr = cell.otherMonth ? null : `${y}-${pad2(m + 1)}-${pad2(cell.day)}`;
+      const div = document.createElement('div');
+      div.className = 'calendar-day' + (cell.otherMonth ? ' other-month' : '');
+      if (cellDateStr && cellDateStr === todayStr) div.classList.add('today');
+      if (cellDateStr && cellDateStr === state.calendar.selectedDate) div.classList.add('selected');
+      const dayNum = document.createElement('div');
+      dayNum.textContent = cell.day;
+      div.appendChild(dayNum);
+
+      if (!cell.otherMonth) {
+        const dayEvents = state.events.filter((e) => e.event_date === cellDateStr);
+        const types = [...new Set(dayEvents.map((e) => e.type))];
+        if (types.length) {
+          const dotsWrap = document.createElement('div');
+          dotsWrap.className = 'calendar-day-dots';
+          types.forEach((t) => {
+            const dot = document.createElement('span');
+            dot.className = 'calendar-dot ' + (t === 'game' ? 'dot-game' : 'dot-practice');
+            dotsWrap.appendChild(dot);
+          });
+          div.appendChild(dotsWrap);
+        }
+        div.addEventListener('click', () => {
+          state.calendar.selectedDate = cellDateStr;
+          renderCalendarGrid();
+          renderAgenda();
+        });
+      }
+      grid.appendChild(div);
+    });
+  }
+
+  function buildEventRowHtml(ev) {
+    const team = state.teams.find((t) => t.id === ev.team_id);
+    const metaParts = [];
+    if (team) metaParts.push(escapeHtml(team.name));
+    if (ev.event_time) metaParts.push(ev.event_time);
+    if (ev.location) metaParts.push(escapeHtml(ev.location));
+    if (ev.type === 'game' && ev.opponent) metaParts.push(`vs ${escapeHtml(ev.opponent)}`);
+    const icon = ev.type === 'game'
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="12" y1="4" x2="12" y2="20"/><circle cx="12" cy="12" r="3.2"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>';
+    const scoreHtml = ev.type === 'game' && ev.score_for != null && ev.score_against != null
+      ? `<div class="calendar-event-score">${ev.score_for}–${ev.score_against}</div>`
+      : '';
+    return `
+      <div class="calendar-event-row type-${ev.type}">
+        <div class="calendar-event-icon">${icon}</div>
+        <div class="calendar-event-body">
+          <div class="calendar-event-title">${escapeHtml(ev.title)}</div>
+          <div class="calendar-event-meta">${metaParts.join(' · ')}</div>
+        </div>
+        ${scoreHtml}
+        <div class="calendar-event-actions">
+          <button class="btn-icon cal-edit-btn" data-id="${ev.id}" title="Edit event">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+          </button>
+          <button class="btn-icon cal-delete-btn" data-id="${ev.id}" title="Delete event">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          </button>
+        </div>
+      </div>`;
+  }
+
+  function renderAgenda() {
+    const dateStr = state.calendar.selectedDate;
+    const header = document.getElementById('calAgendaDate');
+    const list = document.getElementById('calAgendaList');
+    const empty = document.getElementById('calAgendaEmpty');
+    if (!dateStr) {
+      header.textContent = 'Select a day';
+      list.innerHTML = '';
+      empty.classList.add('hidden');
+      return;
+    }
+    header.textContent = formatLongDate(dateStr);
+    const dayEvents = state.events
+      .filter((e) => e.event_date === dateStr)
+      .slice()
+      .sort((a, b) => (a.event_time || '99:99').localeCompare(b.event_time || '99:99'));
+    empty.classList.toggle('hidden', dayEvents.length > 0);
+    list.innerHTML = dayEvents.map(buildEventRowHtml).join('');
+    list.querySelectorAll('.cal-edit-btn').forEach((btn) => {
+      btn.addEventListener('click', () => openEventForm(state.events.find((e) => e.id === Number(btn.dataset.id))));
+    });
+    list.querySelectorAll('.cal-delete-btn').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Delete this event?')) return;
+        await api('/events/' + btn.dataset.id, { method: 'DELETE' });
+        await loadEventsForMonth();
+      });
+    });
+  }
+
+  document.getElementById('calPrevMonthBtn').addEventListener('click', () => {
+    state.calendar.month -= 1;
+    if (state.calendar.month < 0) { state.calendar.month = 11; state.calendar.year -= 1; }
+    state.calendar.selectedDate = null;
+    loadEventsForMonth();
+  });
+  document.getElementById('calNextMonthBtn').addEventListener('click', () => {
+    state.calendar.month += 1;
+    if (state.calendar.month > 11) { state.calendar.month = 0; state.calendar.year += 1; }
+    state.calendar.selectedDate = null;
+    loadEventsForMonth();
+  });
+  document.getElementById('calTodayBtn').addEventListener('click', () => {
+    const now = new Date();
+    state.calendar.year = now.getFullYear();
+    state.calendar.month = now.getMonth();
+    state.calendar.selectedDate = dateStrFromDate(now);
+    loadEventsForMonth();
+  });
+
+  function openEventForm(event) {
+    state.calendar.editingEventId = event ? event.id : null;
+    document.getElementById('eventMsg').textContent = '';
+
+    const teamSelect = document.getElementById('eventTeam');
+    teamSelect.innerHTML = '<option value="">No specific team</option>' +
+      state.teams.map((t) => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
+
+    const type = event ? event.type : 'practice';
+    document.querySelectorAll('.event-type-tab').forEach((tab) => tab.classList.toggle('active', tab.dataset.type === type));
+    document.getElementById('gameFields').classList.toggle('hidden', type !== 'game');
+
+    document.getElementById('eventTitle').value = event ? event.title : '';
+    teamSelect.value = event && event.team_id ? event.team_id : '';
+    document.getElementById('eventDate').value = event ? event.event_date : (state.calendar.selectedDate || dateStrFromDate(new Date()));
+    document.getElementById('eventTime').value = event && event.event_time ? event.event_time : '';
+    document.getElementById('eventLocation').value = event && event.location ? event.location : '';
+    document.getElementById('eventOpponent').value = event && event.opponent ? event.opponent : '';
+    document.getElementById('eventScoreFor').value = event && event.score_for != null ? event.score_for : '';
+    document.getElementById('eventScoreAgainst').value = event && event.score_against != null ? event.score_against : '';
+    document.getElementById('eventNotes').value = event && event.notes ? event.notes : '';
+
+    showEventFormView();
+  }
+
+  document.getElementById('addEventBtn').addEventListener('click', () => openEventForm(null));
+  document.getElementById('cancelEventBtn').addEventListener('click', () => showCalendarView());
+
+  document.querySelectorAll('.event-type-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.event-type-tab').forEach((t) => t.classList.toggle('active', t === tab));
+      document.getElementById('gameFields').classList.toggle('hidden', tab.dataset.type !== 'game');
+    });
+  });
+
+  document.getElementById('eventForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msgEl = document.getElementById('eventMsg');
+    msgEl.textContent = '';
+    const type = document.querySelector('.event-type-tab.active').dataset.type;
+    const teamValue = document.getElementById('eventTeam').value;
+    const body = {
+      type,
+      title: document.getElementById('eventTitle').value.trim(),
+      team_id: teamValue ? Number(teamValue) : null,
+      event_date: document.getElementById('eventDate').value,
+      event_time: document.getElementById('eventTime').value,
+      location: document.getElementById('eventLocation').value.trim(),
+      notes: document.getElementById('eventNotes').value.trim(),
+    };
+    if (type === 'game') {
+      body.opponent = document.getElementById('eventOpponent').value.trim();
+      body.score_for = document.getElementById('eventScoreFor').value;
+      body.score_against = document.getElementById('eventScoreAgainst').value;
+    } else {
+      body.opponent = '';
+      body.score_for = '';
+      body.score_against = '';
+    }
+    if (!body.title) { msgEl.textContent = 'Title is required'; return; }
+    if (!body.event_date) { msgEl.textContent = 'Date is required'; return; }
+    try {
+      if (state.calendar.editingEventId) {
+        await api('/events/' + state.calendar.editingEventId, { method: 'PUT', body });
+      } else {
+        await api('/events', { method: 'POST', body });
+      }
+      state.calendar.selectedDate = body.event_date;
+      const [evYear, evMonth] = body.event_date.split('-').map(Number);
+      state.calendar.year = evYear;
+      state.calendar.month = evMonth - 1;
+      showCalendarView();
+      await loadEventsForMonth();
+    } catch (err) {
+      msgEl.textContent = err.message;
+    }
   });
 
   /* ============================================================

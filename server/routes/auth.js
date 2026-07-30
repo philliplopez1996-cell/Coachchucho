@@ -11,7 +11,7 @@ function sign(coach) {
 }
 
 function publicCoach(coach) {
-  return { id: coach.id, name: coach.name, email: coach.email, photo: coach.photo };
+  return { id: coach.id, name: coach.name, email: coach.email, photo: coach.photo, theme: coach.theme };
 }
 
 router.post('/signup', (req, res) => {

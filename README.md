@@ -29,10 +29,16 @@ The SQLite database file is created automatically at `server/data/coachchucho.sq
 ### What's in the app
 
 - **Sign up / log in** — each coach has their own account (name, email, password, profile photo).
-- **Side menu** (top-left hamburger) — Coach Profile and FAQs.
-- **Coach Profile** — edit name/email/password/photo, plus add or delete the custom attributes
-  (Pace, Shooting, Passing, Dribbling, Defending, Physical by default) used on every player card
-  and the radar chart.
+- **Side menu** (top-left hamburger) — Coach Profile, Calendar, and FAQs.
+- **Coach Profile** — edit name/email/password/photo, choose an app color theme, and add or delete
+  the custom attributes (Pace, Shooting, Passing, Dribbling, Defending, Physical by default) used
+  on every player card and the radar chart.
+- **Calendar** — a month view for scheduling games and practices per team. Games can be updated
+  with a final score once played; each day shows a dot for practices and a different one for games.
+- **Themes** — "Field" (the default green/lime look) and "Midnight" (a navy/cyan look), switchable
+  from Coach Profile. Midnight is flagged as a Premium theme in the UI and unlocked for everyone
+  during the current free period; the app has no real payment processing yet — that would need a
+  native iOS/Android build with in-app purchases, which is a separate project from this web app.
 - **Roster tab** — team folders, each holding FIFA-style player cards, with search/filter (by
   position) and sort (name, overall, number, position). Tap a card to view its radar chart, full
   attribute breakdown, and progress-over-time chart, or tap the pencil icon to edit

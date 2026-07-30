@@ -6,8 +6,10 @@ const { requireAuth } = require('../middleware/auth');
 const router = express.Router();
 router.use(requireAuth);
 
+const THEMES = ['field', 'midnight'];
+
 function publicCoach(coach) {
-  return { id: coach.id, name: coach.name, email: coach.email, photo: coach.photo };
+  return { id: coach.id, name: coach.name, email: coach.email, photo: coach.photo, theme: coach.theme };
 }
 
 router.get('/me', (req, res) => {
@@ -20,12 +22,13 @@ router.put('/me', (req, res) => {
   const coach = db.prepare('SELECT * FROM coaches WHERE id = ?').get(req.coachId);
   if (!coach) return res.status(404).json({ error: 'Coach not found' });
 
-  const { name, email, password, currentPassword, photo } = req.body || {};
+  const { name, email, password, currentPassword, photo, theme } = req.body || {};
   const updates = {
     name: coach.name,
     email: coach.email,
     password_hash: coach.password_hash,
     photo: photo !== undefined ? photo : coach.photo,
+    theme: THEMES.includes(theme) ? theme : coach.theme,
   };
 
   if (name && name.trim()) updates.name = name.trim();
@@ -48,11 +51,12 @@ router.put('/me', (req, res) => {
     updates.password_hash = bcrypt.hashSync(password, 10);
   }
 
-  db.prepare('UPDATE coaches SET name = ?, email = ?, password_hash = ?, photo = ? WHERE id = ?').run(
+  db.prepare('UPDATE coaches SET name = ?, email = ?, password_hash = ?, photo = ?, theme = ? WHERE id = ?').run(
     updates.name,
     updates.email,
     updates.password_hash,
     updates.photo,
+    updates.theme,
     coach.id
   );
 
