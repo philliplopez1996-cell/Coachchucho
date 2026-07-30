@@ -474,7 +474,9 @@
       const card = document.createElement('div');
       card.className = 'folder-card';
       card.style.setProperty('--folder-color', team.color);
-      card.innerHTML = `<div class="folder-icon" style="color:${escapeHtml(team.color)}">🗂️</div>
+      card.innerHTML = `<div class="folder-icon" style="color:${escapeHtml(team.color)}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
+        </div>
         <div class="folder-name">${escapeHtml(team.name)}</div>
         <div class="folder-count">${team.player_count} player${team.player_count === 1 ? '' : 's'}</div>`;
       card.addEventListener('click', () => openTeamView(team.id));

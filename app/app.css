@@ -131,7 +131,8 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
   color: #dff5e4;
 }
 .nav-item:hover { background: rgba(74,255,63,0.12); border-color: rgba(74,255,63,0.3); color: var(--lime); }
-.nav-item .icon { font-size: 18px; width: 26px; text-align: center; }
+.nav-item .icon { width: 26px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.nav-item .icon svg { width: 19px; height: 19px; }
 .sidebar-fill { flex: 1; }
 .nav-item-logout { color: var(--orange); }
 .nav-item-logout:hover { background: rgba(255,107,53,0.12); border-color: rgba(255,107,53,0.3); color: var(--orange); }
@@ -172,7 +173,8 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
   text-align: center; transition: all 0.2s; position: relative;
 }
 .folder-card:hover { border-color: var(--lime); transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,0.35); }
-.folder-icon { font-size: 40px; margin-bottom: 10px; filter: drop-shadow(0 0 6px rgba(0,0,0,0.4)); }
+.folder-icon { display: flex; justify-content: center; margin-bottom: 10px; filter: drop-shadow(0 0 6px rgba(0,0,0,0.4)); }
+.folder-icon svg { width: 38px; height: 38px; }
 .folder-name { font-weight: 800; font-size: 14.5px; color: #eafff0; }
 .folder-count { font-size: 12px; color: #9fd8ae; margin-top: 3px; }
 
@@ -400,38 +402,38 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
 
 /* Mini FIFA-style card shared by pitch chips and bench chips */
 .mini-card {
-  width: 52px; height: 66px; border-radius: 8px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.45); border: 1.5px solid rgba(255,255,255,0.55);
+  width: 34px; height: 38px; border-radius: 6px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.5);
   font-family: 'JetBrains Mono', monospace; flex-shrink: 0;
 }
-.mini-card-ovr { font-size: 16px; font-weight: 800; line-height: 1; }
-.mini-card-pos { font-size: 8.5px; font-weight: 700; letter-spacing: 0.3px; line-height: 1.3; }
-.mini-card-flag { font-size: 14px; line-height: 1; margin-top: 1px; }
+.mini-card-ovr { font-size: 12px; font-weight: 800; line-height: 1.1; }
+.mini-card-pos { font-size: 6.5px; font-weight: 700; letter-spacing: 0.2px; line-height: 1.2; }
+.mini-card-flag { font-size: 9px; line-height: 1; margin-top: 1px; }
 
 .pitch-chip {
-  position: absolute; width: 52px; margin-left: -26px; margin-top: -33px;
+  position: absolute; width: 34px; margin-left: -17px; margin-top: -19px;
   display: flex; flex-direction: column; align-items: center;
   cursor: grab; touch-action: none; z-index: 5;
 }
 .pitch-chip:active { cursor: grabbing; z-index: 20; }
 .pitch-chip .chip-name {
-  margin-top: 3px; font-size: 9px; font-weight: 700; color: #eafff0;
-  background: rgba(0,0,0,0.6); padding: 1px 6px; border-radius: 5px; white-space: nowrap; max-width: 68px; overflow: hidden; text-overflow: ellipsis;
+  margin-top: 2px; font-size: 7px; font-weight: 700; color: #eafff0;
+  background: rgba(0,0,0,0.55); padding: 1px 4px; border-radius: 4px; white-space: nowrap; max-width: 50px; overflow: hidden; text-overflow: ellipsis;
 }
 .pitch-chip .chip-remove {
-  position: absolute; top: -6px; right: 0; width: 18px; height: 18px; border-radius: 50%;
-  background: var(--orange); color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center;
+  position: absolute; top: -5px; right: -3px; width: 14px; height: 14px; border-radius: 50%;
+  background: var(--orange); color: #fff; font-size: 9px; line-height: 1; display: flex; align-items: center; justify-content: center;
   cursor: pointer; border: 1px solid rgba(255,255,255,0.6); z-index: 6;
 }
 
 .pitch-bench { background: var(--card-bg); border: 1px solid rgba(74,255,63,0.2); border-radius: 14px; padding: 14px; }
 .pitch-bench-label { font-size: 12px; color: #9fd8ae; font-weight: 700; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
-.pitch-bench-list { display: flex; gap: 12px; flex-wrap: wrap; }
+.pitch-bench-list { display: flex; gap: 16px; flex-wrap: wrap; }
 .bench-chip {
-  width: 52px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: grab; touch-action: none;
+  width: 34px; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: grab; touch-action: none;
 }
-.bench-chip-name { font-size: 9px; color: #9fd8ae; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
+.bench-chip-name { font-size: 8px; color: #9fd8ae; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
 
 /* ============ BOTTOM TABS ============ */
 .bottom-tabs {
@@ -444,7 +446,8 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
   align-items: center; gap: 3px; padding: 8px 4px; cursor: pointer; font-size: 10.5px; font-weight: 700;
   border-radius: 10px; transition: color 0.2s;
 }
-.bottom-tab .bt-icon { font-size: 20px; }
+.bottom-tab .bt-icon { display: flex; justify-content: center; }
+.bottom-tab .bt-icon svg { width: 21px; height: 21px; }
 .bottom-tab.active { color: var(--lime); }
 
 /* ============ RESPONSIVE ============ */
