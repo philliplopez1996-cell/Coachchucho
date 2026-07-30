@@ -905,8 +905,9 @@
   async function loadTeamLeaderboard(teamId) {
     const box = document.getElementById('teamLeaderboardBox');
     const list = document.getElementById('teamLeaderboardList');
+    const recordBox = document.getElementById('teamRecordBox');
     try {
-      const { leaderboard } = await api(`/teams/${teamId}/leaderboard`);
+      const { leaderboard, record } = await api(`/teams/${teamId}/leaderboard`);
       box.classList.toggle('hidden', leaderboard.length === 0);
       list.innerHTML = leaderboard.map((row, idx) => `
         <div class="leaderboard-row">
@@ -915,8 +916,18 @@
           <span class="leaderboard-stat">${ballIconSvg('leaderboard-icon')}${row.goals}</span>
           <span class="leaderboard-stat">${starIconSvg('leaderboard-icon')}${row.playerOfMatch}</span>
         </div>`).join('');
+
+      recordBox.classList.toggle('hidden', record.gamesPlayed === 0);
+      document.getElementById('teamRecordWL').innerHTML = `
+        <div class="record-chip record-win"><span class="record-chip-value">${record.wins}</span><span class="record-chip-label">Wins</span></div>
+        <div class="record-chip record-loss"><span class="record-chip-value">${record.losses}</span><span class="record-chip-label">Losses</span></div>
+        <div class="record-chip record-tie"><span class="record-chip-value">${record.ties}</span><span class="record-chip-label">Ties</span></div>`;
+      document.getElementById('teamRecordGoals').innerHTML = `
+        <span>${ballIconSvg('record-goals-icon')} Goals For <strong>${record.goalsFor}</strong></span>
+        <span>${ballIconSvg('record-goals-icon')} Goals Against <strong>${record.goalsAgainst}</strong></span>`;
     } catch (e) {
       box.classList.add('hidden');
+      recordBox.classList.add('hidden');
     }
   }
 

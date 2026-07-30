@@ -221,6 +221,28 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
   border: 1px solid color-mix(in srgb, var(--lime) 25%, transparent); border-radius: 9px; color: var(--text-primary); font-size: 13.5px;
 }
 
+.team-record-box {
+  background: rgba(255,255,255,0.04); border: 1px solid color-mix(in srgb, var(--lime) 18%, transparent);
+  border-radius: 12px; padding: 14px 18px; margin-bottom: 18px;
+}
+.record-wl { display: flex; gap: 10px; margin-bottom: 12px; }
+.record-chip {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 8px;
+  border-radius: 10px; background: rgba(255,255,255,0.04); border: 1px solid color-mix(in srgb, var(--lime) 12%, transparent);
+}
+.record-chip-value { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 800; line-height: 1.1; }
+.record-chip-label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 700; }
+.record-win .record-chip-value { color: var(--lime); }
+.record-loss .record-chip-value { color: var(--orange); }
+.record-tie .record-chip-value { color: var(--gold); }
+.record-goals {
+  display: flex; justify-content: center; gap: 22px; flex-wrap: wrap; font-size: 12.5px; color: var(--text-secondary);
+  padding-top: 12px; border-top: 1px solid color-mix(in srgb, var(--lime) 12%, transparent);
+}
+.record-goals span { display: inline-flex; align-items: center; gap: 5px; }
+.record-goals strong { color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 13.5px; }
+.record-goals-icon { width: 13px; height: 13px; color: var(--lime); flex-shrink: 0; }
+
 .leaderboard-box {
   background: rgba(255,255,255,0.04); border: 1px solid color-mix(in srgb, var(--lime) 18%, transparent);
   border-radius: 12px; padding: 14px 18px; margin-bottom: 18px;

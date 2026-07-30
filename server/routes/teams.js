@@ -1,6 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const { db, getTeamLeaderboard } = require('../db');
+const { db, getTeamLeaderboard, getTeamRecord } = require('../db');
 const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
@@ -66,7 +66,7 @@ router.put('/:id', (req, res) => {
 router.get('/:id/leaderboard', (req, res) => {
   const team = getOwnedTeam(req.params.id, req.coachId);
   if (!team) return res.status(404).json({ error: 'Team not found' });
-  res.json({ leaderboard: getTeamLeaderboard(team.id) });
+  res.json({ leaderboard: getTeamLeaderboard(team.id), record: getTeamRecord(team.id) });
 });
 
 router.delete('/:id', (req, res) => {

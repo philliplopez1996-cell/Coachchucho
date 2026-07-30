@@ -180,6 +180,24 @@ function getTeamLeaderboard(teamId) {
     .sort((a, b) => b.goals - a.goals || b.playerOfMatch - a.playerOfMatch || a.name.localeCompare(b.name));
 }
 
+function getTeamRecord(teamId) {
+  const games = db
+    .prepare(
+      `SELECT score_for, score_against FROM events
+       WHERE team_id = ? AND type = 'game' AND score_for IS NOT NULL AND score_against IS NOT NULL`
+    )
+    .all(teamId);
+  const record = { wins: 0, losses: 0, ties: 0, goalsFor: 0, goalsAgainst: 0, gamesPlayed: games.length };
+  games.forEach((g) => {
+    record.goalsFor += g.score_for;
+    record.goalsAgainst += g.score_against;
+    if (g.score_for > g.score_against) record.wins += 1;
+    else if (g.score_for < g.score_against) record.losses += 1;
+    else record.ties += 1;
+  });
+  return record;
+}
+
 module.exports = {
   db,
   slugify,
@@ -189,4 +207,5 @@ module.exports = {
   recordPlayerProgress,
   getPlayerStats,
   getTeamLeaderboard,
+  getTeamRecord,
 };
