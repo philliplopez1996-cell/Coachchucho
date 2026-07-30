@@ -609,6 +609,20 @@
       margin-bottom: 16px;
     }
 
+    /* ── ABOUT PAGE CTA ── */
+    .about-cta {
+      max-width: 620px;
+      margin: 0 auto;
+      padding: 60px 40px 90px;
+      text-align: center;
+    }
+    .about-cta p {
+      font-size: 15px;
+      color: #E7E9EC;
+      opacity: 0.85;
+      margin: 14px 0 28px;
+    }
+
     /* FAQ */
     .faq-item {
       background: rgba(255,255,255,0.06);
