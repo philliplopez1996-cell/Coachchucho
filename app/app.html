@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Coach Chucho — Coaching App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Audiowide&family=JetBrains+Mono:wght@400;600;700&family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<!-- ============ AUTH SCREEN ============ -->
+<div id="authScreen" class="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">COACH<span>CHUCHO</span></div>
+    <div class="auth-sub">Team &amp; Player Management</div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-auth-tab="login">Log In</button>
+      <button class="auth-tab" data-auth-tab="signup">Sign Up</button>
+    </div>
+
+    <form id="loginForm" class="auth-form active">
+      <label>Email</label>
+      <input type="email" id="loginEmail" required autocomplete="username">
+      <label>Password</label>
+      <input type="password" id="loginPassword" required autocomplete="current-password">
+      <div class="auth-error" id="loginError"></div>
+      <button type="submit" class="btn-primary">Log In</button>
+    </form>
+
+    <form id="signupForm" class="auth-form">
+      <label>Coach Name</label>
+      <input type="text" id="signupName" required autocomplete="name">
+      <label>Email</label>
+      <input type="email" id="signupEmail" required autocomplete="username">
+      <label>Password</label>
+      <input type="password" id="signupPassword" required minlength="6" autocomplete="new-password">
+      <div class="auth-error" id="signupError"></div>
+      <button type="submit" class="btn-primary">Create Account</button>
+    </form>
+  </div>
+</div>
+
+<!-- ============ APP SHELL ============ -->
+<div id="appShell" class="app-shell hidden">
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <button class="hamburger" id="menuBtn">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="topbar-title">COACH<span>CHUCHO</span></div>
+    <div class="topbar-spacer"></div>
+  </header>
+
+  <!-- Side menu -->
+  <div class="overlay" id="menuOverlay"></div>
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-profile" id="sidebarProfileBtn">
+      <div class="sidebar-avatar" id="sidebarAvatar">C</div>
+      <div>
+        <div class="sidebar-name" id="sidebarName">Coach</div>
+        <div class="sidebar-email" id="sidebarEmail">coach@email.com</div>
+      </div>
+    </div>
+    <a class="nav-item" id="navProfile">
+      <span class="icon">👤</span> Coach Profile
+    </a>
+    <a class="nav-item" id="navFaq">
+      <span class="icon">❓</span> FAQs
+    </a>
+    <div class="sidebar-fill"></div>
+    <a class="nav-item nav-item-logout" id="navLogout">
+      <span class="icon">⏻</span> Log Out
+    </a>
+  </nav>
+
+  <!-- Main content -->
+  <main class="main-content">
+
+    <!-- HOME TAB -->
+    <section class="tab-pane active" id="tab-home">
+      <div class="home-hero">
+        <div class="home-greeting">Welcome back, <span id="homeCoachName">Coach</span></div>
+        <div class="home-sub">Here's your squad at a glance</div>
+      </div>
+      <div class="home-stats">
+        <div class="home-stat-card">
+          <div class="home-stat-num" id="statTeams">0</div>
+          <div class="home-stat-label">Teams</div>
+        </div>
+        <div class="home-stat-card">
+          <div class="home-stat-num" id="statPlayers">0</div>
+          <div class="home-stat-label">Players</div>
+        </div>
+        <div class="home-stat-card">
+          <div class="home-stat-num" id="statAttrs">0</div>
+          <div class="home-stat-label">Attributes</div>
+        </div>
+        <div class="home-stat-card">
+          <div class="home-stat-num" id="statAvgOvr">0</div>
+          <div class="home-stat-label">Avg OVR</div>
+        </div>
+      </div>
+      <div class="home-quicklinks">
+        <button class="quicklink-card" data-goto-tab="roster">
+          <span class="ql-icon">🗂️</span>
+          <span>Manage Roster</span>
+        </button>
+        <button class="quicklink-card" data-goto-tab="radar">
+          <span class="ql-icon">📊</span>
+          <span>Compare Players</span>
+        </button>
+        <button class="quicklink-card" data-goto-tab="pitch">
+          <span class="ql-icon">⚽</span>
+          <span>Tactical Pitch</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ROSTER TAB -->
+    <section class="tab-pane" id="tab-roster">
+      <div class="roster-folders-view" id="rosterFoldersView">
+        <div class="section-header">
+          <h2>Roster</h2>
+          <button class="btn-accent" id="addTeamBtn">+ New Team</button>
+        </div>
+        <div class="folder-grid" id="folderGrid"></div>
+        <div class="empty-state hidden" id="rosterEmptyState">
+          <div class="empty-icon">🗂️</div>
+          <p>No teams yet. Create your first team folder to start building your roster.</p>
+        </div>
+      </div>
+
+      <div class="roster-team-view hidden" id="rosterTeamView">
+        <div class="section-header">
+          <button class="btn-back" id="backToFoldersBtn">← Teams</button>
+          <h2 id="rosterTeamName">Team</h2>
+          <div class="team-header-actions">
+            <button class="btn-icon" id="editTeamBtn" title="Edit team">✏️</button>
+            <button class="btn-icon" id="deleteTeamBtn" title="Delete team">🗑️</button>
+            <button class="btn-accent" id="addPlayerBtn">+ Add Player</button>
+          </div>
+        </div>
+        <div class="card-grid" id="playerCardGrid"></div>
+        <div class="empty-state hidden" id="teamEmptyState">
+          <div class="empty-icon">🃏</div>
+          <p>No players in this team yet. Add your first player card.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- RADAR COMPARISON TAB -->
+    <section class="tab-pane" id="tab-radar">
+      <div class="section-header">
+        <h2>Roster Radar</h2>
+      </div>
+      <div class="radar-pickers">
+        <div class="radar-picker">
+          <label>Player A</label>
+          <select id="radarPlayerA"><option value="">Select player…</option></select>
+        </div>
+        <div class="radar-vs">VS</div>
+        <div class="radar-picker">
+          <label>Player B</label>
+          <select id="radarPlayerB"><option value="">Select player…</option></select>
+        </div>
+      </div>
+      <div class="radar-content hidden" id="radarContent">
+        <div class="radar-chart-wrap">
+          <div id="radarChartSvg"></div>
+          <div class="radar-legend">
+            <div class="radar-legend-item"><span class="dot dot-a"></span><span id="legendA">Player A</span></div>
+            <div class="radar-legend-item"><span class="dot dot-b"></span><span id="legendB">Player B</span></div>
+          </div>
+        </div>
+        <div class="compare-table-wrap">
+          <div class="compare-head">
+            <div class="compare-player compare-player-a" id="compareHeadA"></div>
+            <div class="compare-attr-label">Attribute</div>
+            <div class="compare-player compare-player-b" id="compareHeadB"></div>
+          </div>
+          <div id="compareRows"></div>
+        </div>
+      </div>
+      <div class="empty-state" id="radarEmptyState">
+        <div class="empty-icon">📊</div>
+        <p>Pick two players above to compare their attributes side by side.</p>
+      </div>
+    </section>
+
+    <!-- TACTICAL PITCH TAB -->
+    <section class="tab-pane" id="tab-pitch">
+      <div class="section-header">
+        <h2>Tactical Pitch</h2>
+        <select id="pitchTeamSelect"><option value="">Select team…</option></select>
+      </div>
+      <div class="pitch-controls hidden" id="pitchControls">
+        <div class="formation-buttons" id="formationButtons"></div>
+        <div class="pitch-actions">
+          <button class="btn-icon" id="clearPitchBtn" title="Clear pitch">🧹 Clear</button>
+          <button class="btn-accent" id="saveFormationBtn">💾 Save Formation</button>
+        </div>
+      </div>
+      <div class="pitch-wrap hidden" id="pitchWrap">
+        <div class="pitch-board" id="pitchBoard">
+          <svg viewBox="0 0 100 64" preserveAspectRatio="none" class="pitch-svg">
+            <rect x="0" y="0" width="100" height="64" class="pitch-grass"/>
+            <line x1="50" y1="0" x2="50" y2="64" class="pitch-line"/>
+            <circle cx="50" cy="32" r="9" class="pitch-line-fill"/>
+            <circle cx="50" cy="32" r="0.6" class="pitch-line-fill"/>
+            <rect x="0" y="14" width="16" height="36" class="pitch-line-fill"/>
+            <rect x="0" y="22" width="6" height="20" class="pitch-line-fill"/>
+            <rect x="84" y="14" width="16" height="36" class="pitch-line-fill"/>
+            <rect x="94" y="22" width="6" height="20" class="pitch-line-fill"/>
+            <path d="M 0 27 A 3 3 0 0 0 0 37" class="pitch-line-fill"/>
+            <path d="M 100 27 A 3 3 0 0 1 100 37" class="pitch-line-fill"/>
+          </svg>
+          <div class="pitch-slots" id="pitchSlots"></div>
+        </div>
+        <div class="pitch-bench">
+          <div class="pitch-bench-label">Bench — drag onto pitch</div>
+          <div class="pitch-bench-list" id="pitchBenchList"></div>
+        </div>
+      </div>
+      <div class="empty-state" id="pitchEmptyState">
+        <div class="empty-icon">⚽</div>
+        <p>Select a team above to build its tactical lineup.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom tab bar -->
+  <nav class="bottom-tabs">
+    <button class="bottom-tab active" data-tab="home"><span class="bt-icon">🏠</span><span>Home</span></button>
+    <button class="bottom-tab" data-tab="roster"><span class="bt-icon">🗂️</span><span>Roster</span></button>
+    <button class="bottom-tab" data-tab="radar"><span class="bt-icon">📊</span><span>Radar</span></button>
+    <button class="bottom-tab" data-tab="pitch"><span class="bt-icon">⚽</span><span>Pitch</span></button>
+  </nav>
+</div>
+
+<!-- ============ MODALS ============ -->
+
+<!-- Coach Profile Modal -->
+<div class="modal" id="modal-profile">
+  <div class="modal-box modal-box-lg">
+    <div class="modal-header">
+      <h2>Coach Profile</h2>
+      <button class="close-btn" data-close-modal="profile">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="profileForm">
+        <div class="form-row">
+          <div class="form-grp">
+            <label>Name</label>
+            <input type="text" id="profileName">
+          </div>
+          <div class="form-grp">
+            <label>Email</label>
+            <input type="email" id="profileEmail">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-grp">
+            <label>Current Password <span class="hint">(required to change password)</span></label>
+            <input type="password" id="profileCurrentPassword" autocomplete="current-password">
+          </div>
+          <div class="form-grp">
+            <label>New Password <span class="hint">(leave blank to keep)</span></label>
+            <input type="password" id="profileNewPassword" autocomplete="new-password">
+          </div>
+        </div>
+        <div class="form-msg" id="profileMsg"></div>
+        <button type="submit" class="btn-primary">Save Profile</button>
+      </form>
+
+      <div class="divider"></div>
+
+      <h3>Player Card &amp; Radar Attributes</h3>
+      <p class="section-hint">These are the stats shown on every player card and the radar chart. Add or remove them to fit how you evaluate players.</p>
+      <div class="attr-list" id="attrList"></div>
+      <form id="addAttrForm" class="add-attr-form">
+        <input type="text" id="newAttrName" placeholder="e.g. Stamina, Vision, Heading…" maxlength="30">
+        <button type="submit" class="btn-accent">+ Add Attribute</button>
+      </form>
+      <div class="form-msg" id="attrMsg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ Modal -->
+<div class="modal" id="modal-faq">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>FAQs</h2>
+      <button class="close-btn" data-close-modal="faq">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="faq-item open">
+        <div class="faq-q"><span>How do I add a team?</span><span class="faq-arrow">▼</span></div>
+        <div class="faq-a">Go to the Roster tab and tap "+ New Team". Each team is a folder that holds its own set of player cards.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span>How do I add or edit players?</span><span class="faq-arrow">▼</span></div>
+        <div class="faq-a">Open a team folder and tap "+ Add Player", or tap any existing player card to view it, then tap Edit to change their name, number, position, photo, and attribute ratings.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span>How are attributes and OVR calculated?</span><span class="faq-arrow">▼</span></div>
+        <div class="faq-a">Each attribute is rated 0–99. Overall (OVR) is the average of all attribute ratings, just like a FIFA-style player card.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span>Can I customize the attributes?</span><span class="faq-arrow">▼</span></div>
+        <div class="faq-a">Yes. Open Coach Profile from the side menu and use the Attributes section to add new stats or delete ones you don't use. Changes apply to every player card and the radar chart.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span>How does Roster Radar work?</span><span class="faq-arrow">▼</span></div>
+        <div class="faq-a">Pick any two players from any team to see an overlaid radar chart plus a side-by-side breakdown of every attribute, with the higher value highlighted.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span>How do I build a lineup on the Tactical Pitch?</span><span class="faq-arrow">▼</span></div>
+        <div class="faq-a">Select a team, pick a formation to auto-lay-out your starters, then drag any player chip to reposition them or drag from the bench to bring a substitute on. Tap "Save Formation" to keep it.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span>Is my data saved?</span><span class="faq-arrow">▼</span></div>
+        <div class="faq-a">Yes — everything is saved to your coach account on the server, so it's there whenever you log back in from any device.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Team Form Modal -->
+<div class="modal" id="modal-team">
+  <div class="modal-box modal-box-sm">
+    <div class="modal-header">
+      <h2 id="teamModalTitle">New Team</h2>
+      <button class="close-btn" data-close-modal="team">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="teamForm">
+        <div class="form-grp">
+          <label>Team Name</label>
+          <input type="text" id="teamNameInput" required maxlength="40" placeholder="e.g. U-12 Strikers">
+        </div>
+        <div class="form-grp">
+          <label>Team Color</label>
+          <div class="color-swatches" id="teamColorSwatches"></div>
+        </div>
+        <div class="form-msg" id="teamMsg"></div>
+        <button type="submit" class="btn-primary">Save Team</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Player Detail / Edit Modal -->
+<div class="modal" id="modal-player">
+  <div class="modal-box modal-box-lg">
+    <div class="modal-header">
+      <h2 id="playerModalTitle">Player</h2>
+      <div class="player-modal-actions">
+        <button class="btn-icon" id="playerEditToggleBtn" title="Edit player">✏️</button>
+        <button class="btn-icon" id="playerDeleteBtn" title="Delete player">🗑️</button>
+        <button class="close-btn" data-close-modal="player">&times;</button>
+      </div>
+    </div>
+    <div class="modal-body">
+
+      <!-- VIEW MODE -->
+      <div id="playerViewMode">
+        <div class="player-detail-layout">
+          <div class="player-detail-card" id="playerDetailCardWrap"></div>
+          <div class="player-detail-radar" id="playerDetailRadarWrap">
+            <div id="playerRadarSvg"></div>
+          </div>
+        </div>
+        <div class="big-attrs" id="bigAttrs"></div>
+      </div>
+
+      <!-- EDIT MODE -->
+      <div id="playerEditMode" class="hidden">
+        <form id="playerEditForm">
+          <div class="edit-photo-row">
+            <div class="edit-photo-preview" id="editPhotoPreview">?</div>
+            <div>
+              <input type="file" id="editPhotoInput" accept="image/*">
+              <button type="button" class="btn-ghost-sm" id="clearPhotoBtn">Remove photo</button>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-grp">
+              <label>Name</label>
+              <input type="text" id="editPlayerName" required maxlength="40">
+            </div>
+            <div class="form-grp form-grp-sm">
+              <label>Number</label>
+              <input type="number" id="editPlayerNumber" min="0" max="99">
+            </div>
+            <div class="form-grp form-grp-sm">
+              <label>Position</label>
+              <select id="editPlayerPosition"></select>
+            </div>
+          </div>
+          <h3>Attributes</h3>
+          <div class="attr-sliders" id="attrSliders"></div>
+          <div class="form-msg" id="playerEditMsg"></div>
+          <button type="submit" class="btn-primary">Save Player</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
