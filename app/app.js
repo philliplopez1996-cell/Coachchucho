@@ -29,7 +29,7 @@
 
   function flagEmoji(countryName) {
     const code = COUNTRY_CODE_BY_NAME[countryName];
-    if (!code) return '🏳️';
+    if (!code) return '';
     return String.fromCodePoint(...[...code.toUpperCase()].map((c) => 127397 + c.charCodeAt(0)));
   }
 
@@ -426,7 +426,9 @@
       const row = document.createElement('div');
       row.className = 'attr-row';
       row.innerHTML = `<span class="attr-row-name">${escapeHtml(attr.name)}</span>
-        <button class="attr-row-del" title="Delete attribute" ${state.attributes.length <= 1 ? 'disabled style="opacity:.3;cursor:not-allowed"' : ''}>🗑️</button>`;
+        <button class="attr-row-del" title="Delete attribute" ${state.attributes.length <= 1 ? 'disabled style="opacity:.3;cursor:not-allowed"' : ''}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>`;
       row.querySelector('.attr-row-del').addEventListener('click', async () => {
         if (!confirm(`Delete the "${attr.name}" attribute? This removes it from every player.`)) return;
         try {
@@ -1085,6 +1087,16 @@
     return state.pitch.formations[state.pitch.lineupType];
   }
 
+  // Pitch data model stores x = field progress (0 = own goal, 100 = attack) and
+  // y = lateral width, independent of display orientation. The board renders
+  // portrait with the own goal at the bottom, so screen position is derived here.
+  function dataToScreen(pos) {
+    return { left: pos.y, top: 100 - pos.x };
+  }
+  function screenToData(leftPct, topPct) {
+    return { x: 100 - topPct, y: leftPct };
+  }
+
   function shiftForPhase(template, phase) {
     if (phase === 'balanced') return template;
     return template.map((pt) => {
@@ -1103,13 +1115,23 @@
     const team = state.teams.find((t) => t.id === state.pitch.teamId);
     const template = shiftForPhase(FORMATIONS[team.formation] || FORMATIONS['4-3-3'], lineupType);
     const lineup = state.pitch.formations[lineupType];
-    const allPlayers = state.pitch.players;
     const currentlyPlaced = lineup.placed.map((p) => p.player_id);
-    const bench = allPlayers.filter((p) => !currentlyPlaced.includes(p.id));
-    const ordered = lineup.placed.map((p) => p.player_id).concat(bench.map((p) => p.id));
-    lineup.placed = ordered.slice(0, template.length).map((playerId, i) => ({
-      player_id: playerId, x: template[i].x, y: template[i].y,
-    }));
+    const pool = state.pitch.players.filter((p) => !currentlyPlaced.includes(p.id)).slice();
+
+    // First pass: give each slot a player who actually plays that position.
+    const assignments = template.map((slot) => {
+      const idx = pool.findIndex((p) => p.position === slot.label);
+      if (idx === -1) return null;
+      return pool.splice(idx, 1)[0].id;
+    });
+    // Second pass: fill any remaining slots with leftover players in order.
+    assignments.forEach((playerId, i) => {
+      if (playerId === null && pool.length) assignments[i] = pool.shift().id;
+    });
+
+    lineup.placed = lineup.placed.concat(
+      assignments.map((playerId, i) => (playerId ? { player_id: playerId, x: template[i].x, y: template[i].y } : null)).filter(Boolean)
+    );
   }
 
   async function loadPitchForTeam(teamId) {
@@ -1167,8 +1189,10 @@
     renderPitch();
   });
 
+  const CHECK_ICON_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+
   document.getElementById('saveFormationBtn').addEventListener('click', async (e) => {
-    const btn = e.target;
+    const btn = e.currentTarget;
     const lineup = currentLineup();
     const team = state.teams.find((t) => t.id === state.pitch.teamId);
     try {
@@ -1180,9 +1204,9 @@
         },
       });
       lineup.everSaved = true;
-      const original = btn.textContent;
-      btn.textContent = '✅ Saved!';
-      setTimeout(() => { btn.textContent = original; }, 1500);
+      const original = btn.innerHTML;
+      btn.innerHTML = CHECK_ICON_SVG;
+      setTimeout(() => { btn.innerHTML = original; }, 1500);
     } catch (err) {
       alert('Could not save formation: ' + err.message);
     }
@@ -1213,8 +1237,9 @@
       if (!player) return;
       const chip = document.createElement('div');
       chip.className = 'pitch-chip';
-      chip.style.left = pos.x + '%';
-      chip.style.top = pos.y + '%';
+      const screenPos = dataToScreen(pos);
+      chip.style.left = screenPos.left + '%';
+      chip.style.top = screenPos.top + '%';
       chip.dataset.playerId = player.id;
       chip.appendChild(buildMiniCardEl(player));
       const nameEl = document.createElement('span');
@@ -1283,10 +1308,11 @@
 
         const lineup = currentLineup();
         if (overPitch) {
-          const x = Math.max(2, Math.min(98, ((ev.clientX - rect.left) / rect.width) * 100));
-          const y = Math.max(2, Math.min(98, ((ev.clientY - rect.top) / rect.height) * 100));
+          const leftPct = Math.max(2, Math.min(98, ((ev.clientX - rect.left) / rect.width) * 100));
+          const topPct = Math.max(2, Math.min(98, ((ev.clientY - rect.top) / rect.height) * 100));
+          const data = screenToData(leftPct, topPct);
           lineup.placed = lineup.placed.filter((pl) => pl.player_id !== playerId);
-          lineup.placed.push({ player_id: playerId, x, y });
+          lineup.placed.push({ player_id: playerId, x: data.x, y: data.y });
         } else if (type === 'chip') {
           lineup.placed = lineup.placed.filter((pl) => pl.player_id !== playerId);
         }

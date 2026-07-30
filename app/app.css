@@ -156,14 +156,18 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
   transition: all 0.2s; white-space: nowrap;
 }
 .btn-accent:hover, .btn-back:hover, .btn-icon:hover { background: rgba(74,255,63,0.22); }
-.btn-icon { padding: 10px 12px; font-size: 15px; }
+.btn-back { display: inline-flex; align-items: center; gap: 6px; }
+.btn-back svg { width: 15px; height: 15px; flex-shrink: 0; }
+.btn-icon { padding: 10px 12px; display: inline-flex; align-items: center; justify-content: center; }
+.btn-icon svg { width: 16px; height: 16px; }
 .btn-ghost-sm {
   background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #9fd8ae; padding: 6px 12px;
   border-radius: 8px; cursor: pointer; font-size: 12px; margin-top: 8px;
 }
 
 .empty-state { text-align: center; padding: 60px 20px; color: #7fae8b; }
-.empty-icon { font-size: 46px; margin-bottom: 12px; }
+.empty-icon { display: flex; justify-content: center; margin-bottom: 14px; }
+.empty-icon svg { width: 44px; height: 44px; }
 
 /* ---- ROSTER FOLDERS ---- */
 .folder-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
@@ -276,7 +280,8 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
   border: 1px solid rgba(74,255,63,0.15); border-radius: 10px;
 }
 .attr-row-name { flex: 1; font-weight: 600; font-size: 14px; }
-.attr-row-del { background: transparent; border: none; color: var(--orange); cursor: pointer; font-size: 16px; padding: 4px 6px; }
+.attr-row-del { background: transparent; border: none; color: var(--orange); cursor: pointer; padding: 4px 6px; display: flex; align-items: center; }
+.attr-row-del svg { width: 16px; height: 16px; }
 .attr-row-del:hover { color: #ff8f5c; }
 .add-attr-form { display: flex; gap: 10px; }
 .add-attr-form input {
@@ -376,19 +381,30 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
 /* ============ TACTICAL PITCH ============ */
 .lineup-type-tabs { display: flex; gap: 8px; margin-bottom: 14px; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 5px; }
 .lineup-type-tab {
-  flex: 1; padding: 10px 8px; border: none; border-radius: 9px; background: transparent;
-  color: #9fd8ae; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s;
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 6px; border: none; border-radius: 9px; background: transparent;
+  color: #9fd8ae; font-weight: 700; font-size: 12.5px; cursor: pointer; transition: all 0.2s;
 }
+.lineup-type-tab svg { width: 16px; height: 16px; flex-shrink: 0; }
 .lineup-type-tab.active { background: var(--lime); color: #06210f; }
 
 .pitch-controls { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
 .pitch-formation-label { font-size: 13px; color: #9fd8ae; font-weight: 600; }
 .pitch-formation-label span { color: var(--gold); font-family: 'JetBrains Mono', monospace; font-weight: 700; }
 .pitch-actions { display: flex; gap: 8px; }
+.btn-icon-only {
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  border-radius: 9px; border: 1px solid rgba(74,255,63,0.35); background: rgba(74,255,63,0.1);
+  color: var(--lime); cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+}
+.btn-icon-only:hover { background: rgba(74,255,63,0.22); }
+.btn-icon-only svg { width: 17px; height: 17px; }
+.btn-icon-accent { background: var(--lime); color: #06210f; border-color: var(--lime); }
+.btn-icon-accent:hover { background: #3fe633; }
 
 .pitch-wrap { display: flex; flex-direction: column; gap: 16px; }
 .pitch-board {
-  position: relative; width: 100%; aspect-ratio: 100 / 64; border-radius: 14px; overflow: hidden;
+  position: relative; width: 100%; max-width: 480px; margin: 0 auto; aspect-ratio: 68 / 100; border-radius: 14px; overflow: hidden;
   border: 2px solid rgba(74,255,63,0.35); box-shadow: 0 10px 30px rgba(0,0,0,0.4); user-select: none; touch-action: none;
 }
 .pitch-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
