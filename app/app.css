@@ -382,12 +382,8 @@ h2, h3 { font-family: 'Audiowide', sans-serif; }
 .lineup-type-tab.active { background: var(--lime); color: #06210f; }
 
 .pitch-controls { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-.formation-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
-.formation-btn {
-  padding: 8px 14px; border-radius: 8px; border: 1px solid rgba(74,255,63,0.3); background: rgba(255,255,255,0.05);
-  color: #dff5e4; font-weight: 700; font-size: 12.5px; cursor: pointer; font-family: 'JetBrains Mono', monospace;
-}
-.formation-btn.active, .formation-btn:hover { background: var(--lime); color: #06210f; border-color: var(--lime); }
+.pitch-formation-label { font-size: 13px; color: #9fd8ae; font-weight: 600; }
+.pitch-formation-label span { color: var(--gold); font-family: 'JetBrains Mono', monospace; font-weight: 700; }
 .pitch-actions { display: flex; gap: 8px; }
 
 .pitch-wrap { display: flex; flex-direction: column; gap: 16px; }

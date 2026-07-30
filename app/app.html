@@ -211,8 +211,9 @@
         <button type="button" class="lineup-type-tab" data-lineup="attacking">⚔️ Attacking</button>
       </div>
       <div class="pitch-controls hidden" id="pitchControls">
-        <div class="formation-buttons" id="formationButtons"></div>
+        <div class="pitch-formation-label">Formation: <span id="pitchFormationName">4-3-3</span></div>
         <div class="pitch-actions">
+          <button class="btn-icon" id="resetFormationBtn" title="Reset to this team's formation">↺ Reset</button>
           <button class="btn-icon" id="clearPitchBtn" title="Clear pitch">🧹 Clear</button>
           <button class="btn-accent" id="saveFormationBtn">💾 Save Formation</button>
         </div>
@@ -372,6 +373,10 @@
         <div class="form-grp">
           <label>Team Color</label>
           <div class="color-swatches" id="teamColorSwatches"></div>
+        </div>
+        <div class="form-grp">
+          <label>Formation <span class="hint">(used on the Tactical Pitch)</span></label>
+          <select id="teamFormationSelect"></select>
         </div>
         <div class="divider"></div>
         <div class="form-grp">

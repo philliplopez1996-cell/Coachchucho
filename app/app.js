@@ -540,6 +540,10 @@
       swatchWrap.appendChild(sw);
     });
 
+    const formationSelect = document.getElementById('teamFormationSelect');
+    formationSelect.innerHTML = Object.keys(FORMATIONS).map((name) => `<option value="${name}">${name}</option>`).join('');
+    formationSelect.value = team ? team.formation : '4-3-3';
+
     document.getElementById('teamParentPassword').value = '';
     document.getElementById('parentPasswordStatus').textContent = team
       ? (team.has_parent_password ? '(password is set)' : '(not set yet)')
@@ -563,11 +567,12 @@
     const name = document.getElementById('teamNameInput').value.trim();
     const selectedSwatch = document.querySelector('#teamColorSwatches .color-swatch.selected');
     const color = selectedSwatch ? selectedSwatch.dataset.color : TEAM_COLORS[0];
+    const formation = document.getElementById('teamFormationSelect').value;
     const parentPassword = document.getElementById('teamParentPassword').value.trim();
     const clearParentPassword = document.getElementById('teamForm').dataset.clearParentPassword === '1';
     if (!name) { msgEl.textContent = 'Team name is required'; return; }
     try {
-      const body = { name, color };
+      const body = { name, color, formation };
       if (parentPassword) body.parent_password = parentPassword;
       if (clearParentPassword) body.clear_parent_password = true;
       if (teamModalEditingId) {
@@ -1080,7 +1085,35 @@
     return state.pitch.formations[state.pitch.lineupType];
   }
 
+  function shiftForPhase(template, phase) {
+    if (phase === 'balanced') return template;
+    return template.map((pt) => {
+      if (pt.label === 'GK') return pt;
+      let x = pt.x;
+      if (phase === 'defensive') {
+        x = 6 + (pt.x - 6) * 0.62;
+      } else if (phase === 'attacking') {
+        x = pt.x + (94 - pt.x) * 0.4;
+      }
+      return { ...pt, x: Math.max(10, Math.min(94, x)) };
+    });
+  }
+
+  function applyTeamFormationToLineup(lineupType) {
+    const team = state.teams.find((t) => t.id === state.pitch.teamId);
+    const template = shiftForPhase(FORMATIONS[team.formation] || FORMATIONS['4-3-3'], lineupType);
+    const lineup = state.pitch.formations[lineupType];
+    const allPlayers = state.pitch.players;
+    const currentlyPlaced = lineup.placed.map((p) => p.player_id);
+    const bench = allPlayers.filter((p) => !currentlyPlaced.includes(p.id));
+    const ordered = lineup.placed.map((p) => p.player_id).concat(bench.map((p) => p.id));
+    lineup.placed = ordered.slice(0, template.length).map((playerId, i) => ({
+      player_id: playerId, x: template[i].x, y: template[i].y,
+    }));
+  }
+
   async function loadPitchForTeam(teamId) {
+    const team = state.teams.find((t) => t.id === teamId);
     const players = state.players.filter((p) => p.team_id === teamId);
     let raw = {};
     try {
@@ -1090,20 +1123,26 @@
 
     const formations = {};
     LINEUP_TYPES.forEach((type) => {
-      const data = raw[type] || { formation_name: '4-3-3', positions: [] };
-      const placed = (data.positions || [])
-        .filter((pos) => players.some((pl) => pl.id === pos.player_id))
-        .map((pos) => ({ player_id: pos.player_id, x: pos.x, y: pos.y }));
-      formations[type] = { formationName: data.formation_name || '4-3-3', placed };
+      const data = raw[type];
+      const placed = data
+        ? (data.positions || []).filter((pos) => players.some((pl) => pl.id === pos.player_id)).map((pos) => ({ player_id: pos.player_id, x: pos.x, y: pos.y }))
+        : [];
+      formations[type] = { placed, everSaved: !!(data && data.id) };
     });
 
     state.pitch = { teamId, players, lineupType: 'balanced', formations };
+    LINEUP_TYPES.forEach((type) => {
+      if (!formations[type].everSaved && formations[type].placed.length === 0 && players.length > 0) {
+        applyTeamFormationToLineup(type);
+      }
+    });
+
+    document.getElementById('pitchFormationName').textContent = team.formation;
     document.querySelectorAll('.lineup-type-tab').forEach((b) => b.classList.toggle('active', b.dataset.lineup === 'balanced'));
     document.getElementById('lineupTypeTabs').classList.remove('hidden');
     document.getElementById('pitchControls').classList.remove('hidden');
     document.getElementById('pitchWrap').classList.remove('hidden');
     document.getElementById('pitchEmptyState').classList.add('hidden');
-    renderFormationButtons();
     renderPitch();
   }
 
@@ -1112,36 +1151,16 @@
       if (!state.pitch.teamId) return;
       state.pitch.lineupType = btn.dataset.lineup;
       document.querySelectorAll('.lineup-type-tab').forEach((b) => b.classList.toggle('active', b === btn));
-      renderFormationButtons();
       renderPitch();
     });
   });
 
-  function renderFormationButtons() {
-    const wrap = document.getElementById('formationButtons');
-    const activeName = currentLineup().formationName;
-    wrap.innerHTML = Object.keys(FORMATIONS).map((name) =>
-      `<button type="button" class="formation-btn ${name === activeName ? 'active' : ''}" data-formation="${name}">${name}</button>`
-    ).join('');
-    wrap.querySelectorAll('.formation-btn').forEach((btn) => {
-      btn.addEventListener('click', () => applyFormation(btn.dataset.formation));
-    });
-  }
-
-  function applyFormation(name) {
-    const template = FORMATIONS[name];
-    const lineup = currentLineup();
-    const allPlayers = state.pitch.players;
-    const currentlyPlaced = lineup.placed.map((p) => p.player_id);
-    const bench = allPlayers.filter((p) => !currentlyPlaced.includes(p.id));
-    const ordered = lineup.placed.map((p) => p.player_id).concat(bench.map((p) => p.id));
-    lineup.placed = ordered.slice(0, template.length).map((playerId, i) => ({
-      player_id: playerId, x: template[i].x, y: template[i].y,
-    }));
-    lineup.formationName = name;
-    document.querySelectorAll('.formation-btn').forEach((b) => b.classList.toggle('active', b.dataset.formation === name));
+  document.getElementById('resetFormationBtn').addEventListener('click', () => {
+    if (!state.pitch.teamId) return;
+    currentLineup().placed = [];
+    applyTeamFormationToLineup(state.pitch.lineupType);
     renderPitch();
-  }
+  });
 
   document.getElementById('clearPitchBtn').addEventListener('click', () => {
     currentLineup().placed = [];
@@ -1151,14 +1170,16 @@
   document.getElementById('saveFormationBtn').addEventListener('click', async (e) => {
     const btn = e.target;
     const lineup = currentLineup();
+    const team = state.teams.find((t) => t.id === state.pitch.teamId);
     try {
       await api(`/formations/${state.pitch.teamId}/${state.pitch.lineupType}`, {
         method: 'PUT',
         body: {
-          formation_name: lineup.formationName,
+          formation_name: team.formation,
           positions: lineup.placed.map((p) => ({ player_id: p.player_id, x: p.x, y: p.y })),
         },
       });
+      lineup.everSaved = true;
       const original = btn.textContent;
       btn.textContent = '✅ Saved!';
       setTimeout(() => { btn.textContent = original; }, 1500);

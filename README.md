@@ -40,9 +40,12 @@ The SQLite database file is created automatically at `server/data/coachchucho.sq
   player to a different team.
 - **Roster Radar tab** — pick any two players for an overlaid radar chart and a side-by-side stat
   comparison with the higher value highlighted.
-- **Tactical Pitch tab** — pick a team and a lineup type (Defensive / Balanced / Attacking — each
-  saved independently), apply a formation (4-3-3, 4-4-2, 4-2-3-1, 3-5-2, 4-1-4-1), and drag players
-  between the bench and the pitch as small tiered mini-cards. Save to persist that lineup.
+- **Tactical Pitch tab** — each team has its own formation (4-3-3, 4-4-2, 4-2-3-1, 3-5-2, or 4-1-4-1),
+  set when you create or edit the team. On the pitch, toggle between Defensive / Balanced / Attacking
+  to see that same formation shift up or down the field (goalkeeper anchored, outfield players
+  compressed deep or pushed forward) — each phase is saved independently per team. Drag players
+  between the bench and the pitch as small tiered mini-cards; use Reset to snap back to the team's
+  formation for the current phase.
 - **Parent portal** — a separate "Parent" login on the auth screen. A coach sets a shared parent
   password per team (in the team's edit modal); parents log in with their own email (matched
   against the parent email on file) plus that password, and see a read-only view of just their own

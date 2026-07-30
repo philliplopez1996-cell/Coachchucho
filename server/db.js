@@ -35,6 +35,7 @@ db.exec(`
     name TEXT NOT NULL,
     color TEXT NOT NULL DEFAULT '#4AFF3F',
     parent_password_hash TEXT,
+    formation TEXT NOT NULL DEFAULT '4-3-3',
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
@@ -89,6 +90,7 @@ ensureColumn('players', 'parent_email', 'TEXT');
 ensureColumn('players', 'parent_phone', 'TEXT');
 ensureColumn('coaches', 'photo', 'TEXT');
 ensureColumn('teams', 'parent_password_hash', 'TEXT');
+ensureColumn('teams', 'formation', "TEXT NOT NULL DEFAULT '4-3-3'");
 
 function migrateFormationsTable() {
   const cols = db.prepare('PRAGMA table_info(formations)').all().map((c) => c.name);
