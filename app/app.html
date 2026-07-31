@@ -114,7 +114,7 @@
   <main class="main-content">
 
     <!-- ROSTER TAB -->
-    <section class="tab-pane active" id="tab-roster">
+    <section class="tab-pane" id="tab-roster">
       <div class="roster-folders-view" id="rosterFoldersView">
         <div class="section-header">
           <h2>Roster</h2>
@@ -234,7 +234,7 @@
     </section>
 
     <!-- TACTICAL PITCH TAB -->
-    <section class="tab-pane" id="tab-pitch">
+    <section class="tab-pane active" id="tab-pitch">
       <div class="section-header">
         <h2>Tactical Pitch</h2>
         <select id="pitchTeamSelect"><option value="">Select team…</option></select>
@@ -302,14 +302,14 @@
 
   <!-- Bottom tab bar -->
   <nav class="bottom-tabs">
-    <button class="bottom-tab active" data-tab="roster">
-      <span class="bt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg></span><span>Roster</span>
+    <button class="bottom-tab active" data-tab="pitch">
+      <span class="bt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="12" y1="4" x2="12" y2="20"/><circle cx="12" cy="12" r="3.2"/></svg></span><span>Pitch</span>
     </button>
     <button class="bottom-tab" data-tab="radar">
       <span class="bt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/></svg></span><span>Radar</span>
     </button>
-    <button class="bottom-tab" data-tab="pitch">
-      <span class="bt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="12" y1="4" x2="12" y2="20"/><circle cx="12" cy="12" r="3.2"/></svg></span><span>Pitch</span>
+    <button class="bottom-tab" data-tab="roster">
+      <span class="bt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg></span><span>Roster</span>
     </button>
   </nav>
 </div>
