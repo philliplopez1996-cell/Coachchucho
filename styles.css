@@ -111,9 +111,9 @@
       background: radial-gradient(circle, rgba(255,255,255,0.09), transparent 70%);
     }
 
-    /* ── FLOATING 3D SPHERES (fill empty side margins, bounce continuously + react to scroll) ── */
+    /* ── FLOATING 3D SPHERES (scattered down the full page's empty side margins) ── */
     .floating-3d {
-      position: fixed;
+      position: absolute;
       pointer-events: none;
       z-index: 1;
       will-change: transform;
