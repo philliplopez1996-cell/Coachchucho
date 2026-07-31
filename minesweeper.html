@@ -192,31 +192,81 @@
     .menu-card.gold::after { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
     .menu-card:hover::after { width: 100%; }
 
-    /* ── SETUP SCREENS ──────────────────────────────────── */
+    /* ── SETUP SCREEN ───────────────────────────────────── */
     .setup-wrap {
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 40px 24px 60px;
+      padding: 48px 24px 60px;
       width: 100%;
-      max-width: 620px;
+      max-width: 540px;
     }
-    .setup-hdr {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      width: 100%;
-      margin-bottom: 44px;
-    }
-    .setup-title {
+
+    /* Compact logo for setup screen */
+    .s-logo {
       font-family: var(--font-d);
-      font-weight: 400;
-      font-size: 1.4rem;
-      letter-spacing: .12em;
+      font-weight: 300;
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      letter-spacing: .26em;
       text-transform: uppercase;
+      color: var(--txt);
+      text-align: center;
+      line-height: 1;
     }
-    .setup-title.lime { color: var(--lime); }
-    .setup-title.gold { color: var(--gold); }
+    .s-logo-rule {
+      display: block;
+      width: 32px;
+      height: 1px;
+      background: var(--lime);
+      box-shadow: 0 0 8px var(--lime);
+      margin: 14px auto 10px;
+    }
+    .s-logo-sub {
+      font-family: var(--font-u);
+      font-size: .54rem;
+      letter-spacing: .5em;
+      color: var(--txt3);
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    /* Mode switcher tabs */
+    .mode-tabs {
+      display: flex;
+      background: var(--surf);
+      border: 1px solid var(--brd);
+      border-radius: 9px;
+      padding: 3px;
+      gap: 3px;
+      width: 100%;
+      margin-bottom: 36px;
+    }
+    .mode-tab {
+      flex: 1;
+      padding: 11px 16px;
+      border-radius: 7px;
+      border: none;
+      background: transparent;
+      color: var(--txt2);
+      font-family: var(--font-u);
+      font-size: .75rem;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background .15s, color .15s, box-shadow .15s;
+    }
+    .mode-tab.act-lime {
+      background: var(--surf2);
+      color: var(--lime);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 1px 4px rgba(0,0,0,.3);
+    }
+    .mode-tab.act-gold {
+      background: var(--surf2);
+      color: var(--gold);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 1px 4px rgba(0,0,0,.3);
+    }
 
     .opt-group { width: 100%; margin-bottom: 28px; }
     .opt-label {
@@ -616,94 +666,69 @@
 <body>
 
 <!-- ══════════════════════════════════════════
-     SCREEN: MENU
+     SCREEN: SETUP (home — Regular by default)
 ══════════════════════════════════════════ -->
-<div id="screen-menu" class="screen active">
-  <div class="menu-wrap">
-    <div class="logo">Minesweeper</div>
-    <span class="logo-accent"></span>
-    <div class="logo-sub">Coach Chucho Edition</div>
-
-    <div class="menu-cards">
-      <div class="menu-card lime" onclick="goTo('challenge-setup')">
-        <div class="card-num">01</div>
-        <div class="card-eyebrow">Game Mode</div>
-        <div class="card-title">Timing<br>Challenge</div>
-        <div class="card-desc">Race the clock. Complete boards from 2×2 up to 15×15. Score as many cleared boards as you can before time expires.</div>
-      </div>
-      <div class="menu-card gold" onclick="goTo('regular-setup')">
-        <div class="card-num">02</div>
-        <div class="card-eyebrow">Game Mode</div>
-        <div class="card-title">Regular<br>Mode</div>
-        <div class="card-desc">Classic Minesweeper at your own pace. Choose a preset difficulty or set a custom grid from 2×2 to 15×15.</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════
-     SCREEN: TIMING CHALLENGE SETUP
-══════════════════════════════════════════ -->
-<div id="screen-challenge-setup" class="screen">
+<div id="screen-setup" class="screen active">
   <div class="setup-wrap">
-    <div class="setup-hdr">
-      <button class="btn btn-ghost btn-sm" onclick="goTo('menu')">Back</button>
-      <div class="setup-title gold">Timing Challenge</div>
+
+    <div class="s-logo">Minesweeper</div>
+    <span class="s-logo-rule"></span>
+    <div class="s-logo-sub">Coach Chucho Edition</div>
+
+    <!-- Mode switcher -->
+    <div class="mode-tabs" role="tablist">
+      <button class="mode-tab act-lime" id="tab-regular"   onclick="switchMode('regular')">Regular Mode</button>
+      <button class="mode-tab"          id="tab-challenge" onclick="switchMode('challenge')">Timing Challenge</button>
     </div>
 
-    <div class="opt-group">
-      <div class="opt-label">Time Limit</div>
-      <div class="pills" id="pills-chal-time">
-        <div class="pill act-gold" data-val="120"  onclick="pickPill(this,'chal-time')">2 min</div>
-        <div class="pill"          data-val="300"  onclick="pickPill(this,'chal-time')">5 min</div>
-        <div class="pill"          data-val="600"  onclick="pickPill(this,'chal-time')">10 min</div>
+    <!-- ── Regular Mode panel ── -->
+    <div id="panel-regular" style="width:100%">
+      <div class="opt-group">
+        <div class="opt-label">Difficulty</div>
+        <div class="pills" id="pills-reg-diff">
+          <div class="pill act" data-val="easy"   onclick="pickPill(this,'reg-diff'); syncRegSetup()">Easy</div>
+          <div class="pill"     data-val="medium" onclick="pickPill(this,'reg-diff'); syncRegSetup()">Medium</div>
+          <div class="pill"     data-val="hard"   onclick="pickPill(this,'reg-diff'); syncRegSetup()">Hard</div>
+          <div class="pill"     data-val="custom" onclick="pickPill(this,'reg-diff'); syncRegSetup()">Custom</div>
+        </div>
+        <div class="opt-info" id="reg-info">8 × 8 grid &nbsp;·&nbsp; 10 mines</div>
+      </div>
+
+      <div class="opt-group" id="custom-size-group" style="display:none">
+        <div class="opt-label">Grid Size</div>
+        <div class="pills" id="pills-custom-size"></div>
+      </div>
+
+      <div class="setup-go">
+        <button class="btn btn-lime" onclick="launchRegular()">Start Game</button>
       </div>
     </div>
 
-    <div class="opt-group">
-      <div class="opt-label">Starting Level</div>
-      <div class="pills" id="pills-chal-start">
-        <div class="pill act" data-val="0" onclick="pickPill(this,'chal-start')">2×2</div>
-        <div class="pill"     data-val="3" onclick="pickPill(this,'chal-start')">5×5</div>
-        <div class="pill"     data-val="6" onclick="pickPill(this,'chal-start')">8×8</div>
+    <!-- ── Timing Challenge panel ── -->
+    <div id="panel-challenge" style="width:100%; display:none">
+      <div class="opt-group">
+        <div class="opt-label">Time Limit</div>
+        <div class="pills" id="pills-chal-time">
+          <div class="pill act-gold" data-val="120"  onclick="pickPill(this,'chal-time')">2 min</div>
+          <div class="pill"          data-val="300"  onclick="pickPill(this,'chal-time')">5 min</div>
+          <div class="pill"          data-val="600"  onclick="pickPill(this,'chal-time')">10 min</div>
+        </div>
+      </div>
+
+      <div class="opt-group">
+        <div class="opt-label">Starting Level</div>
+        <div class="pills" id="pills-chal-start">
+          <div class="pill act" data-val="0" onclick="pickPill(this,'chal-start')">2×2</div>
+          <div class="pill"     data-val="3" onclick="pickPill(this,'chal-start')">5×5</div>
+          <div class="pill"     data-val="6" onclick="pickPill(this,'chal-start')">8×8</div>
+        </div>
+      </div>
+
+      <div class="setup-go">
+        <button class="btn btn-gold" onclick="launchChallenge()">Begin Challenge</button>
       </div>
     </div>
 
-    <div class="setup-go">
-      <button class="btn btn-gold" onclick="launchChallenge()">Begin Challenge</button>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════
-     SCREEN: REGULAR MODE SETUP
-══════════════════════════════════════════ -->
-<div id="screen-regular-setup" class="screen">
-  <div class="setup-wrap">
-    <div class="setup-hdr">
-      <button class="btn btn-ghost btn-sm" onclick="goTo('menu')">Back</button>
-      <div class="setup-title lime">Regular Mode</div>
-    </div>
-
-    <div class="opt-group">
-      <div class="opt-label">Difficulty</div>
-      <div class="pills" id="pills-reg-diff">
-        <div class="pill act" data-val="easy"   onclick="pickPill(this,'reg-diff'); syncRegSetup()">Easy</div>
-        <div class="pill"     data-val="medium" onclick="pickPill(this,'reg-diff'); syncRegSetup()">Medium</div>
-        <div class="pill"     data-val="hard"   onclick="pickPill(this,'reg-diff'); syncRegSetup()">Hard</div>
-        <div class="pill"     data-val="custom" onclick="pickPill(this,'reg-diff'); syncRegSetup()">Custom</div>
-      </div>
-      <div class="opt-info" id="reg-info">8 × 8 grid &nbsp;·&nbsp; 10 mines</div>
-    </div>
-
-    <div class="opt-group" id="custom-size-group" style="display:none">
-      <div class="opt-label">Grid Size</div>
-      <div class="pills" id="pills-custom-size"></div>
-    </div>
-
-    <div class="setup-go">
-      <button class="btn btn-lime" onclick="launchRegular()">Start Game</button>
-    </div>
   </div>
 </div>
 
@@ -1343,12 +1368,20 @@ function closeOverlay() {
 // GAME CONTROL
 // ══════════════════════════════════════════
 
+function switchMode(mode) {
+  const isReg = mode === 'regular';
+  document.getElementById('tab-regular').className   = 'mode-tab' + (isReg  ? ' act-lime' : '');
+  document.getElementById('tab-challenge').className = 'mode-tab' + (!isReg ? ' act-gold' : '');
+  document.getElementById('panel-regular').style.display   = isReg  ? '' : 'none';
+  document.getElementById('panel-challenge').style.display = !isReg ? '' : 'none';
+}
+
 function quitGame() {
   clearInterval(G.timerInt);
   clearInterval(G.chalInt);
   G = {};
   closeOverlay();
-  goTo('menu');
+  goTo('setup');
 }
 
 function restartGame() {
