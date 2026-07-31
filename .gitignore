@@ -2,3 +2,4 @@ node_modules/
 server/data/*.sqlite
 server/data/*.sqlite-*
 *.log
+test-results/
