@@ -130,30 +130,46 @@
   }
   requestAnimationFrame(animateBalls);
 
-  // Auto-scrolling photo showcase — drifts left to right, pauses when a parent scrolls it manually
+  // Photo showcase
   const showcase = document.getElementById('photoShowcase');
   if (showcase) {
-    let autoScroll = true;
-    let resumeTimer;
-    showcase.scrollLeft = showcase.scrollWidth - showcase.clientWidth;
-    function driftShowcase() {
-      if (autoScroll) {
-        showcase.scrollLeft -= 0.6;
-        if (showcase.scrollLeft <= 0) {
-          showcase.scrollLeft = showcase.scrollWidth - showcase.clientWidth;
+    if (window.matchMedia('(max-width: 768px)').matches) {
+      // Mobile: fade one photo in/out at a time in a fixed-height stage — no horizontal
+      // spillover and no growth in page height.
+      const photos = Array.from(showcase.querySelectorAll('.gallery-photo'));
+      let activeIndex = 0;
+      if (photos.length) {
+        photos[0].classList.add('active');
+        setInterval(() => {
+          photos[activeIndex].classList.remove('active');
+          activeIndex = (activeIndex + 1) % photos.length;
+          photos[activeIndex].classList.add('active');
+        }, 2600);
+      }
+    } else {
+      // Desktop/tablet: drifts left to right, pauses when a parent scrolls it manually
+      let autoScroll = true;
+      let resumeTimer;
+      showcase.scrollLeft = showcase.scrollWidth - showcase.clientWidth;
+      function driftShowcase() {
+        if (autoScroll) {
+          showcase.scrollLeft -= 0.6;
+          if (showcase.scrollLeft <= 0) {
+            showcase.scrollLeft = showcase.scrollWidth - showcase.clientWidth;
+          }
         }
+        requestAnimationFrame(driftShowcase);
       }
       requestAnimationFrame(driftShowcase);
+      function pauseShowcase() {
+        autoScroll = false;
+        clearTimeout(resumeTimer);
+        resumeTimer = setTimeout(() => { autoScroll = true; }, 3000);
+      }
+      showcase.addEventListener('pointerdown', pauseShowcase);
+      showcase.addEventListener('wheel', pauseShowcase, { passive: true });
+      showcase.addEventListener('touchstart', pauseShowcase, { passive: true });
     }
-    requestAnimationFrame(driftShowcase);
-    function pauseShowcase() {
-      autoScroll = false;
-      clearTimeout(resumeTimer);
-      resumeTimer = setTimeout(() => { autoScroll = true; }, 3000);
-    }
-    showcase.addEventListener('pointerdown', pauseShowcase);
-    showcase.addEventListener('wheel', pauseShowcase, { passive: true });
-    showcase.addEventListener('touchstart', pauseShowcase, { passive: true });
   }
 
   // Scroll reveal — sections fade/slide in as they enter the viewport
