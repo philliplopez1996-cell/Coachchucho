@@ -374,31 +374,21 @@ h2, h3 { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-s
 }
 .pc-divider { width: 60%; height: 1px; background: rgba(0,0,0,0.3); margin-bottom: 6px; }
 .pc-stats {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 5px 8px; width: 100%; font-family: 'Bebas Neue', sans-serif;
-  background: rgba(0,0,0,0.35); border-radius: 8px; padding: 8px 6px; border: 1px solid rgba(255,215,0,0.18);
-  box-shadow: 0 0 12px rgba(255,215,0,0.1);
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 3px 3px; width: 100%;
+  font-family: 'Bebas Neue', sans-serif;
+  background: rgba(0,0,0,0.35); border-radius: 8px; padding: 6px 4px;
+  border: 1px solid rgba(255,215,0,0.18); box-shadow: 0 0 12px rgba(255,215,0,0.1);
 }
 .pc-stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 4px 2px;
+  display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 2px 1px;
 }
-.pc-stat-label { color: rgba(255,255,255,0.8); font-size: 9px; }
+.pc-stat-label { color: rgba(255,255,255,0.82); font-size: 7.5px; line-height: 1; }
 .pc-stat-value {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  color: var(--lime);
-  font-weight: 800;
-  text-shadow: 0 0 6px rgba(0,229,100,0.4);
-  font-size: 12px;
+  display: flex; align-items: center; gap: 1px;
+  color: var(--lime); text-shadow: 0 0 6px rgba(0,229,100,0.4); font-size: 12px; line-height: 1;
 }
 .attr-icon { flex-shrink: 0; }
-.pc-stat-value .attr-icon { width: 9px; height: 9px; }
+.pc-stat-value .attr-icon { width: 8px; height: 8px; }
 
 /* ============ MODALS ============ */
 .modal {
@@ -732,8 +722,9 @@ h2, h3 { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-s
 .pitch-no-team-hint.hidden { display: none !important; }
 
 /* Mini FIFA-style card shared by pitch chips and bench chips */
+/* Mini card (bench) */
 .mini-card {
-  width: 34px; height: 38px; border-radius: 6px;
+  width: 40px; height: 46px; border-radius: 7px;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0;
   box-shadow: 0 2px 6px rgba(0,0,0,0.4), 0 0 12px rgba(0,229,100,0.3), 0 0 24px rgba(0,229,100,0.15);
   border: 2px solid rgba(0,229,100,0.5);
@@ -746,26 +737,69 @@ h2, h3 { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-s
   border-color: rgba(0,229,100,0.8);
   transform: scale(1.05);
 }
-.mini-card-ovr { font-size: 12px; font-weight: 800; line-height: 1.1; color: #00E564; text-shadow: 0 0 8px rgba(0,229,100,0.4); }
-.mini-card-pos { font-size: 6.5px; font-weight: 700; letter-spacing: 0.2px; line-height: 1.2; color: #fff; }
-.mini-card-flag { font-size: 9px; line-height: 1; margin-top: 1px; }
+.mini-card-ovr { font-size: 15px; line-height: 1.1; color: #00E564; text-shadow: 0 0 8px rgba(0,229,100,0.4); }
+.mini-card-pos { font-size: 7px; font-weight: 700; letter-spacing: 0.2px; line-height: 1.2; color: #fff; }
+.mini-card-flag { font-size: 10px; line-height: 1; margin-top: 1px; }
+
+/* Pitch chip — FUT card style */
+.pitch-card {
+  width: 54px; border-radius: 10px;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 5px 4px 4px;
+  border: 2px solid rgba(255,215,0,0.28);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.18);
+  overflow: hidden; flex-shrink: 0;
+}
+.pitch-card-top {
+  display: flex; flex-direction: column; align-items: flex-start; width: 100%; line-height: 1;
+}
+.pitch-card-ovr {
+  font-family: 'Bebas Neue', sans-serif; font-size: 20px; line-height: 1;
+  color: #fff; text-shadow: 0 0 10px rgba(255,215,0,0.9), 0 0 20px rgba(255,215,0,0.5);
+}
+.pitch-card-pos {
+  font-size: 6.5px; font-weight: 800; line-height: 1; letter-spacing: 0.4px; margin-top: 1px;
+  opacity: 0.8;
+}
+.pitch-card-photo-wrap {
+  display: flex; align-items: center; justify-content: center; margin: 3px 0 2px;
+  position: relative;
+}
+.pitch-card-photo-wrap::before {
+  content: ''; position: absolute; inset: -4px;
+  background: radial-gradient(circle, rgba(255,215,0,0.35) 0%, transparent 70%);
+  border-radius: 50%; filter: blur(4px);
+}
+.pitch-card-photo {
+  width: 36px; height: 36px; border-radius: 50%; object-fit: cover; position: relative; z-index: 1;
+  border: 2px solid rgba(255,255,255,0.75);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 0 12px rgba(255,215,0,0.35);
+}
+.pitch-card-fallback {
+  width: 36px; height: 36px; border-radius: 50%; position: relative; z-index: 1;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800;
+  background: rgba(255,255,255,0.45); border: 2px solid rgba(255,255,255,0.75);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.45), 0 0 12px rgba(255,215,0,0.35);
+}
+.pitch-card-name {
+  font-size: 7px; font-weight: 800; text-align: center; width: 100%;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  letter-spacing: 0.3px; opacity: 0.85; line-height: 1;
+}
 
 .pitch-chip {
-  position: absolute; width: 34px; margin-left: -17px; margin-top: -19px;
+  position: absolute; width: 54px; margin-left: -27px; margin-top: -38px;
   display: flex; flex-direction: column; align-items: center;
   cursor: grab; touch-action: none; z-index: 5;
-  filter: drop-shadow(0 0 8px rgba(0,229,100,0.25));
+  filter: drop-shadow(0 0 10px rgba(255,215,0,0.2));
+  transition: filter 0.15s;
 }
-.pitch-chip:active { cursor: grabbing; z-index: 20; filter: drop-shadow(0 0 16px rgba(0,229,100,0.5)); }
-.pitch-chip .chip-name {
-  margin-top: 2px; font-size: 7px; font-weight: 700; color: var(--text-primary);
-  background: rgba(0,0,0,0.7); padding: 1px 4px; border-radius: 4px; white-space: nowrap; max-width: 50px;
-  overflow: hidden; text-overflow: ellipsis; box-shadow: 0 0 8px rgba(0,229,100,0.2);
-}
+.pitch-chip:active { cursor: grabbing; z-index: 20; filter: drop-shadow(0 0 18px rgba(255,215,0,0.55)); }
 .pitch-chip .chip-remove {
-  position: absolute; top: -5px; right: -3px; width: 14px; height: 14px; border-radius: 50%;
-  background: var(--orange); color: #fff; font-size: 9px; line-height: 1; display: flex; align-items: center; justify-content: center;
-  cursor: pointer; border: 1px solid rgba(255,255,255,0.6); z-index: 6;
+  position: absolute; top: -5px; right: -4px; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--orange); color: #fff; font-size: 10px; line-height: 1; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; border: 1.5px solid rgba(255,255,255,0.7); z-index: 6;
 }
 
 .pitch-bench { background: var(--card-bg); border: 1px solid color-mix(in srgb, var(--lime) 20%, transparent); border-radius: 14px; padding: 14px; }

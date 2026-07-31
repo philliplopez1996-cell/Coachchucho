@@ -1973,6 +1973,23 @@
     return mini;
   }
 
+  function buildPitchCardEl(player) {
+    const card = document.createElement('div');
+    card.className = 'pitch-card ' + tierClass(player.overall);
+    const lastName = player.name.split(' ').slice(-1)[0];
+    const photoHtml = player.photo
+      ? `<img class="pitch-card-photo" src="${player.photo}" alt="">`
+      : `<div class="pitch-card-fallback">${initials(player.name)}</div>`;
+    card.innerHTML = `
+      <div class="pitch-card-top">
+        <div class="pitch-card-ovr">${player.overall}</div>
+        <div class="pitch-card-pos">${escapeHtml(player.position)}</div>
+      </div>
+      <div class="pitch-card-photo-wrap">${photoHtml}</div>
+      <div class="pitch-card-name">${escapeHtml(lastName).toUpperCase()}</div>`;
+    return card;
+  }
+
   function renderPitchGhost() {
     const slotsWrap = document.getElementById('pitchSlots');
     const benchWrap = document.getElementById('pitchBenchList');
@@ -2009,11 +2026,7 @@
       chip.style.left = screenPos.left + '%';
       chip.style.top = screenPos.top + '%';
       chip.dataset.playerId = player.id;
-      chip.appendChild(buildMiniCardEl(player));
-      const nameEl = document.createElement('span');
-      nameEl.className = 'chip-name';
-      nameEl.textContent = player.name;
-      chip.appendChild(nameEl);
+      chip.appendChild(buildPitchCardEl(player));
       const removeEl = document.createElement('span');
       removeEl.className = 'chip-remove';
       removeEl.innerHTML = '&times;';
@@ -2054,19 +2067,19 @@
       const player = state.pitch.players.find((pl) => pl.id === playerId);
       const ghost = document.createElement('div');
       ghost.style.position = 'fixed';
-      ghost.style.left = e.clientX - 26 + 'px';
-      ghost.style.top = e.clientY - 33 + 'px';
+      ghost.style.left = e.clientX - 27 + 'px';
+      ghost.style.top = e.clientY - 38 + 'px';
       ghost.style.zIndex = 9999;
       ghost.style.pointerEvents = 'none';
       ghost.style.opacity = '0.85';
-      ghost.appendChild(buildMiniCardEl(player));
+      ghost.appendChild(type === 'chip' ? buildPitchCardEl(player) : buildMiniCardEl(player));
       document.body.appendChild(ghost);
       el.style.opacity = '0.35';
 
       function onMove(ev) {
         if (Math.abs(ev.clientX - startX) > 6 || Math.abs(ev.clientY - startY) > 6) didDrag = true;
-        ghost.style.left = ev.clientX - 26 + 'px';
-        ghost.style.top = ev.clientY - 33 + 'px';
+        ghost.style.left = ev.clientX - 27 + 'px';
+        ghost.style.top = ev.clientY - 38 + 'px';
       }
       function onUp(ev) {
         window.removeEventListener('pointermove', onMove);
