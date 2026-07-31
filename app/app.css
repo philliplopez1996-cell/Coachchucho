@@ -8,16 +8,16 @@
 
 /* ============ THEME: Field (default, free) ============ */
 :root, [data-theme="field"] {
-  --lime: #4AFF3F;
+  --lime: #39FF6A;
   --cyan: #00D9FF;
-  --dark: #0a1f10;
-  --accent-ink: #06210f;
-  --panel-bg: rgba(15,40,24,0.96);
-  --card-bg: linear-gradient(180deg, rgba(20,70,45,0.98) 0%, rgba(10,30,18,0.98) 100%);
-  --body-bg: radial-gradient(circle at 50% 0%, #123822 0%, #06120a 65%, #030a05 100%);
-  --text-primary: #eafff0;
-  --text-secondary: #9fd8ae;
-  --text-tertiary: #7fae8b;
+  --dark: #080c18;
+  --accent-ink: #0d1428;
+  --panel-bg: rgba(10,14,28,0.97);
+  --card-bg: linear-gradient(160deg, rgba(18,28,58,0.98) 0%, rgba(8,12,24,0.98) 100%);
+  --body-bg: radial-gradient(ellipse at 50% -10%, rgba(30,70,50,0.35) 0%, #06080f 50%, #030508 100%);
+  --text-primary: #E8F0FF;
+  --text-secondary: #7A95BA;
+  --text-tertiary: #4A6080;
 }
 
 /* ============ THEME: Midnight (premium) ============ */
@@ -61,10 +61,10 @@ h2, h3 { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-s
   width: 100%;
   max-width: 400px;
   background: var(--card-bg);
-  border: 2px solid color-mix(in srgb, var(--lime) 30%, transparent);
+  border: 1px solid rgba(255,255,255,0.09);
   border-radius: 20px;
   padding: 36px 30px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(57,255,106,0.06);
 }
 .auth-logo {
   font-family: 'Barlow Condensed', sans-serif;
@@ -119,16 +119,16 @@ h2, h3 { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-s
   position: sticky; top: 0; z-index: 200;
   display: flex; align-items: center; gap: 14px;
   padding: 16px 20px;
-  background: rgba(6,20,11,0.85);
+  background: rgba(5,8,18,0.90);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid color-mix(in srgb, var(--lime) 18%, transparent);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 .topbar-title { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--lime); }
 .topbar-title span { color: var(--gold); }
 .topbar-spacer { flex: 1; }
 
 .hamburger {
-  width: 44px; height: 44px; background: rgba(15,40,24,0.92);
+  width: 44px; height: 44px; background: rgba(10,14,28,0.92);
   border: 2px solid color-mix(in srgb, var(--lime) 40%, transparent); border-radius: 12px; cursor: pointer;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
   transition: all 0.25s; flex-shrink: 0;
@@ -647,7 +647,7 @@ h2, h3 { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-s
   box-shadow: 0 2px 6px rgba(0,0,0,0.4), 0 0 12px rgba(74,255,63,0.3), 0 0 24px rgba(74,255,63,0.15);
   border: 2px solid rgba(74,255,63,0.5);
   font-family: 'Bebas Neue', sans-serif; flex-shrink: 0;
-  background: linear-gradient(135deg, rgba(20,70,45,0.95), rgba(10,30,18,0.98));
+  background: linear-gradient(135deg, rgba(18,28,58,0.97), rgba(8,12,24,0.98));
   transition: all 0.2s;
 }
 .mini-card:hover {
@@ -692,8 +692,8 @@ h2, h3 { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-s
 /* ============ BOTTOM TABS ============ */
 .bottom-tabs {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
-  display: flex; background: rgba(6,20,11,0.95); backdrop-filter: blur(12px);
-  border-top: 1px solid color-mix(in srgb, var(--lime) 20%, transparent); padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+  display: flex; background: rgba(5,8,18,0.97); backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255,255,255,0.07); padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
 }
 .bottom-tab {
   flex: 1; background: transparent; border: none; color: var(--text-tertiary); display: flex; flex-direction: column;
