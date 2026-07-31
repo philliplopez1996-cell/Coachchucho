@@ -46,6 +46,66 @@
     return String.fromCodePoint(...[...code.toUpperCase()].map((c) => 127397 + c.charCodeAt(0)));
   }
 
+  const PLAYSTYLE_CATS = [
+    {
+      key: 'scoring', label: 'Scoring', color: '#FF6B1A',
+      skills: [
+        { key: 'power_shot',   name: 'Power Shot',   icon: '<circle cx="12" cy="12" r="5"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/>' },
+        { key: 'dead_ball',    name: 'Dead Ball',    icon: '<circle cx="12" cy="8" r="4"/><path d="M12 12v5M8 17h8"/>' },
+        { key: 'finesse_shot', name: 'Finesse Shot', icon: '<path d="M4 20C8 12 18 8 22 8"/><path d="M19 5l3 3-3 3"/>' },
+        { key: 'chip_shot',    name: 'Chip Shot',    icon: '<path d="M3 20C5 10 12 4 18 5"/><circle cx="20" cy="8" r="3"/>' },
+        { key: 'acrobatic',    name: 'Acrobatic',    icon: '<path d="M6 4l12 16M18 4L6 20"/>' },
+        { key: 'bicycle_kick', name: 'Bicycle Kick', icon: '<path d="M4 18l8-12 8 12"/><circle cx="12" cy="3" r="2.5"/>' },
+      ],
+    },
+    {
+      key: 'passing', label: 'Passing', color: '#00CFFF',
+      skills: [
+        { key: 'incisive_pass', name: 'Incisive Pass', icon: '<path d="M3 12h18"/><path d="M13 6l6 6-6 6"/>' },
+        { key: 'pinged_pass',   name: 'Pinged Pass',   icon: '<path d="M2 12h20"/><path d="M14 6l6 6-6 6"/><path d="M2 8v8"/>' },
+        { key: 'whipped_pass',  name: 'Whipped Pass',  icon: '<path d="M4 18C4 18 4 4 20 12"/><path d="M16 9l4 3-4 3"/>' },
+        { key: 'long_ball',     name: 'Long Ball Pass', icon: '<path d="M3 18C3 6 21 6 21 6"/><path d="M17 3l4 3-4 3"/>' },
+        { key: 'tiki_taka',    name: 'Tiki Taka',     icon: '<path d="M3 8h7M14 16h7"/><path d="M7 5l3 3-3 3"/><path d="M17 13l-3 3 3 3"/>' },
+        { key: 'foot_outside', name: 'Foot Outside',  icon: '<path d="M10 3C5 5 3 10 3 13C3 18 7 21 12 21C17 21 21 18 21 13C21 8 17 4 12 3"/>' },
+      ],
+    },
+    {
+      key: 'ball_control', label: 'Ball Control', color: '#00E564',
+      skills: [
+        { key: 'technical',    name: 'Technical',    icon: '<polygon points="12,2 20.5,7 20.5,17 12,22 3.5,17 3.5,7"/>' },
+        { key: 'rapid',        name: 'Rapid',        icon: '<path d="M13 2L5 13h7l-1 9 8-11h-7z"/>' },
+        { key: 'flair',        name: 'Flair',        icon: '<polygon points="12,2 15,8.5 22,9.5 17,14 18.5,21 12,17.5 5.5,21 7,14 2,9.5 9,8.5"/>' },
+        { key: 'press_proven', name: 'Press Proven', icon: '<path d="M12 2L3 7v6c0 5 3.8 9.7 9 11 5.2-1.3 9-6 9-11V7z"/><path d="M9 12l2 2 4-4"/>' },
+        { key: 'first_touch',  name: 'First Touch',  icon: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/>' },
+      ],
+    },
+    {
+      key: 'defending', label: 'Defending', color: '#A855F7',
+      skills: [
+        { key: 'jockey',       name: 'Jockey',       icon: '<rect x="4" y="4" width="5" height="16" rx="1"/><rect x="15" y="4" width="5" height="16" rx="1"/>' },
+        { key: 'block',        name: 'Block',         icon: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 8l8 8M16 8l-8 8"/>' },
+        { key: 'intercept',    name: 'Intercept',     icon: '<path d="M3 7l6 5-6 5"/><path d="M21 7l-6 5 6 5"/><path d="M9 12h6"/>' },
+        { key: 'anticipate',   name: 'Anticipate',    icon: '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7"/><circle cx="12" cy="12" r="3"/>' },
+        { key: 'bruiser',      name: 'Bruiser',       icon: '<circle cx="12" cy="12" r="8"/><path d="M9 12l2 2 4-4"/>' },
+        { key: 'slide_tackle', name: 'Slide Tackle',  icon: '<path d="M2 18L22 6"/><path d="M2 18h5"/><path d="M19 6h3"/>' },
+      ],
+    },
+    {
+      key: 'physical', label: 'Physical', color: '#FFD700',
+      skills: [
+        { key: 'long_throw',   name: 'Long Throw',   icon: '<path d="M4 16C10 14 18 8 20 4"/><path d="M16 2l4 2-2 4"/>' },
+        { key: 'power_header', name: 'Power Header',  icon: '<circle cx="12" cy="5" r="3"/><path d="M8 12h8M10 12v8M14 12v8"/>' },
+        { key: 'aerial',       name: 'Aerial',        icon: '<circle cx="12" cy="4" r="3"/><path d="M12 7v7"/><path d="M7 20l5-6 5 6"/>' },
+        { key: 'hard_tackle',  name: 'Hard Tackle',   icon: '<path d="M4 8l16 8M4 16l16-8"/>' },
+      ],
+    },
+  ];
+
+  const PLAYSTYLE_BY_KEY = {};
+  PLAYSTYLE_CATS.forEach((cat) => {
+    cat.skills.forEach((s) => { PLAYSTYLE_BY_KEY[s.key] = { ...s, cat: cat.key, color: cat.color, catLabel: cat.label }; });
+  });
+
   const FORMATIONS = {
     '4-3-3': [
       { label: 'GK', x: 6, y: 50 }, { label: 'LB', x: 20, y: 18 }, { label: 'CB', x: 16, y: 40 },
@@ -1238,12 +1298,49 @@
         <div class="big-attr-bar-track"><div class="big-attr-bar-fill" style="width:${a.value}%"></div></div>
       </div>`).join('');
 
+    renderPlayerPlaystyles(player);
+
     const metricSelect = document.getElementById('progressMetricSelect');
     metricSelect.innerHTML = '<option value="overall">Overall</option>' +
       player.attributes.map((a) => `<option value="${a.attribute_id}">${escapeHtml(a.name)}</option>`).join('');
     metricSelect.value = 'overall';
     loadProgressForPlayer(player.id);
     loadStatsForPlayer(player.id);
+  }
+
+  function renderPlayerPlaystyles(player) {
+    const wrap = document.getElementById('playerPlaystyles');
+    const keys = player.playstyles || [];
+    if (!keys.length) { wrap.innerHTML = ''; return; }
+
+    const byCategory = {};
+    keys.forEach((key) => {
+      const ps = PLAYSTYLE_BY_KEY[key];
+      if (!ps) return;
+      if (!byCategory[ps.cat]) byCategory[ps.cat] = { cat: PLAYSTYLE_CATS.find((c) => c.key === ps.cat), skills: [] };
+      byCategory[ps.cat].skills.push(ps);
+    });
+
+    const catOrder = PLAYSTYLE_CATS.map((c) => c.key);
+    const html = '<div class="ps-section-title">Play Styles</div>' +
+      catOrder
+        .filter((k) => byCategory[k] && byCategory[k].skills.length)
+        .map((k) => {
+          const { cat, skills } = byCategory[k];
+          return `<div class="ps-cat-group">
+            <div class="ps-cat-label">
+              <span class="ps-cat-dot" style="background:${cat.color}"></span>
+              ${escapeHtml(cat.label)}
+            </div>
+            <div class="ps-badges-row">
+              ${skills.map((s) => `
+                <div class="ps-badge" style="--ps-color:${cat.color}" title="${escapeHtml(s.name)}">
+                  <svg viewBox="0 0 24 24">${s.icon}</svg>
+                </div>`).join('')}
+            </div>
+          </div>`;
+        }).join('');
+    wrap.innerHTML = html;
   }
 
   async function loadStatsForPlayer(playerId) {
@@ -1302,6 +1399,40 @@
   });
 
   let editPhotoDataUrl = null;
+  let selectedPlaystyles = [];
+
+  function renderPlaystylePicker(currentKeys) {
+    selectedPlaystyles = currentKeys ? [...currentKeys] : [];
+    const wrap = document.getElementById('editPlaystyles');
+    wrap.innerHTML = PLAYSTYLE_CATS.map((cat) => `
+      <div class="ps-picker-cat">
+        <div class="ps-picker-cat-label">
+          <span class="ps-cat-dot" style="background:${cat.color}"></span>
+          ${escapeHtml(cat.label)}
+        </div>
+        <div class="ps-picker-skills">
+          ${cat.skills.map((s) => `
+            <button type="button" class="ps-pick-btn${selectedPlaystyles.includes(s.key) ? ' ps-selected' : ''}"
+              data-ps-key="${s.key}" style="--ps-color:${cat.color}">
+              <svg viewBox="0 0 24 24">${s.icon}</svg>
+              <span class="ps-pick-tooltip">${escapeHtml(s.name)}</span>
+            </button>`).join('')}
+        </div>
+      </div>`).join('');
+
+    wrap.querySelectorAll('.ps-pick-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.psKey;
+        if (selectedPlaystyles.includes(key)) {
+          selectedPlaystyles = selectedPlaystyles.filter((k) => k !== key);
+          btn.classList.remove('ps-selected');
+        } else if (selectedPlaystyles.length < 5) {
+          selectedPlaystyles.push(key);
+          btn.classList.add('ps-selected');
+        }
+      });
+    });
+  }
 
   function enterPlayerEditMode(player, teamIdForCreate) {
     document.getElementById('playerViewMode').classList.add('hidden');
@@ -1347,6 +1478,8 @@
       const valEl = row.querySelector('.attr-slider-value');
       input.addEventListener('input', () => { valEl.textContent = input.value; });
     });
+
+    renderPlaystylePicker(player ? (player.playstyles || []) : []);
 
     document.getElementById('playerEditForm').dataset.mode = player ? 'edit' : 'create';
     document.getElementById('playerEditForm').dataset.teamId = teamIdForCreate || '';
@@ -1395,6 +1528,7 @@
       parent_email: document.getElementById('editParentEmail').value.trim(),
       parent_phone: document.getElementById('editParentPhone').value.trim(),
       attributes: attrs,
+      playstyles: selectedPlaystyles,
     };
     if (!body.name) { msgEl.textContent = 'Player name is required'; return; }
     try {
@@ -1914,6 +2048,9 @@
     el.addEventListener('pointerdown', (e) => {
       if (e.target.classList.contains('chip-remove')) return;
       e.preventDefault();
+      const startX = e.clientX;
+      const startY = e.clientY;
+      let didDrag = false;
       const player = state.pitch.players.find((pl) => pl.id === playerId);
       const ghost = document.createElement('div');
       ghost.style.position = 'fixed';
@@ -1927,6 +2064,7 @@
       el.style.opacity = '0.35';
 
       function onMove(ev) {
+        if (Math.abs(ev.clientX - startX) > 6 || Math.abs(ev.clientY - startY) > 6) didDrag = true;
         ghost.style.left = ev.clientX - 26 + 'px';
         ghost.style.top = ev.clientY - 33 + 'px';
       }
@@ -1935,6 +2073,11 @@
         window.removeEventListener('pointerup', onUp);
         ghost.remove();
         el.style.opacity = '';
+
+        if (!didDrag && type === 'chip') {
+          openPlayerModal(playerId);
+          return;
+        }
 
         const board = document.getElementById('pitchBoard');
         const rect = board.getBoundingClientRect();

@@ -111,6 +111,12 @@ db.exec(`
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE(event_id, player_id)
   );
+
+  CREATE TABLE IF NOT EXISTS player_playstyles (
+    player_id INTEGER NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+    playstyle_key TEXT NOT NULL,
+    PRIMARY KEY (player_id, playstyle_key)
+  );
 `);
 
 function ensureColumn(table, column, definition) {

@@ -21,7 +21,11 @@ function serializePlayer(playerId) {
   const overall = attributes.length
     ? Math.round(attributes.reduce((sum, a) => sum + a.value, 0) / attributes.length)
     : 0;
-  return { ...player, team, attributes, overall };
+  const playstyles = db
+    .prepare('SELECT playstyle_key FROM player_playstyles WHERE player_id = ?')
+    .all(playerId)
+    .map((r) => r.playstyle_key);
+  return { ...player, team, attributes, overall, playstyles };
 }
 
 function getOwnedPlayer(playerId, coachId) {
@@ -57,7 +61,7 @@ router.get('/:id', (req, res) => {
 });
 
 router.post('/', (req, res) => {
-  const { team_id, name, number, position, photo, nationality, parent_email, parent_phone, attributes } = req.body || {};
+  const { team_id, name, number, position, photo, nationality, parent_email, parent_phone, attributes, playstyles } = req.body || {};
   if (!team_id || !name || !name.trim()) {
     return res.status(400).json({ error: 'team_id and name are required' });
   }
@@ -90,6 +94,10 @@ router.post('/', (req, res) => {
       const v = attributes && attributes[a.id] != null ? clampValue(attributes[a.id]) : 50;
       insertValue.run(playerId, a.id, v);
     });
+    if (Array.isArray(playstyles) && playstyles.length > 0) {
+      const psInsert = db.prepare('INSERT OR IGNORE INTO player_playstyles (player_id, playstyle_key) VALUES (?, ?)');
+      playstyles.forEach((key) => psInsert.run(playerId, key));
+    }
     return playerId;
   });
 
@@ -108,7 +116,7 @@ function clampValue(v) {
 router.put('/:id', (req, res) => {
   const owned = getOwnedPlayer(req.params.id, req.coachId);
   if (!owned) return res.status(404).json({ error: 'Player not found' });
-  const { name, number, position, photo, nationality, parent_email, parent_phone, team_id, attributes } = req.body || {};
+  const { name, number, position, photo, nationality, parent_email, parent_phone, team_id, attributes, playstyles } = req.body || {};
 
   let destinationTeamId = owned.team_id;
   if (team_id !== undefined && Number(team_id) !== owned.team_id) {
@@ -150,6 +158,12 @@ router.put('/:id', (req, res) => {
       Object.entries(attributes).forEach(([attributeId, value]) => {
         upsert.run(owned.id, Number(attributeId), clampValue(value));
       });
+    }
+
+    if (Array.isArray(playstyles)) {
+      db.prepare('DELETE FROM player_playstyles WHERE player_id = ?').run(owned.id);
+      const psInsert = db.prepare('INSERT OR IGNORE INTO player_playstyles (player_id, playstyle_key) VALUES (?, ?)');
+      playstyles.forEach((key) => psInsert.run(owned.id, key));
     }
   });
 

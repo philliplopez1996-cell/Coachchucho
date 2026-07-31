@@ -535,6 +535,77 @@ h2, h3 { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-s
 .big-attr-bar-track { height: 8px; border-radius: 6px; background: rgba(255,255,255,0.1); overflow: hidden; }
 .big-attr-bar-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--lime), var(--cyan)); }
 
+/* === PLAYSTYLE BADGES === */
+#playerPlaystyles { margin: 10px 0 4px; }
+#playerPlaystyles:empty { display: none; }
+.ps-section-title {
+  font-size: 11px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 8px;
+}
+.ps-cat-group { margin-bottom: 8px; }
+.ps-cat-label {
+  font-size: 10px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase; color: var(--text-secondary);
+  display: flex; align-items: center; gap: 5px; margin-bottom: 5px;
+}
+.ps-cat-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.ps-badges-row { display: flex; flex-wrap: wrap; gap: 7px; }
+/* diamond badge (view) */
+.ps-badge {
+  width: 34px; height: 34px; position: relative;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.ps-badge::before {
+  content: ''; position: absolute; inset: 3px; border-radius: 3px;
+  transform: rotate(45deg);
+  background: rgba(0,0,0,0.75); border: 2px solid var(--ps-color, #888);
+}
+.ps-badge svg {
+  position: relative; width: 15px; height: 15px;
+  stroke: #fff; fill: none; stroke-width: 1.8;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+/* picker (edit mode) */
+.ps-picker { margin: 6px 0 16px; }
+.ps-picker-cat { margin-bottom: 12px; }
+.ps-picker-cat-label {
+  font-size: 10px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase; color: var(--text-secondary);
+  display: flex; align-items: center; gap: 5px; margin-bottom: 6px;
+}
+.ps-picker-skills { display: flex; flex-wrap: wrap; gap: 7px; }
+.ps-pick-btn {
+  width: 40px; height: 40px; position: relative;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; background: none; border: none; padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.ps-pick-btn::before {
+  content: ''; position: absolute; inset: 3px; border-radius: 3px;
+  transform: rotate(45deg);
+  background: rgba(0,0,0,0.55); border: 1.5px solid rgba(255,255,255,0.15);
+  transition: border-color 0.15s, background 0.15s;
+}
+.ps-pick-btn.ps-selected::before {
+  border: 2px solid var(--ps-color, #fff);
+}
+.ps-pick-btn svg {
+  position: relative; width: 16px; height: 16px;
+  stroke: rgba(255,255,255,0.3); fill: none; stroke-width: 1.8;
+  stroke-linecap: round; stroke-linejoin: round;
+  transition: stroke 0.15s;
+}
+.ps-pick-btn.ps-selected svg { stroke: #fff; }
+.ps-pick-tooltip {
+  pointer-events: none; position: absolute;
+  bottom: calc(100% + 5px); left: 50%; transform: translateX(-50%);
+  background: rgba(5,9,20,0.95); border: 1px solid rgba(255,255,255,0.12); border-radius: 4px;
+  padding: 3px 7px; font-size: 9px; font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600; letter-spacing: 0.5px; white-space: nowrap; color: var(--text-primary);
+  opacity: 0; transition: opacity 0.12s; z-index: 10;
+}
+.ps-pick-btn:hover .ps-pick-tooltip { opacity: 1; }
+
 .edit-photo-row { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; }
 .edit-photo-preview {
   width: 64px; height: 64px; border-radius: 50%; object-fit: cover; background: rgba(255,255,255,0.1);
