@@ -857,14 +857,24 @@
     /* ── HAMBURGER BTN ──────────────────────────── */
     .hamburger-btn {
       position: absolute; top: 16px; left: 16px; z-index: 10;
-      background: var(--surf); border: 1px solid var(--brd);
-      border-radius: 8px; padding: 9px 11px; cursor: pointer;
-      transition: border-color .14s;
+      background: var(--surf);
+      border: 1px solid rgba(74,255,63,.45);
+      border-radius: 8px; padding: 9px 11px 7px; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      box-shadow: 0 0 12px rgba(74,255,63,.1);
+      transition: border-color .14s, box-shadow .14s;
     }
-    .hamburger-btn:hover { border-color: var(--brd2); }
-    .hamburger-icon { display: flex; flex-direction: column; gap: 4.5px; }
-    .hamburger-icon span { display: block; width: 18px; height: 1.5px; background: var(--txt2); border-radius: 1px; transition: background .14s; }
-    .hamburger-btn:hover .hamburger-icon span { background: var(--lime); }
+    .hamburger-btn:hover {
+      border-color: rgba(74,255,63,.8);
+      box-shadow: 0 0 20px rgba(74,255,63,.25);
+    }
+    .hamburger-icon { display: flex; flex-direction: column; gap: 4px; }
+    .hamburger-icon span { display: block; width: 18px; height: 1.5px; background: var(--lime); border-radius: 1px; }
+    .hamburger-label {
+      font-family: var(--font-u); font-size: .42rem;
+      letter-spacing: .22em; text-transform: uppercase;
+      color: var(--lime); font-weight: 600;
+    }
 
     /* ── DRAWER OVERLAY + PANEL ──────────────────── */
     .drawer-overlay {
@@ -989,6 +999,7 @@
   <!-- Hamburger -->
   <button class="hamburger-btn" onclick="openDrawer()" aria-label="Open menu">
     <div class="hamburger-icon"><span></span><span></span><span></span></div>
+    <div class="hamburger-label">Menu</div>
   </button>
 
   <div class="setup-wrap">
@@ -1021,12 +1032,12 @@
         <div class="pills" id="pills-custom-size"></div>
       </div>
 
+      <div class="setup-go">
+        <button class="btn btn-lime" onclick="launchRegular()">Start Game</button>
+      </div>
       <div class="opt-group" id="pup-group-reg">
         <div class="opt-label">Power-Ups</div>
         <div class="pup-select" id="pup-select-regular"></div>
-      </div>
-      <div class="setup-go">
-        <button class="btn btn-lime" onclick="launchRegular()">Start Game</button>
       </div>
     </div>
 
@@ -1041,12 +1052,12 @@
         </div>
       </div>
 
+      <div class="setup-go">
+        <button class="btn btn-gold" onclick="launchChallenge()">Begin Challenge</button>
+      </div>
       <div class="opt-group" id="pup-group-chal">
         <div class="opt-label">Power-Ups</div>
         <div class="pup-select" id="pup-select-challenge"></div>
-      </div>
-      <div class="setup-go">
-        <button class="btn btn-gold" onclick="launchChallenge()">Begin Challenge</button>
       </div>
     </div>
 
@@ -1936,17 +1947,26 @@ function buildPupSelector(mode) {
   const id   = `pup-select-${mode}`;
   const wrap = document.getElementById(id);
   if (!wrap) return;
-  const owned = Object.values(POWERUPS).filter(p => p.modes.includes(mode) && isUnlocked(p.id));
+  const eligible = Object.values(POWERUPS).filter(p => p.modes.includes(mode));
   const group = document.getElementById(`pup-group-${mode}`);
-  if (group) group.style.display = owned.length ? '' : 'none';
-  if (!owned.length) { wrap.innerHTML = ''; return; }
-  wrap.innerHTML = owned.map(p => {
-    const checked = profile.selectedPups.includes(p.id);
-    return `<div class="pup-sel-card${checked?' checked':''}" onclick="togglePupSel('${p.id}')" id="pupsel-${p.id}-${mode}">
-      <div class="pup-icon">${p.icon}</div>
-      <div class="pup-name">${p.name}</div>
-      <div class="pup-desc">${p.desc}</div>
-    </div>`;
+  if (group) group.style.display = '';
+  wrap.innerHTML = eligible.map(p => {
+    const owned = isUnlocked(p.id);
+    const checked = owned && profile.selectedPups.includes(p.id);
+    if (owned) {
+      return `<div class="pup-sel-card${checked?' checked':''}" onclick="togglePupSel('${p.id}')" id="pupsel-${p.id}-${mode}">
+        <div class="pup-icon">${p.icon}</div>
+        <div class="pup-name">${p.name}</div>
+        <div class="pup-desc">${p.desc}</div>
+      </div>`;
+    } else {
+      return `<div class="pup-sel-card locked" id="pupsel-${p.id}-${mode}">
+        <div class="pup-icon">${p.icon}</div>
+        <div class="pup-name">${p.name}</div>
+        <div class="pup-desc">${p.desc}</div>
+        <div class="pup-lock-lbl">${p.unlock} XP · Buy in menu</div>
+      </div>`;
+    }
   }).join('');
 }
 function togglePupSel(id) {
