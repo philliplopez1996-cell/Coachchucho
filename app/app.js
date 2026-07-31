@@ -1003,14 +1003,24 @@
     grid.innerHTML = '';
     empty.classList.toggle('hidden', state.teams.length > 0);
     state.teams.forEach((team) => {
+      const count = state.players.filter((p) => p.team_id === team.id).length;
+      const teamPlayers = state.players.filter((p) => p.team_id === team.id);
+      const avgOvr = teamPlayers.length
+        ? Math.round(teamPlayers.reduce((s, p) => s + (p.overall || 0), 0) / teamPlayers.length)
+        : null;
+      const initial = team.name.charAt(0).toUpperCase();
+      const color = team.color || '#00E564';
       const card = document.createElement('div');
-      card.className = 'folder-card';
-      card.style.setProperty('--folder-color', team.color);
-      card.innerHTML = `<div class="folder-icon" style="color:${escapeHtml(team.color)}">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
+      card.className = 'team-banner-card';
+      card.style.setProperty('--team-color', color);
+      card.innerHTML = `
+        <div class="tbc-accent"></div>
+        <div class="tbc-logo">${initial}</div>
+        <div class="tbc-info">
+          <div class="tbc-name">${escapeHtml(team.name)}</div>
+          <div class="tbc-meta">${count} player${count === 1 ? '' : 's'}${avgOvr !== null ? ` &nbsp;·&nbsp; Avg <span class="tbc-ovr">${avgOvr}</span>` : ''}</div>
         </div>
-        <div class="folder-name">${escapeHtml(team.name)}</div>
-        <div class="folder-count">${team.player_count} player${team.player_count === 1 ? '' : 's'}</div>`;
+        <div class="tbc-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>`;
       card.addEventListener('click', () => openTeamView(team.id));
       grid.appendChild(card);
     });
@@ -1023,7 +1033,8 @@
     const team = state.teams.find((t) => t.id === teamId);
     document.getElementById('rosterTeamName').textContent = team ? team.name : 'Team';
     document.getElementById('rosterSearchInput').value = '';
-    document.getElementById('rosterPositionFilter').value = '';
+    document.querySelectorAll('#rosterPositionFilter .pos-pill').forEach((p) => p.classList.remove('active'));
+    document.querySelector('#rosterPositionFilter .pos-pill[data-pos=""]').classList.add('active');
     renderPlayerCardsForCurrentTeam();
     loadTeamLeaderboard(teamId);
   }
@@ -1072,10 +1083,25 @@
     }
   }
 
-  document.getElementById('rosterPositionFilter').innerHTML =
-    '<option value="">All positions</option>' + POSITIONS.map((p) => `<option value="${p}">${p}</option>`).join('');
+  const posPillsWrap = document.getElementById('rosterPositionFilter');
+  POSITIONS.forEach((pos) => {
+    const btn = document.createElement('button');
+    btn.className = 'pos-pill';
+    btn.dataset.pos = pos;
+    btn.textContent = pos;
+    btn.addEventListener('click', () => {
+      posPillsWrap.querySelectorAll('.pos-pill').forEach((p) => p.classList.remove('active'));
+      btn.classList.add('active');
+      renderPlayerCardsForCurrentTeam();
+    });
+    posPillsWrap.appendChild(btn);
+  });
+  posPillsWrap.querySelector('.pos-pill[data-pos=""]').addEventListener('click', () => {
+    posPillsWrap.querySelectorAll('.pos-pill').forEach((p) => p.classList.remove('active'));
+    posPillsWrap.querySelector('.pos-pill[data-pos=""]').classList.add('active');
+    renderPlayerCardsForCurrentTeam();
+  });
   document.getElementById('rosterSearchInput').addEventListener('input', renderPlayerCardsForCurrentTeam);
-  document.getElementById('rosterPositionFilter').addEventListener('change', renderPlayerCardsForCurrentTeam);
   document.getElementById('rosterSortSelect').addEventListener('change', renderPlayerCardsForCurrentTeam);
 
   document.getElementById('backToFoldersBtn').addEventListener('click', () => {
@@ -1214,7 +1240,7 @@
 
     const allTeamPlayers = state.players.filter((p) => p.team_id === state.currentTeamId);
     const search = document.getElementById('rosterSearchInput').value.trim().toLowerCase();
-    const positionFilter = document.getElementById('rosterPositionFilter').value;
+    const positionFilter = document.querySelector('#rosterPositionFilter .pos-pill.active')?.dataset.pos || '';
     const sortKey = document.getElementById('rosterSortSelect').value;
 
     let players = allTeamPlayers;
@@ -1680,6 +1706,32 @@
   /* ============================================================
      ROSTER RADAR (2-PLAYER COMPARISON)
   ============================================================ */
+  function updateRadarSlot(which) {
+    const sel = document.getElementById(which === 'A' ? 'radarPlayerA' : 'radarPlayerB');
+    const slot = document.getElementById(which === 'A' ? 'radarSlotA' : 'radarSlotB');
+    const player = state.players.find((p) => String(p.id) === sel.value);
+    if (!player) {
+      slot.innerHTML = `<div class="rsc-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg><span>Player ${which}</span></div>`;
+      return;
+    }
+    const team = state.teams.find((t) => t.id === player.team_id);
+    const color = team?.color || '#00E564';
+    const photoHtml = player.photo
+      ? `<img class="rsc-photo" src="${player.photo}" alt="">`
+      : `<div class="rsc-photo rsc-initials">${initials(player.name)}</div>`;
+    slot.innerHTML = `
+      <div class="rsc-filled" style="--slot-color:${color}">
+        ${photoHtml}
+        <div class="rsc-info">
+          <div class="rsc-name">${escapeHtml(player.name)}</div>
+          <div class="rsc-sub">${escapeHtml(player.position)} · <span style="color:var(--lime)">${player.overall}</span></div>
+        </div>
+        <div class="rsc-change">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>`;
+  }
+
   function renderRadarPickers() {
     const selA = document.getElementById('radarPlayerA');
     const selB = document.getElementById('radarPlayerB');
@@ -1692,6 +1744,8 @@
     selB.innerHTML = '<option value="">Select player…</option>' + options;
     if (state.players.some((p) => String(p.id) === prevA)) selA.value = prevA;
     if (state.players.some((p) => String(p.id) === prevB)) selB.value = prevB;
+    updateRadarSlot('A');
+    updateRadarSlot('B');
     renderRadarComparison();
   }
 
@@ -1798,8 +1852,10 @@
     }
   }
 
-  document.getElementById('radarPlayerA').addEventListener('change', renderRadarComparison);
-  document.getElementById('radarPlayerB').addEventListener('change', renderRadarComparison);
+  document.getElementById('radarPlayerA').addEventListener('change', () => { updateRadarSlot('A'); renderRadarComparison(); });
+  document.getElementById('radarPlayerB').addEventListener('change', () => { updateRadarSlot('B'); renderRadarComparison(); });
+  document.getElementById('radarSlotA').addEventListener('click', () => document.getElementById('radarPlayerA').showPicker?.() ?? document.getElementById('radarPlayerA').click());
+  document.getElementById('radarSlotB').addEventListener('click', () => document.getElementById('radarPlayerB').showPicker?.() ?? document.getElementById('radarPlayerB').click());
 
   /* ============================================================
      TACTICAL PITCH

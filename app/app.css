@@ -208,27 +208,73 @@ h2, h3 { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-s
 .empty-icon svg { width: 44px; height: 44px; }
 
 /* ---- ROSTER FOLDERS ---- */
-.folder-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px; }
-.folder-card {
-  background: linear-gradient(160deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01));
-  border: 1px solid color-mix(in srgb, var(--lime) 22%, transparent); border-radius: 16px; padding: 20px 14px; cursor: pointer;
-  text-align: center; transition: all 0.2s; position: relative;
+.folder-grid { display: flex; flex-direction: column; gap: 12px; }
+.team-banner-card {
+  display: flex; align-items: center; gap: 14px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px; padding: 14px 18px 14px 22px;
+  cursor: pointer; position: relative; overflow: hidden; transition: all 0.2s;
 }
-.folder-card:hover { border-color: var(--lime); transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,0.35); }
-.folder-icon { display: flex; justify-content: center; margin-bottom: 10px; filter: drop-shadow(0 0 6px rgba(0,0,0,0.4)); }
-.folder-icon svg { width: 38px; height: 38px; }
-.folder-name { font-weight: 800; font-size: 14.5px; color: var(--text-primary); }
-.folder-count { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
+.team-banner-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--team-color) 14%, transparent) 0%, transparent 60%);
+  pointer-events: none;
+}
+.team-banner-card:hover {
+  border-color: color-mix(in srgb, var(--team-color) 55%, transparent);
+  box-shadow: 0 0 28px color-mix(in srgb, var(--team-color) 18%, transparent), 0 8px 24px rgba(0,0,0,0.3);
+  transform: translateY(-2px);
+}
+.tbc-accent {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+  background: var(--team-color); border-radius: 16px 0 0 16px;
+}
+.tbc-logo {
+  width: 50px; height: 50px; border-radius: 50%; flex-shrink: 0;
+  background: color-mix(in srgb, var(--team-color) 20%, transparent);
+  border: 2px solid color-mix(in srgb, var(--team-color) 55%, transparent);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: var(--team-color); letter-spacing: 0;
+}
+.tbc-info { flex: 1; min-width: 0; }
+.tbc-name { font-weight: 800; font-size: 16px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tbc-meta { font-size: 12.5px; color: var(--text-secondary); margin-top: 3px; }
+.tbc-ovr { color: var(--lime); font-weight: 700; }
+.tbc-chevron { color: rgba(255,255,255,0.28); flex-shrink: 0; }
+.tbc-chevron svg { width: 20px; height: 20px; display: block; }
 
 .team-header-actions { display: flex; align-items: center; gap: 8px; }
 
-.roster-toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
-.roster-toolbar input[type=search] {
-  flex: 2; min-width: 160px; padding: 10px 14px; background: rgba(255,255,255,0.07);
-  border: 1px solid color-mix(in srgb, var(--lime) 25%, transparent); border-radius: 9px; color: var(--text-primary); font-size: 13.5px; outline: none;
+.roster-toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+.roster-search-bar {
+  flex: 1; display: flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px; padding: 0 14px; transition: border-color 0.15s;
 }
-.roster-toolbar input[type=search]:focus { border-color: var(--lime); }
-.roster-toolbar select {
+.roster-search-bar:focus-within { border-color: var(--lime); }
+.roster-search-icon { width: 16px; height: 16px; color: var(--text-secondary); flex-shrink: 0; }
+.roster-search-bar input[type=search] {
+  flex: 1; background: none; border: none; outline: none;
+  color: var(--text-primary); font-size: 14px; padding: 11px 0;
+}
+.roster-sort-select {
+  flex-shrink: 0; padding: 10px 12px; background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+  color: var(--text-primary); font-size: 13px; outline: none; cursor: pointer;
+}
+.roster-sort-select:focus { border-color: var(--lime); }
+/* position pills */
+.pos-pills-wrap { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 16px; scrollbar-width: none; }
+.pos-pills-wrap::-webkit-scrollbar { display: none; }
+.pos-pill {
+  flex-shrink: 0; padding: 6px 13px; border-radius: 20px; font-family: inherit;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-secondary); font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s;
+}
+.pos-pill:hover { border-color: var(--lime); color: var(--lime); }
+.pos-pill.active { background: var(--lime); border-color: var(--lime); color: #050914; }
+/* keep old select style for other selects */
+.roster-toolbar select, select {
   flex: 1; min-width: 130px; padding: 10px 12px; background: rgba(255,255,255,0.07);
   border: 1px solid color-mix(in srgb, var(--lime) 25%, transparent); border-radius: 9px; color: var(--text-primary); font-size: 13.5px;
 }
@@ -609,14 +655,32 @@ h2, h3 { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-s
 .attr-slider-value { flex: 0 0 30px; text-align: right; font-family: 'Bebas Neue', sans-serif; color: var(--gold); font-weight: 700; }
 
 /* ============ RADAR TAB ============ */
-.radar-pickers { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
-.radar-picker { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 6px; }
-.radar-picker label { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
-.radar-picker select {
-  padding: 11px 13px; background: rgba(255,255,255,0.07); border: 1px solid color-mix(in srgb, var(--lime) 25%, transparent);
-  border-radius: 9px; color: var(--text-primary); font-size: 14px;
+.radar-pickers { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+.radar-slot-wrap { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.radar-hidden-sel {
+  width: 100%; padding: 6px 10px; background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
+  color: var(--text-secondary); font-size: 12px; outline: none; cursor: pointer;
 }
-.radar-vs { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; color: var(--orange); font-size: 20px; letter-spacing: 1px; }
+.radar-hidden-sel:focus { border-color: var(--lime); }
+.radar-slot-card {
+  background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.15);
+  border-radius: 14px; overflow: hidden; cursor: pointer; min-height: 72px;
+  display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+}
+.radar-slot-card:hover { border-color: var(--lime); background: rgba(0,229,100,0.05); }
+.rsc-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 10px; color: var(--text-secondary); }
+.rsc-empty svg { width: 28px; height: 28px; opacity: 0.5; }
+.rsc-empty span { font-size: 12px; font-weight: 600; }
+.rsc-filled { display: flex; align-items: center; gap: 10px; padding: 12px 14px; width: 100%; border-left: 3px solid var(--slot-color); }
+.rsc-photo { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid rgba(255,255,255,0.3); }
+.rsc-initials { display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.12); font-weight: 800; font-size: 14px; }
+.rsc-info { flex: 1; min-width: 0; }
+.rsc-name { font-weight: 700; font-size: 13.5px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rsc-sub { font-size: 11.5px; color: var(--text-secondary); margin-top: 2px; }
+.rsc-change { color: rgba(255,255,255,0.3); flex-shrink: 0; }
+.rsc-change svg { width: 18px; height: 18px; display: block; }
+.radar-vs-badge { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; color: var(--orange); font-size: 22px; letter-spacing: 1px; flex-shrink: 0; }
 .radar-content { display: flex; flex-direction: column; }
 .radar-columns { display: flex; gap: 30px; flex-wrap: wrap; align-items: flex-start; }
 .radar-chart-wrap { flex: 1; min-width: 280px; display: flex; flex-direction: column; align-items: center; }

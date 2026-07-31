@@ -145,18 +145,21 @@
           </div>
         </div>
         <div class="roster-toolbar">
-          <input type="search" id="rosterSearchInput" placeholder="Search players by name…">
-          <select id="rosterPositionFilter">
-            <option value="">All positions</option>
-          </select>
-          <select id="rosterSortSelect">
-            <option value="name_asc">Name (A–Z)</option>
-            <option value="name_desc">Name (Z–A)</option>
-            <option value="overall_desc">Overall (High–Low)</option>
-            <option value="overall_asc">Overall (Low–High)</option>
-            <option value="number_asc">Jersey # (Low–High)</option>
+          <div class="roster-search-bar">
+            <svg class="roster-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="search" id="rosterSearchInput" placeholder="Search players…">
+          </div>
+          <select class="roster-sort-select" id="rosterSortSelect">
+            <option value="name_asc">Name A–Z</option>
+            <option value="name_desc">Name Z–A</option>
+            <option value="overall_desc">OVR ↓</option>
+            <option value="overall_asc">OVR ↑</option>
+            <option value="number_asc">Jersey #</option>
             <option value="position_asc">Position</option>
           </select>
+        </div>
+        <div class="pos-pills-wrap" id="rosterPositionFilter">
+          <button class="pos-pill active" data-pos="">All</button>
         </div>
         <div class="team-record-box hidden" id="teamRecordBox">
           <div class="record-wl" id="teamRecordWL"></div>
@@ -191,14 +194,24 @@
         <h2>Roster Radar</h2>
       </div>
       <div class="radar-pickers">
-        <div class="radar-picker">
-          <label>Player A</label>
-          <select id="radarPlayerA"><option value="">Select player…</option></select>
+        <div class="radar-slot-wrap">
+          <div class="radar-slot-card" id="radarSlotA">
+            <div class="rsc-empty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              <span>Player A</span>
+            </div>
+          </div>
+          <select id="radarPlayerA" class="radar-hidden-sel"><option value="">Select…</option></select>
         </div>
-        <div class="radar-vs">VS</div>
-        <div class="radar-picker">
-          <label>Player B</label>
-          <select id="radarPlayerB"><option value="">Select player…</option></select>
+        <div class="radar-vs-badge">VS</div>
+        <div class="radar-slot-wrap">
+          <div class="radar-slot-card" id="radarSlotB">
+            <div class="rsc-empty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              <span>Player B</span>
+            </div>
+          </div>
+          <select id="radarPlayerB" class="radar-hidden-sel"><option value="">Select…</option></select>
         </div>
       </div>
       <div class="radar-content hidden" id="radarContent">
