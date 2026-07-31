@@ -982,7 +982,7 @@
       .price-card.featured { transform: scale(1); }
       .hero { padding: 80px 20px 30px; background-position: center 30% !important; }
       .pricing-home, .testimonials-home { padding: 35px 18px; }
-      .gallery-section { padding: 35px 18px 0; width: 100%; }
+      .gallery-section { padding: 35px 18px 40px; width: 100%; }
       .form-row { grid-template-columns: 1fr; }
       .eval-banner { flex-direction: column; text-align: center; }
       .eval-banner p { max-width: 100%; }
@@ -1051,6 +1051,7 @@
       h1 { font-size: 1.4rem; }
       h2 { font-size: 1.15rem; }
       .pricing-home, .testimonials-home { padding: 30px 15px; }
+      .gallery-section { padding: 30px 15px 36px; }
       .modal-box { padding: 28px 20px; max-height: calc(100vh - 32px); }
       .modal { padding: 16px 0; }
     }
