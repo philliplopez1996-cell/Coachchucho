@@ -111,7 +111,7 @@
       background: radial-gradient(circle, rgba(255,255,255,0.09), transparent 70%);
     }
 
-    /* ── FLOATING 3D OBJECTS (fill empty side margins, react to scroll) ── */
+    /* ── FLOATING 3D SPHERES (fill empty side margins, bounce continuously + react to scroll) ── */
     .floating-3d {
       position: fixed;
       pointer-events: none;
@@ -126,45 +126,12 @@
         radial-gradient(circle at 40% 40%, #d4ff8a, #8fc93a 45%, #3f6614 78%, #172808 100%);
       box-shadow: 0 24px 45px rgba(0,0,0,0.55), inset -8px -10px 20px rgba(0,0,0,0.35);
     }
-    .ball-3d-1 {
-      width: 92px;
-      height: 92px;
-      top: 26vh;
-      left: 3.5vw;
-    }
-    .ball-3d-2 {
-      width: 60px;
-      height: 60px;
-      top: 68vh;
-      right: 4.5vw;
-    }
-    .cube-scene {
-      width: 70px;
-      height: 70px;
-      top: 46vh;
-      right: 3vw;
-      perspective: 600px;
-    }
-    .cube-3d {
-      position: relative;
-      width: 70px;
-      height: 70px;
-      transform-style: preserve-3d;
-    }
-    .cube-3d .cube-face {
-      position: absolute;
-      width: 70px;
-      height: 70px;
-      border: 1px solid rgba(198,255,61,0.6);
-      background: rgba(198,255,61,0.12);
-      backdrop-filter: blur(2px);
-    }
-    .cube-3d .cube-front  { transform: translateZ(35px); }
-    .cube-3d .cube-back   { transform: rotateY(180deg) translateZ(35px); }
-    .cube-3d .cube-right  { transform: rotateY(90deg) translateZ(35px); }
-    .cube-3d .cube-left   { transform: rotateY(-90deg) translateZ(35px); }
-    .cube-3d .cube-top    { transform: rotateX(90deg) translateZ(35px); }
-    .cube-3d .cube-bottom { transform: rotateX(-90deg) translateZ(35px); }
+    .ball-3d-1 { width: 92px; height: 92px; top: 18vh; left: 3.5vw; }
+    .ball-3d-2 { width: 50px; height: 50px; top: 34vh; right: 5vw; }
+    .ball-3d-3 { width: 34px; height: 34px; top: 47vh; left: 2vw; }
+    .ball-3d-4 { width: 68px; height: 68px; top: 58vh; right: 3.5vw; }
+    .ball-3d-5 { width: 26px; height: 26px; top: 74vh; left: 5vw; }
+    .ball-3d-6 { width: 82px; height: 82px; top: 84vh; right: 2.5vw; }
     @media (max-width: 1300px) {
       .floating-3d { display: none; }
     }

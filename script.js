@@ -31,12 +31,8 @@
   const orb1 = document.querySelector('.orb-1');
   const orb2 = document.querySelector('.orb-2');
 
-  // Floating 3D objects (home page only) — spin and drift in the empty side margins on scroll
-  const ball3d1 = document.getElementById('ball3d1');
-  const ball3d2 = document.getElementById('ball3d2');
-  const cube3d = document.getElementById('cube3d');
-
   let ticking = false;
+  let lastScrollY = window.scrollY;
   window.addEventListener('scroll', () => {
     if (ticking) return;
     ticking = true;
@@ -44,18 +40,35 @@
       const y = window.scrollY;
       orb1.style.transform = `translateY(${y * 0.18}px)`;
       orb2.style.transform = `translateY(${y * -0.12}px)`;
-      if (ball3d1) {
-        ball3d1.style.transform = `translateY(${Math.sin(y * 0.002) * 40}px) rotate(${y * 0.5}deg)`;
-      }
-      if (ball3d2) {
-        ball3d2.style.transform = `translateY(${Math.sin(y * 0.0025 + 2) * 55}px) rotate(${y * -0.4}deg)`;
-      }
-      if (cube3d) {
-        cube3d.style.transform = `rotateX(${y * 0.25}deg) rotateY(${y * 0.35}deg)`;
-      }
+      lastScrollY = y;
       ticking = false;
     });
   }, { passive: true });
+
+  // Floating 3D spheres (home page only) — bounce continuously in the empty side margins,
+  // with extra drift and spin layered on top as the page scrolls
+  const balls3d = [
+    { el: document.getElementById('ball3d1'), ampY: 34, freq: 0.0009, phase: 0,   spin: 0.5,  driftAmp: 26, driftFreq: 0.0016 },
+    { el: document.getElementById('ball3d2'), ampY: 20, freq: 0.0013, phase: 1.4, spin: -0.7, driftAmp: 18, driftFreq: 0.0021 },
+    { el: document.getElementById('ball3d3'), ampY: 14, freq: 0.0017, phase: 2.6, spin: 0.9,  driftAmp: 10, driftFreq: 0.0026 },
+    { el: document.getElementById('ball3d4'), ampY: 26, freq: 0.0011, phase: 0.8, spin: -0.4, driftAmp: 22, driftFreq: 0.0018 },
+    { el: document.getElementById('ball3d5'), ampY: 12, freq: 0.0021, phase: 3.5, spin: 0.6,  driftAmp: 8,  driftFreq: 0.003 },
+    { el: document.getElementById('ball3d6'), ampY: 30, freq: 0.001,  phase: 4.2, spin: -0.5, driftAmp: 24, driftFreq: 0.0014 },
+  ].filter(b => b.el);
+
+  function animateBalls(timestamp) {
+    if (balls3d.length) {
+      const y = lastScrollY;
+      balls3d.forEach(b => {
+        const bounce = Math.sin(timestamp * b.freq + b.phase) * b.ampY;
+        const drift = Math.sin(y * b.driftFreq + b.phase) * b.driftAmp;
+        const rotate = y * b.spin;
+        b.el.style.transform = `translateY(${bounce + drift}px) rotate(${rotate}deg)`;
+      });
+    }
+    requestAnimationFrame(animateBalls);
+  }
+  requestAnimationFrame(animateBalls);
 
   // Auto-scrolling photo showcase — drifts left to right, pauses when a parent scrolls it manually
   const showcase = document.getElementById('photoShowcase');
