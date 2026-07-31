@@ -392,6 +392,11 @@
     document.getElementById('tab-' + tabName).classList.add('active');
     document.querySelectorAll('.bottom-tab').forEach((b) => b.classList.toggle('active', b.dataset.tab === tabName));
     window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+    if (tabName === 'pitch' && !state.pitch.teamId && state.teams.length > 0) {
+      const sel = document.getElementById('pitchTeamSelect');
+      sel.value = String(state.teams[0].id);
+      loadPitchForTeam(state.teams[0].id);
+    }
   }
   document.querySelectorAll('.bottom-tab').forEach((btn) => {
     btn.addEventListener('click', () => goToTab(btn.dataset.tab));
@@ -1669,7 +1674,15 @@
     const sel = document.getElementById('pitchTeamSelect');
     const prev = sel.value;
     sel.innerHTML = '<option value="">Select team…</option>' + state.teams.map((t) => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
-    if (state.teams.some((t) => String(t.id) === prev)) sel.value = prev;
+    if (state.teams.some((t) => String(t.id) === prev)) {
+      sel.value = prev;
+    } else if (state.teams.length > 0 && !state.pitch.teamId) {
+      // Auto-load the first team so the pitch is always populated on entry
+      sel.value = String(state.teams[0].id);
+      loadPitchForTeam(state.teams[0].id);
+    } else {
+      renderPitchGhost();
+    }
   }
 
   const LINEUP_TYPES = ['defensive', 'balanced', 'attacking'];
@@ -1679,10 +1692,12 @@
     if (!teamId) {
       document.getElementById('lineupTypeTabs').classList.add('hidden');
       document.getElementById('pitchControls').classList.add('hidden');
-      document.getElementById('pitchWrap').classList.add('hidden');
       document.getElementById('pitchEmptyState').classList.remove('hidden');
+      state.pitch.teamId = null;
+      renderPitchGhost();
       return;
     }
+    document.getElementById('pitchEmptyState').classList.add('hidden');
     await loadPitchForTeam(Number(teamId));
   });
 
@@ -1766,7 +1781,6 @@
     document.querySelectorAll('.lineup-type-tab').forEach((b) => b.classList.toggle('active', b.dataset.lineup === 'balanced'));
     document.getElementById('lineupTypeTabs').classList.remove('hidden');
     document.getElementById('pitchControls').classList.remove('hidden');
-    document.getElementById('pitchWrap').classList.remove('hidden');
     document.getElementById('pitchEmptyState').classList.add('hidden');
     renderPitch();
   }
@@ -1825,6 +1839,23 @@
     return mini;
   }
 
+  function renderPitchGhost() {
+    const slotsWrap = document.getElementById('pitchSlots');
+    const benchWrap = document.getElementById('pitchBenchList');
+    slotsWrap.innerHTML = '';
+    benchWrap.innerHTML = '';
+    const template = FORMATIONS['4-3-3'];
+    template.forEach((slot) => {
+      const screenPos = dataToScreen(slot);
+      const ghost = document.createElement('div');
+      ghost.className = 'pitch-ghost-slot';
+      ghost.style.left = screenPos.left + '%';
+      ghost.style.top = screenPos.top + '%';
+      ghost.textContent = slot.label;
+      slotsWrap.appendChild(ghost);
+    });
+  }
+
   function renderPitch() {
     const slotsWrap = document.getElementById('pitchSlots');
     const benchWrap = document.getElementById('pitchBenchList');
@@ -1863,7 +1894,7 @@
     });
 
     if (bench.length === 0) {
-      benchWrap.innerHTML = '<div style="font-size:12px;color:#7fae8b;">All players are on the pitch.</div>';
+      benchWrap.innerHTML = '<div style="font-size:12px;color:var(--lime);">All players are on the pitch.</div>';
     }
     bench.forEach((player) => {
       const chip = document.createElement('div');
