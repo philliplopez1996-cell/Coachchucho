@@ -710,6 +710,13 @@
       border: 1px solid rgba(198,255,61,0.2);
       box-shadow: 0 12px 30px rgba(0,0,0,0.35);
     }
+    .photo-gallery.auto-scroll {
+      cursor: grab;
+      scroll-snap-type: none;
+    }
+    .photo-gallery.auto-scroll:active {
+      cursor: grabbing;
+    }
     .gallery-photo.placeholder {
       display: flex;
       align-items: center;

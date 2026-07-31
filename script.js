@@ -42,6 +42,32 @@
     });
   }, { passive: true });
 
+  // Auto-scrolling photo showcase — drifts left to right, pauses when a parent scrolls it manually
+  const showcase = document.getElementById('photoShowcase');
+  if (showcase) {
+    let autoScroll = true;
+    let resumeTimer;
+    showcase.scrollLeft = showcase.scrollWidth - showcase.clientWidth;
+    function driftShowcase() {
+      if (autoScroll) {
+        showcase.scrollLeft -= 0.6;
+        if (showcase.scrollLeft <= 0) {
+          showcase.scrollLeft = showcase.scrollWidth - showcase.clientWidth;
+        }
+      }
+      requestAnimationFrame(driftShowcase);
+    }
+    requestAnimationFrame(driftShowcase);
+    function pauseShowcase() {
+      autoScroll = false;
+      clearTimeout(resumeTimer);
+      resumeTimer = setTimeout(() => { autoScroll = true; }, 3000);
+    }
+    showcase.addEventListener('pointerdown', pauseShowcase);
+    showcase.addEventListener('wheel', pauseShowcase, { passive: true });
+    showcase.addEventListener('touchstart', pauseShowcase, { passive: true });
+  }
+
   // Scroll reveal — sections fade/slide in as they enter the viewport
   const revealObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
