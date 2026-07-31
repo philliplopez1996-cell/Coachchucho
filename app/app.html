@@ -215,29 +215,33 @@
         </div>
       </div>
       <div class="radar-content hidden" id="radarContent">
-        <div class="radar-vs-header" id="radarVsHeader"></div>
 
-        <div class="radar-columns">
-          <div class="radar-chart-wrap">
-            <div id="radarChartSvg"></div>
-            <div class="radar-legend">
-              <div class="radar-legend-item"><span class="dot dot-a"></span><span id="legendA">Player A</span></div>
-              <div class="radar-legend-item"><span class="dot dot-b"></span><span id="legendB">Player B</span></div>
-            </div>
-          </div>
+        <!-- Hero VS Banner -->
+        <div class="rcmp-banner" id="radarVsHeader"></div>
 
-          <div class="compare-table-wrap">
-            <div class="compare-head">
-              <div class="compare-player compare-player-a" id="compareHeadA"></div>
-              <div class="compare-attr-label">Attribute</div>
-              <div class="compare-player compare-player-b" id="compareHeadB"></div>
-            </div>
-            <div id="compareRows"></div>
-            <div class="compare-section-label">Career Stats</div>
-            <div id="compareCareerRows"></div>
+        <!-- Radar chart -->
+        <div class="rcmp-chart-section">
+          <div class="rcmp-section-label">Attribute Radar</div>
+          <div id="radarChartSvg"></div>
+          <div class="radar-legend">
+            <div class="radar-legend-item"><span class="dot dot-a"></span><span id="legendA">Player A</span></div>
+            <div class="radar-legend-item"><span class="dot dot-b"></span><span id="legendB">Player B</span></div>
           </div>
         </div>
 
+        <!-- Attribute split-bar breakdown -->
+        <div class="rcmp-attrs-section">
+          <div class="rcmp-section-label">Attribute Breakdown</div>
+          <div id="compareRows"></div>
+        </div>
+
+        <!-- Career stat tiles -->
+        <div class="rcmp-career-section">
+          <div class="rcmp-section-label">Career Stats</div>
+          <div class="rcmp-career-grid" id="compareCareerRows"></div>
+        </div>
+
+        <!-- Verdict -->
         <div class="radar-summary-chip" id="radarSummaryChip"></div>
       </div>
       <div class="empty-state" id="radarEmptyState">

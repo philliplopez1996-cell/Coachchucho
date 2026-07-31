@@ -1749,18 +1749,22 @@
     renderRadarComparison();
   }
 
-  function buildRadarHeadCard(player, side) {
+  function buildRcmpPlayerCard(player, side) {
+    const team = state.teams.find((t) => t.id === player.team_id);
+    const teamColor = team?.color || (side === 'a' ? '#4AFF3F' : '#00D9FF');
     const photoHtml = player.photo
-      ? `<img class="radar-head-photo-img" src="${player.photo}" alt="">`
-      : `<div class="radar-head-photo-fallback">${initials(player.name)}</div>`;
+      ? `<img class="rcmp-photo-img" src="${player.photo}" alt="">`
+      : `<div class="rcmp-photo-fallback">${initials(player.name)}</div>`;
     return `
-      <div class="radar-head-card radar-head-${side}">
-        <div class="radar-head-photo">${photoHtml}</div>
-        <div class="radar-head-info">
-          <div class="radar-head-name">${escapeHtml(player.name)}</div>
-          <div class="radar-head-meta">${escapeHtml(player.position)}${player.number != null ? ' · #' + player.number : ''}</div>
+      <div class="rcmp-player-card rcmp-card-${side}" style="--rcmp-color:${teamColor}">
+        <div class="rcmp-photo-ring">${photoHtml}</div>
+        <div class="rcmp-player-ovr">${player.overall}</div>
+        <div class="rcmp-player-name">${escapeHtml(player.name)}</div>
+        <div class="rcmp-player-meta">
+          <span class="rcmp-pos-pill">${escapeHtml(player.position)}</span>
+          ${player.number != null ? `<span class="rcmp-jersey">#${player.number}</span>` : ''}
         </div>
-        <div class="radar-head-ovr">${player.overall}</div>
+        ${team ? `<div class="rcmp-team-name">${escapeHtml(team.name)}</div>` : ''}
       </div>`;
   }
 
@@ -1787,68 +1791,116 @@
     content.classList.remove('hidden');
     empty.classList.add('hidden');
 
+    // Hero banner
     document.getElementById('radarVsHeader').innerHTML =
-      buildRadarHeadCard(playerA, 'a') + '<div class="radar-head-vs">VS</div>' + buildRadarHeadCard(playerB, 'b');
+      buildRcmpPlayerCard(playerA, 'a') +
+      `<div class="rcmp-vs-center"><div class="rcmp-vs-text">VS</div></div>` +
+      buildRcmpPlayerCard(playerB, 'b');
 
     document.getElementById('legendA').textContent = playerA.name;
     document.getElementById('legendB').textContent = playerB.name;
-    document.getElementById('compareHeadA').textContent = playerA.name;
-    document.getElementById('compareHeadB').textContent = playerB.name;
+
+    const teamA = state.teams.find((t) => t.id === playerA.team_id);
+    const teamB = state.teams.find((t) => t.id === playerB.team_id);
+    const colorA = teamA?.color || '#4AFF3F';
+    const colorB = teamB?.color || '#00D9FF';
 
     document.getElementById('radarChartSvg').innerHTML = buildRadarSVG([
-      { color: '#4AFF3F', values: playerA.attributes.map((a) => ({ name: a.name, value: a.value })) },
-      { color: '#00D9FF', values: playerB.attributes.map((a) => ({ name: a.name, value: a.value })) },
+      { color: colorA, values: playerA.attributes.map((a) => ({ name: a.name, value: a.value })) },
+      { color: colorB, values: playerB.attributes.map((a) => ({ name: a.name, value: a.value })) },
     ], 340);
 
+    // Split-bar attribute rows
     let aWinCount = 0, bWinCount = 0;
     const rows = document.getElementById('compareRows');
-    rows.innerHTML = playerA.attributes.map((a) => {
+    const attrRowsHtml = playerA.attributes.map((a) => {
       const bAttr = playerB.attributes.find((x) => x.attribute_id === a.attribute_id) || { value: 0 };
-      const aWin = a.value > bAttr.value, bWin = bAttr.value > a.value;
+      const aVal = a.value, bVal = bAttr.value;
+      const aWin = aVal > bVal, bWin = bVal > aVal;
       if (aWin) aWinCount++; else if (bWin) bWinCount++;
-      return `<div class="compare-row">
-        <div class="compare-val ${aWin ? 'win-a' : ''}">${a.value}</div>
-        <div class="compare-attr-name">${escapeHtml(a.name)}</div>
-        <div class="compare-val ${bWin ? 'win-b' : ''}">${bAttr.value}</div>
+      const maxV = Math.max(aVal, bVal, 1);
+      const aPct = Math.round((aVal / 99) * 100);
+      const bPct = Math.round((bVal / 99) * 100);
+      return `<div class="rcmp-attr-row">
+        <div class="rcmp-attr-side rcmp-attr-left">
+          <div class="rcmp-attr-val ${aWin ? 'rcmp-val-win-a' : ''}">${aVal}</div>
+          <div class="rcmp-bar-track rcmp-bar-track-left">
+            <div class="rcmp-bar rcmp-bar-a ${aWin ? 'rcmp-bar-win' : ''}" style="width:${aPct}%"></div>
+          </div>
+        </div>
+        <div class="rcmp-attr-center-label">
+          <span class="rcmp-attr-name-text">${escapeHtml(a.name)}</span>
+          ${aWin ? `<span class="rcmp-attr-winner-dot dot-a"></span>` : bWin ? `<span class="rcmp-attr-winner-dot dot-b"></span>` : `<span class="rcmp-attr-winner-dot rcmp-tie-dot"></span>`}
+        </div>
+        <div class="rcmp-attr-side rcmp-attr-right">
+          <div class="rcmp-bar-track rcmp-bar-track-right">
+            <div class="rcmp-bar rcmp-bar-b ${bWin ? 'rcmp-bar-win' : ''}" style="width:${bPct}%"></div>
+          </div>
+          <div class="rcmp-attr-val ${bWin ? 'rcmp-val-win-b' : ''}">${bVal}</div>
+        </div>
       </div>`;
-    }).join('') + `<div class="compare-row" style="border-top:1px solid rgba(74,255,63,0.18);margin-top:6px;padding-top:12px;">
-        <div class="compare-val ${playerA.overall > playerB.overall ? 'win-a' : ''}" style="font-size:16px;">${playerA.overall}</div>
-        <div class="compare-attr-name" style="font-weight:800;color:var(--gold);">OVERALL</div>
-        <div class="compare-val ${playerB.overall > playerA.overall ? 'win-b' : ''}" style="font-size:16px;">${playerB.overall}</div>
-      </div>`;
-    if (playerA.overall > playerB.overall) aWinCount++; else if (playerB.overall > playerA.overall) bWinCount++;
+    }).join('');
 
-    const careerRows = document.getElementById('compareCareerRows');
+    // Overall row
+    const aOvr = playerA.overall, bOvr = playerB.overall;
+    const aOvrWin = aOvr > bOvr, bOvrWin = bOvr > aOvr;
+    if (aOvrWin) aWinCount++; else if (bOvrWin) bWinCount++;
+    rows.innerHTML = attrRowsHtml + `<div class="rcmp-attr-row rcmp-overall-row">
+        <div class="rcmp-attr-side rcmp-attr-left">
+          <div class="rcmp-attr-val rcmp-ovr-val ${aOvrWin ? 'rcmp-val-win-a' : ''}">${aOvr}</div>
+          <div class="rcmp-bar-track rcmp-bar-track-left">
+            <div class="rcmp-bar rcmp-bar-a ${aOvrWin ? 'rcmp-bar-win' : ''}" style="width:${Math.round((aOvr/99)*100)}%"></div>
+          </div>
+        </div>
+        <div class="rcmp-attr-center-label">
+          <span class="rcmp-attr-name-text rcmp-ovr-label">OVR</span>
+        </div>
+        <div class="rcmp-attr-side rcmp-attr-right">
+          <div class="rcmp-bar-track rcmp-bar-track-right">
+            <div class="rcmp-bar rcmp-bar-b ${bOvrWin ? 'rcmp-bar-win' : ''}" style="width:${Math.round((bOvr/99)*100)}%"></div>
+          </div>
+          <div class="rcmp-attr-val rcmp-ovr-val ${bOvrWin ? 'rcmp-val-win-b' : ''}">${bOvr}</div>
+        </div>
+      </div>`;
+
+    // Career stat tiles
+    const careerGrid = document.getElementById('compareCareerRows');
     const summaryChip = document.getElementById('radarSummaryChip');
     try {
       const [{ stats: statsA }, { stats: statsB }] = await Promise.all([
         api(`/players/${playerA.id}/stats`),
         api(`/players/${playerB.id}/stats`),
       ]);
-      careerRows.innerHTML = CAREER_STAT_FIELDS.map((f) => {
+      careerGrid.innerHTML = CAREER_STAT_FIELDS.map((f) => {
         const aVal = statsA[f.key], bVal = statsB[f.key];
         const aWin = aVal > bVal, bWin = bVal > aVal;
         if (aWin) aWinCount++; else if (bWin) bWinCount++;
-        return `<div class="compare-row">
-          <div class="compare-val ${aWin ? 'win-a' : ''}">${aVal}</div>
-          <div class="compare-attr-name">${f.icon()}${f.label}</div>
-          <div class="compare-val ${bWin ? 'win-b' : ''}">${bVal}</div>
+        return `<div class="rcmp-career-tile">
+          <div class="rcmp-career-icon">${f.icon()}</div>
+          <div class="rcmp-career-label">${f.label}</div>
+          <div class="rcmp-career-vals">
+            <div class="rcmp-career-val ${aWin ? 'rcmp-val-win-a' : ''}">${aVal}</div>
+            <div class="rcmp-career-sep">–</div>
+            <div class="rcmp-career-val ${bWin ? 'rcmp-val-win-b' : ''}">${bVal}</div>
+          </div>
         </div>`;
       }).join('');
     } catch (e) {
-      careerRows.innerHTML = '';
+      careerGrid.innerHTML = '';
     }
 
     const totalCategories = aWinCount + bWinCount;
     if (totalCategories === 0) {
       summaryChip.innerHTML = '';
     } else if (aWinCount === bWinCount) {
-      summaryChip.innerHTML = `<span class="radar-summary-tie">Dead even — tied across compared categories</span>`;
+      summaryChip.innerHTML = `<div class="rcmp-verdict rcmp-verdict-tie"><div class="rcmp-verdict-label">VERDICT</div><div class="rcmp-verdict-text">Dead Even — Both players are equal</div></div>`;
     } else {
       const leader = aWinCount > bWinCount ? playerA : playerB;
       const leaderSide = aWinCount > bWinCount ? 'a' : 'b';
       const leadCount = Math.max(aWinCount, bWinCount);
-      summaryChip.innerHTML = `<span class="radar-summary-leader radar-summary-${leaderSide}">${escapeHtml(leader.name)} leads in ${leadCount} of ${totalCategories} categories</span>`;
+      const diff = Math.abs(aWinCount - bWinCount);
+      const edge = diff <= 2 ? 'Narrow Edge' : diff <= 4 ? 'Clear Edge' : 'Dominant';
+      summaryChip.innerHTML = `<div class="rcmp-verdict rcmp-verdict-${leaderSide}"><div class="rcmp-verdict-label">VERDICT · ${edge}</div><div class="rcmp-verdict-text">${escapeHtml(leader.name)} wins ${leadCount}–${Math.min(aWinCount, bWinCount)} categories</div></div>`;
     }
   }
 
