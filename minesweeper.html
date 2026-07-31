@@ -466,6 +466,7 @@
     /* ── GRID ───────────────────────────────────────────── */
     .grid-wrap {
       display: inline-block;
+      position: relative;
       border: 1px solid var(--brd);
       border-radius: 6px;
       overflow: hidden;
@@ -476,6 +477,15 @@
         inset 0 0 0 1px rgba(74,255,63,.03);
     }
     .grid-row { display: flex; }
+
+    #reveal-canvas {
+      position: absolute;
+      top: 0; left: 0;
+      display: block;
+      pointer-events: none;
+      z-index: -1;
+    }
+    #grid { position: relative; z-index: 1; }
 
     .cell {
       width: var(--cs);
@@ -496,23 +506,28 @@
       position: relative;
     }
 
-    /* Unrevealed — raised bevel */
+    /* Unrevealed — tech bevel */
     .ch {
-      background: linear-gradient(165deg, #1c3422 0%, #112218 100%);
+      background: linear-gradient(160deg, #0e1f14 0%, #060d08 100%);
       box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.09),
-        inset 1px 0 0 rgba(255,255,255,.04),
-        inset 0 -1px 0 rgba(0,0,0,.45),
-        inset -1px 0 0 rgba(0,0,0,.2);
+        inset 0 1px 0 rgba(74,255,63,.1),
+        inset 1px 0 0 rgba(74,255,63,.04),
+        inset 0 -1px 0 rgba(0,0,0,.65),
+        inset -1px 0 0 rgba(0,0,0,.35);
     }
     .ch:hover {
-      background: linear-gradient(165deg, #21402a 0%, #162c20 100%);
+      background: linear-gradient(160deg, #152a1a 0%, #0a1410 100%);
+      box-shadow:
+        inset 0 1px 0 rgba(74,255,63,.18),
+        inset 1px 0 0 rgba(74,255,63,.08),
+        inset 0 -1px 0 rgba(0,0,0,.65),
+        inset -1px 0 0 rgba(0,0,0,.35);
     }
 
-    /* Revealed empty — recessed */
+    /* Revealed — transparent window into canvas art */
     .rv {
-      background: #090f0b;
-      box-shadow: inset 0 2px 5px rgba(0,0,0,.55);
+      background: rgba(3, 7, 4, 0.22);
+      box-shadow: inset 0 1px 4px rgba(0,0,0,.35);
       cursor: default;
     }
 
@@ -537,6 +552,13 @@
         inset 0 1px 0 rgba(255,255,255,.09),
         inset 0 -1px 0 rgba(0,0,0,.45);
     }
+
+    /* Win reveal — unrevealed cells fade out to expose canvas art */
+    @keyframes win-fade { to { opacity: 0; } }
+    .win-reveal .cell.ch,
+    .win-reveal .cell.fl { animation: win-fade 1.1s ease forwards; }
+    .win-reveal .cell.mr,
+    .win-reveal .cell.mh { animation: win-fade 1.3s ease forwards; }
 
     /* ── CELL ICONS (no emoji) ──────────────────────────── */
 
@@ -1026,7 +1048,8 @@ function onReveal(r, c) {
     G.gameState = 'won';
     if (G.mode === 'regular') {
       clearInterval(G.timerInt);
-      setTimeout(() => openOverlay('win'), 350);
+      triggerWinReveal();
+      setTimeout(() => openOverlay('win'), 1300);
     } else {
       G.chalDone++;
       updateHeader();
@@ -1113,7 +1136,19 @@ function buildGrid() {
   const wrap = document.getElementById('grid-wrap');
   const grid = document.getElementById('grid');
   const cs = calcCellSize();
+  wrap.classList.remove('win-reveal');
   wrap.style.setProperty('--cs', cs + 'px');
+
+  let cvs = document.getElementById('reveal-canvas');
+  if (!cvs) {
+    cvs = document.createElement('canvas');
+    cvs.id = 'reveal-canvas';
+    wrap.insertBefore(cvs, wrap.firstChild);
+  }
+  cvs.width  = G.cols * cs;
+  cvs.height = G.rows * cs;
+  drawRevealArt(cvs);
+
   grid.innerHTML = '';
 
   for (let r = 0; r < G.rows; r++) {
@@ -1191,7 +1226,9 @@ function applyCellClass(el, cell) {
     el.classList.add('ch');
   } else if (cell.count > 0) {
     el.classList.add('rv');
-    el.style.color = NUM_COLORS[cell.count] || '#c8c8c8';
+    const numColor = NUM_COLORS[cell.count] || '#c8c8c8';
+    el.style.color = numColor;
+    el.style.textShadow = `0 0 9px ${numColor}90`;
     el.textContent = cell.count;
   } else {
     el.classList.add('rv');
@@ -1398,6 +1435,186 @@ function restartGame() {
     clearInterval(G.chalInt);
     launchChallenge(CHAL);
   }
+}
+
+// ══════════════════════════════════════════
+// CANVAS ART
+// ══════════════════════════════════════════
+
+function drawRevealArt(canvas) {
+  const W = canvas.width, H = canvas.height;
+  const ctx = canvas.getContext('2d');
+
+  // Sky
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, H * 0.62);
+  skyGrad.addColorStop(0,   '#06021a');
+  skyGrad.addColorStop(0.5, '#0d0530');
+  skyGrad.addColorStop(1,   '#1e0838');
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, W, H * 0.62);
+
+  // Ground
+  const gndGrad = ctx.createLinearGradient(0, H * 0.62, 0, H);
+  gndGrad.addColorStop(0, '#040c05');
+  gndGrad.addColorStop(1, '#010301');
+  ctx.fillStyle = gndGrad;
+  ctx.fillRect(0, H * 0.62, W, H * 0.38);
+
+  // Stars (deterministic)
+  for (let i = 0; i < 80; i++) {
+    const x = ((i * 2654435761 + 1234567) % 65536) / 65536 * W;
+    const y = ((i * 1013904223 + 7654321) % 65536) / 65536 * H * 0.5;
+    const r = (i % 5 === 0) ? 1.1 : 0.55;
+    ctx.globalAlpha = 0.4 + (i % 3) * 0.25;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // Sun
+  const sunX = W * 0.5, sunY = H * 0.61;
+  const sunR = Math.min(W, H) * 0.22;
+
+  const sunGrad = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, sunR);
+  sunGrad.addColorStop(0,    '#FFE566');
+  sunGrad.addColorStop(0.35, '#FF7A20');
+  sunGrad.addColorStop(0.72, '#C9084A');
+  sunGrad.addColorStop(1,    'rgba(140,0,70,0)');
+  ctx.fillStyle = sunGrad;
+  ctx.beginPath();
+  ctx.arc(sunX, sunY, sunR, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Sun stripe mask
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(sunX, sunY, sunR * 0.98, 0, Math.PI * 2);
+  ctx.clip();
+  const stripes = 9;
+  for (let i = 0; i < stripes; i++) {
+    const ty = sunY - sunR + (i / stripes) * sunR * 2;
+    const thick = 1.5 + i * 0.9;
+    ctx.fillStyle = 'rgba(5, 1, 20, 0.92)';
+    ctx.fillRect(sunX - sunR, ty + 1.5, sunR * 2, thick);
+  }
+  ctx.restore();
+
+  // Sun halo glow
+  const haloGrad = ctx.createRadialGradient(sunX, sunY, sunR * 0.5, sunX, sunY, sunR * 2.4);
+  haloGrad.addColorStop(0, 'rgba(180,30,90,0.18)');
+  haloGrad.addColorStop(0.5, 'rgba(100,10,50,0.08)');
+  haloGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = haloGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // Mountains
+  const horizon = H * 0.62;
+  ctx.fillStyle = '#030806';
+
+  // Left mountain cluster
+  ctx.beginPath();
+  ctx.moveTo(-W * 0.05, horizon);
+  ctx.lineTo(W * 0.12,  H * 0.28);
+  ctx.lineTo(W * 0.27,  H * 0.44);
+  ctx.lineTo(W * 0.38,  horizon);
+  ctx.fill();
+
+  // Center peak
+  ctx.beginPath();
+  ctx.moveTo(W * 0.30, horizon);
+  ctx.lineTo(W * 0.50, H * 0.35);
+  ctx.lineTo(W * 0.70, horizon);
+  ctx.fill();
+
+  // Right mountain cluster
+  ctx.beginPath();
+  ctx.moveTo(W * 0.62, horizon);
+  ctx.lineTo(W * 0.76, H * 0.30);
+  ctx.lineTo(W * 0.90, H * 0.44);
+  ctx.lineTo(W * 1.05, horizon);
+  ctx.fill();
+
+  // Mountain glow edges (lime)
+  ctx.save();
+  ctx.shadowColor = '#4AFF3F';
+  ctx.shadowBlur  = 5;
+  ctx.strokeStyle = 'rgba(74,255,63,0.55)';
+  ctx.lineWidth   = 1;
+
+  ctx.beginPath();
+  ctx.moveTo(-W * 0.05, horizon);
+  ctx.lineTo(W * 0.12,  H * 0.28);
+  ctx.lineTo(W * 0.27,  H * 0.44);
+  ctx.lineTo(W * 0.38,  horizon);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(W * 0.30, horizon);
+  ctx.lineTo(W * 0.50, H * 0.35);
+  ctx.lineTo(W * 0.70, horizon);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(W * 0.62, horizon);
+  ctx.lineTo(W * 0.76, H * 0.30);
+  ctx.lineTo(W * 0.90, H * 0.44);
+  ctx.lineTo(W * 1.05, horizon);
+  ctx.stroke();
+  ctx.restore();
+
+  // Perspective grid (ground)
+  const vX = W * 0.5, vY = horizon;
+  ctx.lineWidth = 0.7;
+
+  // Vertical lines (radiating)
+  const numV = 14;
+  for (let i = 0; i <= numV; i++) {
+    const t = i / numV;
+    ctx.strokeStyle = `rgba(78,189,201,${0.1 + t * 0.15})`;
+    ctx.beginPath();
+    ctx.moveTo(vX, vY);
+    ctx.lineTo(i / numV * W, H);
+    ctx.stroke();
+  }
+
+  // Horizontal lines (perspective spacing)
+  const numH = 8;
+  for (let j = 1; j <= numH; j++) {
+    const t  = Math.pow(j / numH, 1.6);
+    const y  = vY + t * (H - vY);
+    const xl = vX + (0 - vX) * t;
+    const xr = vX + (W - vX) * t;
+    ctx.strokeStyle = `rgba(78,189,201,${0.12 + t * 0.22})`;
+    ctx.beginPath();
+    ctx.moveTo(xl, y); ctx.lineTo(xr, y);
+    ctx.stroke();
+  }
+
+  // Horizon line (brightest grid line)
+  ctx.strokeStyle = 'rgba(78,189,201,0.5)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, horizon); ctx.lineTo(W, horizon);
+  ctx.stroke();
+
+  // Scanlines
+  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  for (let y = 0; y < H; y += 2) {
+    ctx.fillRect(0, y, W, 1);
+  }
+
+  // Vignette
+  const vigGrad = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.15, W / 2, H / 2, Math.max(W, H) * 0.82);
+  vigGrad.addColorStop(0, 'rgba(0,0,0,0)');
+  vigGrad.addColorStop(1, 'rgba(0,0,0,0.68)');
+  ctx.fillStyle = vigGrad;
+  ctx.fillRect(0, 0, W, H);
+}
+
+function triggerWinReveal() {
+  document.getElementById('grid-wrap').classList.add('win-reveal');
 }
 
 // ══════════════════════════════════════════
