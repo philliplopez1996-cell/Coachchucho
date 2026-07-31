@@ -4,233 +4,368 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Minesweeper — Coach Chucho</title>
-  <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=JetBrains+Mono:wght@400;600;700&family=Poppins:wght@400;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
+    /* ── TOKENS ─────────────────────────────────────────── */
     :root {
-      --lime: #4AFF3F;
-      --gold: #FFD700;
-      --cyan: #00D9FF;
-      --orange: #FF6B35;
-      --red: #FF3333;
-      --dark: #0a1f10;
-      --dark2: #0e2615;
-      --dark3: #142e1a;
-      --border: #1e4a26;
+      --base:    #060d09;
+      --surf:    #0b1810;
+      --surf2:   #0f2014;
+      --brd:     #1a3520;
+      --brd2:    #243e2a;
+      --lime:    #4AFF3F;
+      --gold:    #C9A84C;
+      --cyan:    #4EBDC9;
+      --orange:  #d9713a;
+      --red:     #cc3333;
+      --txt:     #d8e8da;
+      --txt2:    #4a6e50;
+      --txt3:    #2a4030;
+
+      --font-d: 'Cormorant Garamond', 'Palatino Linotype', Georgia, serif;
+      --font-u: 'DM Sans', -apple-system, 'Helvetica Neue', sans-serif;
+      --font-m: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+    * { margin:0; padding:0; box-sizing:border-box; }
 
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: var(--dark);
-      color: #fff;
+    html, body {
+      height: 100%;
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* ─── SCREENS ─── */
+    body {
+      font-family: var(--font-u);
+      color: var(--txt);
+      background:
+        radial-gradient(ellipse 90% 70% at 12% 40%, rgba(74,255,63,.045) 0%, transparent 100%),
+        radial-gradient(ellipse 70% 90% at 88% 70%, rgba(201,168,76,.035) 0%, transparent 100%),
+        radial-gradient(ellipse 110% 60% at 55% 5%,  rgba(78,189,201,.03)  0%, transparent 100%),
+        var(--base);
+      /* Grain texture */
+      position: relative;
+    }
+
+    /* Grain overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.038'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Faint grid */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(74,255,63,.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(74,255,63,.018) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* All content sits above overlays */
+    .screen, .overlay { position: relative; z-index: 1; }
+
+    /* ── SCREENS ────────────────────────────────────────── */
     .screen { display: none; }
     .screen.active { display: flex; flex-direction: column; align-items: center; min-height: 100dvh; }
     #screen-game.active { height: 100dvh; overflow: hidden; }
 
-    /* ─── MENU ─── */
+    /* ── MENU ───────────────────────────────────────────── */
     .menu-wrap {
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 48px 24px 40px;
-      gap: 0;
+      padding: 64px 24px 48px;
     }
+
     .logo {
-      font-family: 'Audiowide', cursive;
-      font-size: clamp(1.6rem, 5vw, 3rem);
-      color: var(--lime);
-      text-shadow: 0 0 40px rgba(74,255,63,.45);
-      letter-spacing: 3px;
+      font-family: var(--font-d);
+      font-weight: 300;
+      font-size: clamp(2.2rem, 6vw, 4.2rem);
+      color: var(--txt);
+      letter-spacing: .28em;
+      text-transform: uppercase;
       text-align: center;
+      line-height: 1;
+    }
+    .logo-accent {
+      display: block;
+      width: 40px;
+      height: 1px;
+      background: var(--lime);
+      margin: 18px auto 12px;
+      box-shadow: 0 0 10px var(--lime);
     }
     .logo-sub {
-      font-family: 'JetBrains Mono', monospace;
-      color: var(--cyan);
-      font-size: .75rem;
-      letter-spacing: 5px;
+      font-family: var(--font-u);
+      font-weight: 400;
+      font-size: .6rem;
+      letter-spacing: .5em;
+      color: var(--txt2);
       text-transform: uppercase;
-      margin-top: 6px;
-      margin-bottom: 52px;
+      margin-bottom: 64px;
     }
+
     .menu-cards {
       display: flex;
-      gap: 20px;
+      gap: 18px;
       flex-wrap: wrap;
       justify-content: center;
       width: 100%;
-      max-width: 640px;
+      max-width: 660px;
     }
+
     .menu-card {
-      flex: 1 1 240px;
-      max-width: 300px;
-      background: var(--dark2);
-      border: 2px solid var(--border);
-      border-radius: 18px;
+      flex: 1 1 260px;
+      max-width: 310px;
+      background: var(--surf);
+      border: 1px solid var(--brd);
+      border-radius: 12px;
       padding: 36px 28px 32px;
       cursor: pointer;
-      transition: transform .18s, border-color .18s, box-shadow .18s;
-      text-align: center;
+      transition: transform .2s, border-color .2s, box-shadow .2s;
+      box-shadow: 0 4px 24px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.04);
+      overflow: hidden;
+      position: relative;
     }
-    .menu-card:hover { transform: translateY(-5px); }
-    .menu-card.lime:hover { border-color: var(--lime); box-shadow: 0 10px 36px rgba(74,255,63,.18); }
-    .menu-card.gold:hover { border-color: var(--gold); box-shadow: 0 10px 36px rgba(255,215,0,.18); }
-    .card-icon { font-size: 3rem; margin-bottom: 14px; }
+    .menu-card:hover { transform: translateY(-4px); }
+    .menu-card.lime:hover { border-color: rgba(74,255,63,.4); box-shadow: 0 10px 40px rgba(0,0,0,.5), 0 0 0 1px rgba(74,255,63,.15), inset 0 1px 0 rgba(255,255,255,.05); }
+    .menu-card.gold:hover { border-color: rgba(201,168,76,.4); box-shadow: 0 10px 40px rgba(0,0,0,.5), 0 0 0 1px rgba(201,168,76,.15), inset 0 1px 0 rgba(255,255,255,.05); }
+
+    .card-num {
+      font-family: var(--font-d);
+      font-weight: 300;
+      font-size: 4.5rem;
+      line-height: 1;
+      margin-bottom: 20px;
+      letter-spacing: -.03em;
+      /* Watermark-style */
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(255,255,255,.07);
+    }
+    .menu-card.gold .card-num { -webkit-text-stroke-color: rgba(201,168,76,.12); }
+
+    .card-eyebrow {
+      font-family: var(--font-u);
+      font-size: .58rem;
+      letter-spacing: .4em;
+      color: var(--txt2);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
     .card-title {
-      font-family: 'Audiowide', cursive;
-      font-size: 1rem;
-      margin-bottom: 10px;
+      font-family: var(--font-d);
+      font-weight: 500;
+      font-size: 1.35rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      line-height: 1.1;
     }
     .menu-card.lime .card-title { color: var(--lime); }
     .menu-card.gold .card-title { color: var(--gold); }
-    .card-desc { font-size: .82rem; color: #6a9a6e; line-height: 1.55; }
+    .card-desc {
+      font-family: var(--font-u);
+      font-size: .82rem;
+      color: var(--txt2);
+      line-height: 1.65;
+      font-weight: 300;
+    }
 
-    /* ─── SETUP SCREENS ─── */
+    /* Hover line accent at bottom of card */
+    .menu-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0;
+      height: 2px;
+      width: 0;
+      transition: width .25s;
+    }
+    .menu-card.lime::after { background: var(--lime); box-shadow: 0 0 8px var(--lime); }
+    .menu-card.gold::after { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+    .menu-card:hover::after { width: 100%; }
+
+    /* ── SETUP SCREENS ──────────────────────────────────── */
     .setup-wrap {
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 32px 24px 48px;
+      padding: 40px 24px 60px;
       width: 100%;
       max-width: 620px;
-      gap: 0;
     }
     .setup-hdr {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 16px;
       width: 100%;
-      margin-bottom: 36px;
+      margin-bottom: 44px;
     }
     .setup-title {
-      font-family: 'Audiowide', cursive;
-      font-size: 1.2rem;
+      font-family: var(--font-d);
+      font-weight: 400;
+      font-size: 1.4rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
     }
     .setup-title.lime { color: var(--lime); }
     .setup-title.gold { color: var(--gold); }
 
-    .opt-group { width: 100%; margin-bottom: 22px; }
+    .opt-group { width: 100%; margin-bottom: 28px; }
     .opt-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: .68rem;
-      color: var(--cyan);
-      letter-spacing: 3px;
+      font-family: var(--font-u);
+      font-size: .58rem;
+      letter-spacing: .4em;
+      color: var(--txt2);
       text-transform: uppercase;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
     .opt-info {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: .8rem;
-      color: #6a9a6e;
-      letter-spacing: 2px;
-      margin-top: 8px;
+      font-family: var(--font-m);
+      font-size: .75rem;
+      color: var(--txt3);
+      letter-spacing: .06em;
+      margin-top: 10px;
     }
     .pills { display: flex; flex-wrap: wrap; gap: 8px; }
     .pill {
-      border: 2px solid var(--border);
-      background: var(--dark2);
-      color: #6a9a6e;
-      padding: 9px 18px;
-      border-radius: 8px;
+      border: 1px solid var(--brd);
+      background: var(--surf);
+      color: var(--txt2);
+      padding: 9px 20px;
+      border-radius: 6px;
       cursor: pointer;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: .8rem;
-      transition: border-color .14s, color .14s, background .14s;
+      font-family: var(--font-m);
+      font-size: .78rem;
+      letter-spacing: .05em;
+      transition: border-color .14s, color .14s, background .14s, box-shadow .14s;
       user-select: none;
     }
-    .pill:hover { border-color: var(--lime); color: var(--lime); }
-    .pill.act { border-color: var(--lime); background: rgba(74,255,63,.08); color: var(--lime); }
-    .pill.act-gold { border-color: var(--gold); background: rgba(255,215,0,.08); color: var(--gold); }
-    .pill.act-gold:hover { border-color: var(--gold); color: var(--gold); }
-    .setup-go { margin-top: 36px; }
+    .pill:hover { border-color: var(--brd2); color: var(--txt); }
+    .pill.act      { border-color: rgba(74,255,63,.5);   background: rgba(74,255,63,.07);   color: var(--lime); box-shadow: inset 0 0 0 1px rgba(74,255,63,.15); }
+    .pill.act-gold { border-color: rgba(201,168,76,.5); background: rgba(201,168,76,.07); color: var(--gold); box-shadow: inset 0 0 0 1px rgba(201,168,76,.15); }
+    .setup-go { margin-top: 40px; }
 
-    /* ─── BUTTONS ─── */
+    /* ── BUTTONS ────────────────────────────────────────── */
     .btn {
-      font-family: 'Poppins', sans-serif;
-      font-weight: 700;
+      font-family: var(--font-u);
+      font-weight: 600;
       border: none;
-      border-radius: 10px;
+      border-radius: 8px;
       cursor: pointer;
-      letter-spacing: .8px;
+      letter-spacing: .08em;
       text-transform: uppercase;
-      transition: transform .13s, box-shadow .13s, background .13s;
+      font-size: .78rem;
+      transition: transform .12s, box-shadow .12s, background .12s, opacity .12s;
     }
     .btn:active { transform: scale(.96); }
+
     .btn-ghost {
       background: transparent;
-      border: 2px solid var(--border);
-      color: #6a9a6e;
-      padding: 8px 16px;
-      font-size: .75rem;
-      border-radius: 8px;
+      border: 1px solid var(--brd);
+      color: var(--txt2);
+      padding: 9px 18px;
+      border-radius: 6px;
     }
-    .btn-ghost:hover { border-color: #6a9a6e; color: #aaccaa; }
+    .btn-ghost:hover { border-color: var(--brd2); color: var(--txt); }
+
     .btn-lime {
       background: var(--lime);
-      color: var(--dark);
-      padding: 14px 36px;
-      font-size: .95rem;
-      border-radius: 12px;
+      color: #060d09;
+      padding: 14px 40px;
+      letter-spacing: .12em;
+      border-radius: 8px;
+      box-shadow: 0 0 0 0 rgba(74,255,63,0);
     }
-    .btn-lime:hover { background: #65ff5a; box-shadow: 0 6px 24px rgba(74,255,63,.35); }
+    .btn-lime:hover { box-shadow: 0 6px 28px rgba(74,255,63,.3); transform: translateY(-1px); }
+
     .btn-gold {
       background: var(--gold);
-      color: var(--dark);
-      padding: 14px 36px;
-      font-size: .95rem;
-      border-radius: 12px;
+      color: #060d09;
+      padding: 14px 40px;
+      letter-spacing: .12em;
+      border-radius: 8px;
     }
-    .btn-gold:hover { background: #ffe83d; box-shadow: 0 6px 24px rgba(255,215,0,.35); }
-    .btn-sm { padding: 8px 16px; font-size: .75rem; border-radius: 8px; }
+    .btn-gold:hover { box-shadow: 0 6px 28px rgba(201,168,76,.35); transform: translateY(-1px); }
 
-    /* ─── GAME SCREEN ─── */
+    .btn-sm { padding: 8px 16px; }
+
+    /* ── GAME HEADER ─────────────────────────────────────── */
     .game-hdr {
       width: 100%;
-      background: var(--dark2);
-      border-bottom: 2px solid var(--border);
+      background: rgba(6,13,9,.92);
+      border-bottom: 1px solid var(--brd);
       padding: 10px 16px;
       display: flex;
       align-items: center;
       gap: 12px;
       flex-shrink: 0;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       position: relative;
       z-index: 5;
     }
     .hdr-mid { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; }
-
-    /* Regular mode header stats */
-    .hdr-stats { display: flex; gap: 24px; align-items: center; }
+    .hdr-stats { display: flex; gap: 28px; align-items: center; }
     .hdr-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-    .hdr-lbl { font-family: 'JetBrains Mono', monospace; font-size: .55rem; color: #3a6a3e; letter-spacing: 2px; text-transform: uppercase; }
-    .hdr-val { font-family: 'JetBrains Mono', monospace; font-size: 1.15rem; font-weight: 700; }
+    .hdr-lbl {
+      font-family: var(--font-u);
+      font-size: .52rem;
+      color: var(--txt3);
+      letter-spacing: .3em;
+      text-transform: uppercase;
+    }
+    .hdr-val {
+      font-family: var(--font-m);
+      font-size: 1.1rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: .04em;
+    }
 
     /* Challenge timer */
     .chal-timer {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: var(--font-m);
       font-weight: 700;
-      font-size: clamp(1.7rem, 5vw, 2.6rem);
+      font-size: clamp(1.8rem, 5vw, 2.8rem);
       color: var(--gold);
-      letter-spacing: 4px;
-      text-shadow: 0 0 20px rgba(255,215,0,.35);
+      letter-spacing: .18em;
+      font-variant-numeric: tabular-nums;
       line-height: 1;
+      text-shadow: 0 0 28px rgba(201,168,76,.3);
     }
-    .chal-timer.urgent { color: var(--red); text-shadow: 0 0 20px rgba(255,51,51,.5); animation: blink .6s ease infinite; }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.65} }
+    .chal-timer.urgent {
+      color: var(--red);
+      text-shadow: 0 0 28px rgba(204,51,51,.4);
+      animation: blink .55s ease infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.6} }
 
-    .chal-meta { display: flex; gap: 14px; align-items: center; font-family: 'JetBrains Mono', monospace; font-size: .7rem; }
+    .chal-meta {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      font-family: var(--font-m);
+      font-size: .65rem;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: .06em;
+    }
+    .meta-sep { color: var(--brd2); }
 
-    /* Level pips */
+    /* Pips */
     .pips { display: flex; gap: 3px; flex-wrap: wrap; justify-content: center; max-width: 240px; }
-    .pip { width: 13px; height: 7px; border-radius: 3px; background: var(--border); transition: background .3s; }
-    .pip.done { background: var(--lime); }
-    .pip.cur { background: var(--gold); }
+    .pip { width: 13px; height: 5px; border-radius: 3px; background: var(--brd); transition: background .3s, box-shadow .3s; }
+    .pip.done { background: rgba(74,255,63,.55); }
+    .pip.cur  { background: var(--gold); box-shadow: 0 0 5px rgba(201,168,76,.5); }
 
-    /* ─── BOARD AREA ─── */
+    /* ── BOARD AREA ─────────────────────────────────────── */
     .board-area {
       flex: 1;
       overflow: auto;
@@ -238,14 +373,14 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 14px 16px;
-      gap: 10px;
+      padding: 16px;
+      gap: 12px;
     }
 
-    /* Flash overlay on board area */
-    @keyframes flash-g { 0%,100%{background:var(--dark)} 40%{background:rgba(74,255,63,.12)} }
-    @keyframes flash-r { 0%,100%{background:var(--dark)} 40%{background:rgba(255,51,51,.15)} }
-    .board-area.fg { animation: flash-g .7s ease 2; }
+    /* Board area flash on win/lose (challenge) */
+    @keyframes flash-g { 0%,100%{background:transparent} 40%{background:rgba(74,255,63,.07)} }
+    @keyframes flash-r { 0%,100%{background:transparent} 40%{background:rgba(204,51,51,.1)} }
+    .board-area.fg { animation: flash-g .65s ease 2; }
     .board-area.fr { animation: flash-r .5s ease 3; }
 
     .board-controls {
@@ -255,26 +390,40 @@
     }
 
     .flag-btn {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: .75rem;
+      font-family: var(--font-u);
+      font-size: .68rem;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
       padding: 8px 16px;
-      border-radius: 8px;
-      border: 2px solid var(--border);
+      border-radius: 6px;
+      border: 1px solid var(--brd);
       background: transparent;
-      color: #6a9a6e;
+      color: var(--txt2);
       cursor: pointer;
       transition: all .14s;
-      letter-spacing: 1px;
     }
-    .flag-btn.on { border-color: var(--orange); color: var(--orange); background: rgba(255,107,53,.08); }
+    .flag-btn.on { border-color: rgba(217,113,58,.5); color: var(--orange); background: rgba(217,113,58,.07); }
 
-    /* ─── GRID ─── */
+    .board-hint {
+      font-family: var(--font-u);
+      font-size: .58rem;
+      color: var(--txt3);
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+
+    /* ── GRID ───────────────────────────────────────────── */
     .grid-wrap {
       display: inline-block;
-      border: 3px solid var(--border);
-      border-radius: 8px;
+      border: 1px solid var(--brd);
+      border-radius: 6px;
       overflow: hidden;
-      background: #07160a;
+      background: #060f08;
+      box-shadow:
+        0 0 0 1px rgba(74,255,63,.06),
+        0 12px 40px rgba(0,0,0,.7),
+        inset 0 0 0 1px rgba(74,255,63,.03);
     }
     .grid-row { display: flex; }
 
@@ -284,117 +433,230 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: var(--font-m);
       font-weight: 700;
-      font-size: calc(var(--cs) * .48);
+      font-size: calc(var(--cs) * .44);
       line-height: 1;
-      border: 1px solid #0a1f0d;
+      font-variant-numeric: tabular-nums;
+      border: 1px solid rgba(0,0,0,.35);
       cursor: pointer;
       user-select: none;
       -webkit-user-select: none;
-      transition: background .08s;
+      transition: background .07s;
+      position: relative;
     }
-    .ch  { background: #173020; }
-    .ch:hover { background: #1e3d28; }
-    .rv  { background: #0a180d; cursor: default; }
-    .fl  { background: #173020; }
-    .mh  { background: #5a0808; cursor: default; } /* mine hit */
-    .mr  { background: #250808; cursor: default; } /* mine revealed */
 
-    /* ─── OVERLAY ─── */
+    /* Unrevealed — raised bevel */
+    .ch {
+      background: linear-gradient(165deg, #1c3422 0%, #112218 100%);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.09),
+        inset 1px 0 0 rgba(255,255,255,.04),
+        inset 0 -1px 0 rgba(0,0,0,.45),
+        inset -1px 0 0 rgba(0,0,0,.2);
+    }
+    .ch:hover {
+      background: linear-gradient(165deg, #21402a 0%, #162c20 100%);
+    }
+
+    /* Revealed empty — recessed */
+    .rv {
+      background: #090f0b;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,.55);
+      cursor: default;
+    }
+
+    /* Mine — revealed, not hit */
+    .mr {
+      background: #140606;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,.6);
+      cursor: default;
+    }
+
+    /* Mine hit */
+    .mh {
+      background: #280808;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,.6), 0 0 12px rgba(204,30,30,.3);
+      cursor: default;
+    }
+
+    /* Flagged */
+    .fl {
+      background: linear-gradient(165deg, #1c3422 0%, #112218 100%);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.09),
+        inset 0 -1px 0 rgba(0,0,0,.45);
+    }
+
+    /* ── CELL ICONS (no emoji) ──────────────────────────── */
+
+    /* Mine dot — filled circle */
+    .mine-dot {
+      display: block;
+      border-radius: 50%;
+      background: #8b2020;
+      flex-shrink: 0;
+      width: calc(var(--cs) * .36);
+      height: calc(var(--cs) * .36);
+    }
+    .mine-dot.hit {
+      background: #c42424;
+      box-shadow: 0 0 calc(var(--cs) * .22) rgba(200,36,36,.6);
+      position: relative;
+    }
+    .mine-dot.hit::before,
+    .mine-dot.hit::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 70%;
+      height: 2px;
+      background: rgba(255,255,255,.88);
+      border-radius: 1px;
+    }
+    .mine-dot.hit::before { transform: translate(-50%,-50%) rotate(45deg); }
+    .mine-dot.hit::after  { transform: translate(-50%,-50%) rotate(-45deg); }
+
+    /* Flag — right-pointing triangle */
+    .flag-tri {
+      display: block;
+      width: 0;
+      height: 0;
+      border-top:    calc(var(--cs) * .21) solid transparent;
+      border-bottom: calc(var(--cs) * .21) solid transparent;
+      border-left:   calc(var(--cs) * .3)  solid var(--orange);
+      flex-shrink: 0;
+    }
+
+    /* ── OVERLAY ────────────────────────────────────────── */
     .overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,.82);
+      background: rgba(4,9,6,.85);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
       z-index: 100;
       align-items: center;
       justify-content: center;
       padding: 20px;
     }
     .overlay.show { display: flex; }
+
     .ov-card {
-      background: var(--dark2);
-      border: 2px solid var(--border);
-      border-radius: 20px;
-      padding: 44px 36px;
+      background: var(--surf);
+      border: 1px solid var(--brd);
+      border-radius: 14px;
+      padding: 48px 40px;
       text-align: center;
       max-width: 380px;
       width: 100%;
+      box-shadow: 0 24px 64px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.05);
     }
-    .ov-icon { font-size: 3.5rem; margin-bottom: 12px; }
+
+    .ov-eyebrow {
+      font-family: var(--font-u);
+      font-size: .56rem;
+      letter-spacing: .45em;
+      color: var(--txt3);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
     .ov-title {
-      font-family: 'Audiowide', cursive;
-      font-size: 1.6rem;
-      margin-bottom: 6px;
-    }
-    .ov-title.lime { color: var(--lime); }
-    .ov-title.red  { color: var(--red);  }
-    .ov-title.gold { color: var(--gold); }
-    .ov-sub { font-family: 'JetBrains Mono', monospace; color: #6a9a6e; font-size: .8rem; letter-spacing: 1px; margin-bottom: 28px; }
-    .ov-score {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 5rem;
-      font-weight: 700;
-      color: var(--gold);
-      text-shadow: 0 0 40px rgba(255,215,0,.45);
+      font-family: var(--font-d);
+      font-weight: 400;
+      font-size: 2.6rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
       line-height: 1;
-      margin: 10px 0 6px;
+      margin-bottom: 8px;
+    }
+    .ov-title.lime { color: var(--lime); text-shadow: 0 0 24px rgba(74,255,63,.3); }
+    .ov-title.red  { color: #e84040; }
+    .ov-title.gold { color: var(--gold); text-shadow: 0 0 24px rgba(201,168,76,.35); }
+
+    .ov-sub {
+      font-family: var(--font-m);
+      color: var(--txt2);
+      font-size: .75rem;
+      letter-spacing: .08em;
+      margin-bottom: 32px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ov-score {
+      font-family: var(--font-d);
+      font-weight: 300;
+      font-size: 6rem;
+      color: var(--gold);
+      text-shadow: 0 0 48px rgba(201,168,76,.4);
+      line-height: 1;
+      margin: 12px 0 8px;
+      letter-spacing: -.02em;
     }
     .ov-score-label {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: .65rem;
-      color: #3a6a3e;
-      letter-spacing: 4px;
+      font-family: var(--font-u);
+      font-size: .58rem;
+      color: var(--txt3);
+      letter-spacing: .4em;
       text-transform: uppercase;
-      margin-bottom: 24px;
+      margin-bottom: 32px;
     }
-    .ov-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
-    /* ─── MISC ─── */
-    .hint { font-family: 'JetBrains Mono', monospace; font-size: .65rem; color: #2e5633; letter-spacing: 2px; text-transform: uppercase; }
+    .ov-divider {
+      width: 40px;
+      height: 1px;
+      background: var(--brd2);
+      margin: 20px auto 28px;
+    }
+
+    .ov-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
   </style>
 </head>
 <body>
 
-<!-- ════════════════════════════════════════════
+<!-- ══════════════════════════════════════════
      SCREEN: MENU
-════════════════════════════════════════════ -->
+══════════════════════════════════════════ -->
 <div id="screen-menu" class="screen active">
   <div class="menu-wrap">
-    <div class="logo">💣 MINESWEEPER</div>
+    <div class="logo">Minesweeper</div>
+    <span class="logo-accent"></span>
     <div class="logo-sub">Coach Chucho Edition</div>
+
     <div class="menu-cards">
       <div class="menu-card lime" onclick="goTo('challenge-setup')">
-        <div class="card-icon">⏱️</div>
-        <div class="card-title">TIMING CHALLENGE</div>
-        <div class="card-desc">Race the clock! Complete boards from 2×2 up to 15×15. Score as many boards as you can before time runs out.</div>
+        <div class="card-num">01</div>
+        <div class="card-eyebrow">Game Mode</div>
+        <div class="card-title">Timing<br>Challenge</div>
+        <div class="card-desc">Race the clock. Complete boards from 2×2 up to 15×15. Score as many cleared boards as you can before time expires.</div>
       </div>
       <div class="menu-card gold" onclick="goTo('regular-setup')">
-        <div class="card-icon">🎯</div>
-        <div class="card-title">REGULAR MODE</div>
-        <div class="card-desc">Classic Minesweeper at your own pace. Choose difficulty or set a custom grid size from 2×2 to 15×15.</div>
+        <div class="card-num">02</div>
+        <div class="card-eyebrow">Game Mode</div>
+        <div class="card-title">Regular<br>Mode</div>
+        <div class="card-desc">Classic Minesweeper at your own pace. Choose a preset difficulty or set a custom grid from 2×2 to 15×15.</div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════
+<!-- ══════════════════════════════════════════
      SCREEN: TIMING CHALLENGE SETUP
-════════════════════════════════════════════ -->
+══════════════════════════════════════════ -->
 <div id="screen-challenge-setup" class="screen">
   <div class="setup-wrap">
     <div class="setup-hdr">
-      <button class="btn btn-ghost" onclick="goTo('menu')">← Back</button>
-      <div class="setup-title gold">⏱️ TIMING CHALLENGE</div>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('menu')">Back</button>
+      <div class="setup-title gold">Timing Challenge</div>
     </div>
 
     <div class="opt-group">
       <div class="opt-label">Time Limit</div>
       <div class="pills" id="pills-chal-time">
-        <div class="pill act-gold" data-val="120"  onclick="pickPill(this,'chal-time')">2 MIN</div>
-        <div class="pill"          data-val="300"  onclick="pickPill(this,'chal-time')">5 MIN</div>
-        <div class="pill"          data-val="600"  onclick="pickPill(this,'chal-time')">10 MIN</div>
+        <div class="pill act-gold" data-val="120"  onclick="pickPill(this,'chal-time')">2 min</div>
+        <div class="pill"          data-val="300"  onclick="pickPill(this,'chal-time')">5 min</div>
+        <div class="pill"          data-val="600"  onclick="pickPill(this,'chal-time')">10 min</div>
       </div>
     </div>
 
@@ -408,30 +670,30 @@
     </div>
 
     <div class="setup-go">
-      <button class="btn btn-gold" onclick="launchChallenge()">START CHALLENGE →</button>
+      <button class="btn btn-gold" onclick="launchChallenge()">Begin Challenge</button>
     </div>
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════
+<!-- ══════════════════════════════════════════
      SCREEN: REGULAR MODE SETUP
-════════════════════════════════════════════ -->
+══════════════════════════════════════════ -->
 <div id="screen-regular-setup" class="screen">
   <div class="setup-wrap">
     <div class="setup-hdr">
-      <button class="btn btn-ghost" onclick="goTo('menu')">← Back</button>
-      <div class="setup-title lime">🎯 REGULAR MODE</div>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('menu')">Back</button>
+      <div class="setup-title lime">Regular Mode</div>
     </div>
 
     <div class="opt-group">
       <div class="opt-label">Difficulty</div>
       <div class="pills" id="pills-reg-diff">
-        <div class="pill act" data-val="easy"   onclick="pickPill(this,'reg-diff'); syncRegSetup()">EASY</div>
-        <div class="pill"     data-val="medium" onclick="pickPill(this,'reg-diff'); syncRegSetup()">MEDIUM</div>
-        <div class="pill"     data-val="hard"   onclick="pickPill(this,'reg-diff'); syncRegSetup()">HARD</div>
-        <div class="pill"     data-val="custom" onclick="pickPill(this,'reg-diff'); syncRegSetup()">CUSTOM</div>
+        <div class="pill act" data-val="easy"   onclick="pickPill(this,'reg-diff'); syncRegSetup()">Easy</div>
+        <div class="pill"     data-val="medium" onclick="pickPill(this,'reg-diff'); syncRegSetup()">Medium</div>
+        <div class="pill"     data-val="hard"   onclick="pickPill(this,'reg-diff'); syncRegSetup()">Hard</div>
+        <div class="pill"     data-val="custom" onclick="pickPill(this,'reg-diff'); syncRegSetup()">Custom</div>
       </div>
-      <div class="opt-info" id="reg-info">8×8 grid · 10 mines</div>
+      <div class="opt-info" id="reg-info">8 × 8 grid &nbsp;·&nbsp; 10 mines</div>
     </div>
 
     <div class="opt-group" id="custom-size-group" style="display:none">
@@ -440,14 +702,14 @@
     </div>
 
     <div class="setup-go">
-      <button class="btn btn-lime" onclick="launchRegular()">START GAME →</button>
+      <button class="btn btn-lime" onclick="launchRegular()">Start Game</button>
     </div>
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════
+<!-- ══════════════════════════════════════════
      SCREEN: GAME
-════════════════════════════════════════════ -->
+══════════════════════════════════════════ -->
 <div id="screen-game" class="screen">
   <div class="game-hdr" id="game-hdr"></div>
   <div class="board-area" id="board-area">
@@ -455,23 +717,23 @@
       <div id="grid"></div>
     </div>
     <div class="board-controls">
-      <button class="flag-btn" id="flag-btn" onclick="toggleFlagMode()">🚩 FLAG MODE</button>
-      <div class="hint" id="board-hint">CLICK TO REVEAL · HOLD TO FLAG</div>
+      <button class="flag-btn" id="flag-btn" onclick="toggleFlagMode()">Flag Mode</button>
+      <div class="board-hint" id="board-hint">Click to reveal &nbsp;·&nbsp; Right-click to flag</div>
     </div>
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════
-     OVERLAY (win / lose / time's up)
-════════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════
+     OVERLAY
+══════════════════════════════════════════ -->
 <div class="overlay" id="overlay">
   <div class="ov-card" id="ov-card"></div>
 </div>
 
 <script>
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 // CONSTANTS
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 
 const LEVELS = [
   { sz: 2,  mines: 1  },
@@ -497,36 +759,33 @@ const PRESETS = {
 };
 
 const NUM_COLORS = [
-  '', '#00D9FF', '#4AFF3F', '#FF6B35', '#FFD700', '#FF4444', '#FF44FF', '#FFFFFF', '#888888'
+  '', '#4EBDC9', '#4AFF3F', '#d9713a', '#C9A84C', '#e05050', '#cc88cc', '#c8c8c8', '#5a7a60'
 ];
 
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 // STATE
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 
-let G = {};       // active game state
-let CHAL = {};    // last challenge config (for replay)
+let G    = {};
+let CHAL = {};
 
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 // NAVIGATION
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 
 function goTo(screenId) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + screenId).classList.add('active');
 }
 
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 // PILL HELPERS
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 
 function pickPill(el, group) {
   const container = document.getElementById('pills-' + group);
   if (!container) return;
-  container.querySelectorAll('.pill').forEach(p => {
-    p.classList.remove('act', 'act-gold');
-  });
-  // gold styling for challenge-time pills
+  container.querySelectorAll('.pill').forEach(p => p.classList.remove('act', 'act-gold'));
   el.classList.add(group === 'chal-time' ? 'act-gold' : 'act');
 }
 
@@ -537,9 +796,9 @@ function getPill(group) {
   return el ? el.dataset.val : null;
 }
 
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 // REGULAR MODE SETUP
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 
 function syncRegSetup() {
   const diff = getPill('reg-diff');
@@ -552,7 +811,7 @@ function syncRegSetup() {
   } else {
     customGroup.style.display = 'none';
     const p = PRESETS[diff];
-    info.textContent = `${p.sz}×${p.sz} grid · ${p.mines} mines`;
+    info.textContent = `${p.sz} × ${p.sz} grid  ·  ${p.mines} mines`;
   }
 }
 
@@ -582,27 +841,22 @@ function launchRegular() {
   } else {
     ({ sz, mines } = PRESETS[diff] || PRESETS.easy);
   }
-
   G = {
     mode: 'regular',
     rows: sz, cols: sz, mines,
-    board: null,
-    firstClick: true,
-    gameState: 'idle',   // idle | playing | won | lost
-    flagMode: false,
-    flags: 0,
-    seconds: 0,
-    timerInt: null,
+    board: null, firstClick: true,
+    gameState: 'idle',
+    flagMode: false, flags: 0,
+    seconds: 0, timerInt: null,
   };
-
   goTo('game');
   initBoard();
   buildHeader();
 }
 
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 // TIMING CHALLENGE
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 
 function launchChallenge(overrideCfg) {
   const cfg = overrideCfg || {
@@ -614,23 +868,17 @@ function launchChallenge(overrideCfg) {
   const lv = LEVELS[cfg.startLv];
   G = {
     mode: 'challenge',
-    chalLevel:   cfg.startLv,
-    chalDone:    0,
-    chalTimeLeft: cfg.totalSec,
-    chalInt:     null,
-
+    chalLevel: cfg.startLv, chalDone: 0,
+    chalTimeLeft: cfg.totalSec, chalInt: null,
     rows: lv.sz, cols: lv.sz, mines: lv.mines,
-    board: null,
-    firstClick: true,
+    board: null, firstClick: true,
     gameState: 'idle',
-    flagMode: false,
-    flags: 0,
+    flagMode: false, flags: 0,
   };
 
   goTo('game');
   initBoard();
   buildHeader();
-
   G.chalInt = setInterval(chalTick, 1000);
 }
 
@@ -649,9 +897,9 @@ function chalTick() {
   }
 }
 
-// ════════════════════════════════════════════
-// BOARD INITIALISATION
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
+// BOARD INIT
+// ══════════════════════════════════════════
 
 function initBoard() {
   G.board = Array.from({ length: G.rows }, (_, r) =>
@@ -677,7 +925,6 @@ function placeMines(safeR, safeC) {
     for (let c = 0; c < cols; c++)
       if (!excl.has(`${r},${c}`)) pool.push([r, c]);
 
-  // Fallback: too many mines for exclusion zone → just exclude clicked cell
   if (pool.length < mines) {
     pool = [];
     for (let r = 0; r < rows; r++)
@@ -685,14 +932,12 @@ function placeMines(safeR, safeC) {
         if (r !== safeR || c !== safeC) pool.push([r, c]);
   }
 
-  // Fisher-Yates shuffle
   for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
   pool.slice(0, mines).forEach(([r, c]) => { G.board[r][c].mine = true; });
 
-  // Neighbor counts
   for (let r = 0; r < rows; r++)
     for (let c = 0; c < cols; c++)
       if (!G.board[r][c].mine)
@@ -710,19 +955,17 @@ function neighbors(r, c) {
   return out;
 }
 
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 // CLICK LOGIC
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 
 function onReveal(r, c) {
   if (G.gameState === 'won' || G.gameState === 'lost' || G.gameState === 'chal-over') return;
   const cell = G.board[r][c];
   if (cell.revealed) return;
-
   if (G.flagMode) { onFlag(r, c); return; }
   if (cell.flagged) return;
 
-  // First click — place mines now (safe first click)
   if (G.firstClick) {
     G.firstClick = false;
     placeMines(r, c);
@@ -737,7 +980,6 @@ function onReveal(r, c) {
     G.gameState = 'lost';
     revealAllMines();
     renderBoard();
-
     if (G.mode === 'regular') {
       clearInterval(G.timerInt);
       setTimeout(() => openOverlay('lose'), 650);
@@ -808,14 +1050,12 @@ function checkWin() {
   return G.board.every(row => row.every(cell => cell.mine || cell.revealed));
 }
 
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 // CHALLENGE HELPERS
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 
 function newChalBoard(advance) {
-  if (advance) {
-    G.chalLevel = (G.chalLevel + 1) % LEVELS.length;
-  }
+  if (advance) G.chalLevel = (G.chalLevel + 1) % LEVELS.length;
   const lv = LEVELS[G.chalLevel];
   G.rows = lv.sz; G.cols = lv.sz; G.mines = lv.mines;
   G.flags = 0; G.flagMode = false;
@@ -829,12 +1069,12 @@ function flash(type) {
   area.classList.remove('fg', 'fr');
   void area.offsetWidth;
   area.classList.add(type === 'g' ? 'fg' : 'fr');
-  setTimeout(() => area.classList.remove('fg', 'fr'), 1600);
+  setTimeout(() => area.classList.remove('fg', 'fr'), 1500);
 }
 
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 // GRID RENDERING
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 
 function calcCellSize() {
   const dim = Math.max(G.rows, G.cols);
@@ -864,33 +1104,23 @@ function buildGrid() {
     grid.appendChild(row);
   }
 
-  // Event delegation — click
   grid.onclick = (e) => {
     const el = e.target.closest('[data-r]');
     if (el) onReveal(+el.dataset.r, +el.dataset.c);
   };
-
-  // Right-click flag
   grid.oncontextmenu = (e) => {
     e.preventDefault();
     const el = e.target.closest('[data-r]');
     if (el) onFlag(+el.dataset.r, +el.dataset.c);
   };
 
-  // Touch: tap = reveal, long-press (500ms) = flag
   touchData = null;
   grid.addEventListener('touchstart', (e) => {
     const el = e.target.closest('[data-r]');
     if (!el) return;
     e.preventDefault();
     const r = +el.dataset.r, c = +el.dataset.c;
-    touchData = {
-      r, c,
-      t: setTimeout(() => {
-        touchData = null;
-        onFlag(r, c);
-      }, 500),
-    };
+    touchData = { r, c, t: setTimeout(() => { touchData = null; onFlag(r, c); }, 500) };
   }, { passive: false });
   grid.addEventListener('touchend', (e) => {
     if (!touchData) return;
@@ -906,38 +1136,41 @@ function buildGrid() {
 
   const hint = document.getElementById('board-hint');
   if (hint) {
-    const isMobile = navigator.maxTouchPoints > 0;
-    hint.textContent = isMobile
-      ? 'TAP TO REVEAL · HOLD TO FLAG'
-      : 'CLICK TO REVEAL · RIGHT-CLICK TO FLAG';
+    hint.textContent = navigator.maxTouchPoints > 0
+      ? 'Tap to reveal  ·  Hold to flag'
+      : 'Click to reveal  ·  Right-click to flag';
   }
 }
 
 function applyCellClass(el, cell) {
-  let cls = 'cell ';
-  el.textContent = '';
+  el.innerHTML = '';
   el.style.color = '';
+  el.className = 'cell';
 
   if (cell.hitMine) {
-    cls += 'mh';
-    el.textContent = '💣';
+    el.classList.add('mh');
+    const dot = document.createElement('span');
+    dot.className = 'mine-dot hit';
+    el.appendChild(dot);
   } else if (cell.revealed && cell.mine) {
-    cls += 'mr';
-    el.textContent = '💣';
+    el.classList.add('mr');
+    const dot = document.createElement('span');
+    dot.className = 'mine-dot';
+    el.appendChild(dot);
   } else if (cell.flagged) {
-    cls += 'fl';
-    el.textContent = '🚩';
+    el.classList.add('fl');
+    const tri = document.createElement('span');
+    tri.className = 'flag-tri';
+    el.appendChild(tri);
   } else if (!cell.revealed) {
-    cls += 'ch';
+    el.classList.add('ch');
   } else if (cell.count > 0) {
-    cls += 'rv';
-    el.style.color = NUM_COLORS[cell.count] || '#fff';
+    el.classList.add('rv');
+    el.style.color = NUM_COLORS[cell.count] || '#c8c8c8';
     el.textContent = cell.count;
   } else {
-    cls += 'rv';
+    el.classList.add('rv');
   }
-
-  el.className = cls;
 }
 
 function setCellEl(r, c) {
@@ -949,9 +1182,9 @@ function renderBoard() {
   G.board.forEach(row => row.forEach(cell => setCellEl(cell.r, cell.c)));
 }
 
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 // HEADER
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 
 function fmt(s) {
   return `${String(Math.floor(s / 60)).padStart(2,'0')}:${String(s % 60).padStart(2,'0')}`;
@@ -962,12 +1195,12 @@ function buildHeader() {
 
   if (G.mode === 'regular') {
     hdr.innerHTML = `
-      <button class="btn btn-ghost btn-sm" onclick="quitGame()">← Menu</button>
+      <button class="btn btn-ghost btn-sm" onclick="quitGame()">Menu</button>
       <div class="hdr-mid">
         <div class="hdr-stats">
           <div class="hdr-stat">
             <span class="hdr-lbl">Mines</span>
-            <span class="hdr-val" id="h-mines" style="color:var(--orange)">💣 ${G.mines - G.flags}</span>
+            <span class="hdr-val" id="h-mines" style="color:var(--orange)">${G.mines - G.flags}</span>
           </div>
           <div class="hdr-stat">
             <span class="hdr-lbl">Time</span>
@@ -979,34 +1212,34 @@ function buildHeader() {
           </div>
         </div>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="restartGame()" title="Restart">↺</button>
+      <button class="btn btn-ghost btn-sm" onclick="restartGame()">Reset</button>
     `;
   } else {
     const lv = LEVELS[G.chalLevel % LEVELS.length];
     const urgent = G.chalTimeLeft <= 30;
     hdr.innerHTML = `
-      <button class="btn btn-ghost btn-sm" onclick="quitGame()">← Menu</button>
+      <button class="btn btn-ghost btn-sm" onclick="quitGame()">Menu</button>
       <div class="hdr-mid">
         <div class="chal-timer${urgent ? ' urgent' : ''}" id="h-chal-timer">${fmt(G.chalTimeLeft)}</div>
         <div class="chal-meta">
-          <span id="h-level" style="color:var(--gold)">LV: ${lv.sz}×${lv.sz}</span>
-          <span style="color:var(--border)">|</span>
-          <span id="h-done" style="color:var(--lime)">✓ ${G.chalDone}</span>
-          <span style="color:var(--border)">|</span>
-          <span id="h-mines" style="color:var(--orange)">💣 ${G.mines - G.flags}</span>
+          <span id="h-level" style="color:var(--gold)">${lv.sz}×${lv.sz}</span>
+          <span class="meta-sep">|</span>
+          <span id="h-done" style="color:var(--lime)">${G.chalDone} cleared</span>
+          <span class="meta-sep">|</span>
+          <span id="h-mines" style="color:var(--orange)">${G.mines - G.flags} mines</span>
         </div>
         <div class="pips" id="h-pips">${buildPips()}</div>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="restartGame()" title="Restart Challenge">↺</button>
+      <button class="btn btn-ghost btn-sm" onclick="restartGame()">Reset</button>
     `;
   }
 }
 
 function buildPips() {
   const startLv = (CHAL && CHAL.startLv != null) ? CHAL.startLv : 0;
-  const cur = G.chalLevel % LEVELS.length;
+  const cur     = G.chalLevel % LEVELS.length;
   const fromStart = (i) => (i - startLv + LEVELS.length) % LEVELS.length;
-  const curDist = fromStart(cur);
+  const curDist   = fromStart(cur);
   return LEVELS.map((_, i) => {
     let cls = 'pip';
     const d = fromStart(i);
@@ -1021,7 +1254,7 @@ function updateHeader() {
     const tm = document.getElementById('h-time');
     const mn = document.getElementById('h-mines');
     if (tm) tm.textContent = fmt(G.seconds);
-    if (mn) mn.textContent = `💣 ${G.mines - G.flags}`;
+    if (mn) mn.textContent = G.mines - G.flags;
   } else {
     const tc = document.getElementById('h-chal-timer');
     const lv = document.getElementById('h-level');
@@ -1033,16 +1266,16 @@ function updateHeader() {
       tc.textContent = fmt(G.chalTimeLeft);
       tc.className = 'chal-timer' + (G.chalTimeLeft <= 30 ? ' urgent' : '');
     }
-    if (lv) lv.textContent = `LV: ${LEVELS[cur].sz}×${LEVELS[cur].sz}`;
-    if (dn) dn.textContent = `✓ ${G.chalDone}`;
-    if (mn) mn.textContent = `💣 ${G.mines - G.flags}`;
+    if (lv) lv.textContent = `${LEVELS[cur].sz}×${LEVELS[cur].sz}`;
+    if (dn) dn.textContent = `${G.chalDone} cleared`;
+    if (mn) mn.textContent = `${G.mines - G.flags} mines`;
     if (pp) pp.innerHTML = buildPips();
   }
 }
 
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 // FLAG MODE
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 
 function toggleFlagMode() {
   G.flagMode = !G.flagMode;
@@ -1052,18 +1285,13 @@ function toggleFlagMode() {
 function updateFlagBtn() {
   const btn = document.getElementById('flag-btn');
   if (!btn) return;
-  if (G.flagMode) {
-    btn.textContent = '🔍 REVEAL MODE';
-    btn.classList.add('on');
-  } else {
-    btn.textContent = '🚩 FLAG MODE';
-    btn.classList.remove('on');
-  }
+  btn.textContent = G.flagMode ? 'Reveal Mode' : 'Flag Mode';
+  btn.classList.toggle('on', G.flagMode);
 }
 
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 // OVERLAY
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 
 function openOverlay(type) {
   const card = document.getElementById('ov-card');
@@ -1071,34 +1299,35 @@ function openOverlay(type) {
 
   if (type === 'win') {
     card.innerHTML = `
-      <div class="ov-icon">🎉</div>
-      <div class="ov-title lime">YOU WIN!</div>
-      <div class="ov-sub">${G.rows}×${G.cols} · ${G.mines} mines · ${fmt(G.seconds)}</div>
+      <div class="ov-eyebrow">Result</div>
+      <div class="ov-title lime">Cleared</div>
+      <div class="ov-divider"></div>
+      <div class="ov-sub">${G.rows}×${G.cols} &nbsp;·&nbsp; ${G.mines} mines &nbsp;·&nbsp; ${fmt(G.seconds)}</div>
       <div class="ov-btns">
         <button class="btn btn-lime" onclick="closeOverlay(); restartGame()">Play Again</button>
-        <button class="btn btn-ghost" onclick="closeOverlay(); quitGame()">Menu</button>
+        <button class="btn btn-ghost" onclick="closeOverlay(); quitGame()">Main Menu</button>
       </div>
     `;
   } else if (type === 'lose') {
     card.innerHTML = `
-      <div class="ov-icon">💥</div>
-      <div class="ov-title red">BOOM!</div>
-      <div class="ov-sub">${G.rows}×${G.cols} · ${G.mines} mines · ${fmt(G.seconds)}</div>
+      <div class="ov-eyebrow">Result</div>
+      <div class="ov-title red">Detonated</div>
+      <div class="ov-divider"></div>
+      <div class="ov-sub">${G.rows}×${G.cols} &nbsp;·&nbsp; ${G.mines} mines &nbsp;·&nbsp; ${fmt(G.seconds)}</div>
       <div class="ov-btns">
         <button class="btn btn-lime" onclick="closeOverlay(); restartGame()">Try Again</button>
-        <button class="btn btn-ghost" onclick="closeOverlay(); quitGame()">Menu</button>
+        <button class="btn btn-ghost" onclick="closeOverlay(); quitGame()">Main Menu</button>
       </div>
     `;
   } else if (type === 'chal-end') {
-    const dur = fmt(CHAL.totalSec);
     card.innerHTML = `
-      <div class="ov-icon">⏱️</div>
-      <div class="ov-title gold">TIME'S UP!</div>
+      <div class="ov-eyebrow">Challenge Complete</div>
+      <div class="ov-title gold">Time Expired</div>
       <div class="ov-score">${G.chalDone}</div>
-      <div class="ov-score-label">boards completed · ${dur}</div>
+      <div class="ov-score-label">Boards Cleared &nbsp;·&nbsp; ${fmt(CHAL.totalSec)}</div>
       <div class="ov-btns">
         <button class="btn btn-gold" onclick="closeOverlay(); launchChallenge(CHAL)">Play Again</button>
-        <button class="btn btn-ghost" onclick="closeOverlay(); quitGame()">Menu</button>
+        <button class="btn btn-ghost" onclick="closeOverlay(); quitGame()">Main Menu</button>
       </div>
     `;
   }
@@ -1110,9 +1339,9 @@ function closeOverlay() {
   document.getElementById('overlay').classList.remove('show');
 }
 
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 // GAME CONTROL
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 
 function quitGame() {
   clearInterval(G.timerInt);
@@ -1133,16 +1362,14 @@ function restartGame() {
     initBoard();
     buildHeader();
   } else {
-    // Restart entire challenge from scratch
     clearInterval(G.chalInt);
     launchChallenge(CHAL);
   }
 }
 
-// ════════════════════════════════════════════
+// ══════════════════════════════════════════
 // INIT
-// ════════════════════════════════════════════
-
+// ══════════════════════════════════════════
 syncRegSetup();
 </script>
 </body>
