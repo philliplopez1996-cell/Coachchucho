@@ -229,6 +229,12 @@
 
     /* HERO */
     .hero {
+      width: 100vw;
+      position: relative;
+      left: 50%;
+      right: 50%;
+      margin-left: -50vw;
+      margin-right: -50vw;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -888,9 +894,6 @@
       .page {
         max-width: 1200px;
         margin: 0 auto;
-      }
-      .hero {
-        min-height: 55vh;
       }
       .price-card .price-btn {
         padding: 10px;
