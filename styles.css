@@ -372,6 +372,70 @@
       padding: 10px 20px;
       white-space: nowrap;
     }
+    .camp-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      max-width: 1000px;
+      margin: 0 auto 48px;
+      padding: 28px 32px;
+      background: rgba(154,165,177,0.06);
+      border: 2px dashed rgba(198,255,61,0.35);
+      border-radius: 16px;
+      text-align: left;
+      position: relative;
+    }
+    .camp-banner h3 {
+      font-family: 'Iceland', sans-serif;
+      font-weight: 400;
+      font-size: 22px;
+      letter-spacing: 0.02em;
+      color: var(--lime);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .camp-banner p {
+      font-size: 13px;
+      color: var(--gray);
+      line-height: 1.6;
+      max-width: 520px;
+    }
+    .coming-soon-badge {
+      display: inline-block;
+      background: rgba(198,255,61,0.15);
+      color: var(--lime);
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(198,255,61,0.5);
+    }
+    .camp-notify-btn {
+      flex-shrink: 0;
+      padding: 12px 24px;
+      background: transparent;
+      color: var(--lime);
+      border: 2px solid var(--lime);
+      border-radius: 10px;
+      font-weight: 900;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .camp-notify-btn:hover {
+      background: var(--lime);
+      color: var(--dark);
+      box-shadow: 0 0 20px rgba(198,255,61,0.4);
+    }
     .cta-btn {
       display: inline-block;
       padding: 16px 40px;
@@ -849,6 +913,9 @@
       .form-row { grid-template-columns: 1fr; }
       .eval-banner { flex-direction: column; text-align: center; }
       .eval-banner p { max-width: 100%; }
+      .camp-banner { flex-direction: column; text-align: center; }
+      .camp-banner p { max-width: 100%; }
+      .camp-banner h3 { justify-content: center; }
       .page-hero { padding: 120px 20px 25px; }
       .page-hero.with-photo {
         min-height: 100vh;
