@@ -45,16 +45,40 @@
     });
   }, { passive: true });
 
-  // Floating 3D spheres (home page only) — bounce continuously in the empty side margins,
-  // with extra drift and spin layered on top as the page scrolls
-  const balls3d = [
-    { el: document.getElementById('ball3d1'), ampY: 34, freq: 0.0009, phase: 0,   spin: 0.5,  driftAmp: 26, driftFreq: 0.0016 },
-    { el: document.getElementById('ball3d2'), ampY: 20, freq: 0.0013, phase: 1.4, spin: -0.7, driftAmp: 18, driftFreq: 0.0021 },
-    { el: document.getElementById('ball3d3'), ampY: 14, freq: 0.0017, phase: 2.6, spin: 0.9,  driftAmp: 10, driftFreq: 0.0026 },
-    { el: document.getElementById('ball3d4'), ampY: 26, freq: 0.0011, phase: 0.8, spin: -0.4, driftAmp: 22, driftFreq: 0.0018 },
-    { el: document.getElementById('ball3d5'), ampY: 12, freq: 0.0021, phase: 3.5, spin: 0.6,  driftAmp: 8,  driftFreq: 0.003 },
-    { el: document.getElementById('ball3d6'), ampY: 30, freq: 0.001,  phase: 4.2, spin: -0.5, driftAmp: 24, driftFreq: 0.0014 },
-  ].filter(b => b.el);
+  // Floating 3D spheres (home page only) — randomized sizes scattered across the empty
+  // side margins, bouncing continuously with extra drift/spin layered on as the page scrolls
+  const ballField = document.getElementById('ballField3d');
+  const balls3d = [];
+  if (ballField) {
+    const rand = (min, max) => Math.random() * (max - min) + min;
+    const BALL_COUNT = 16;
+    for (let i = 0; i < BALL_COUNT; i++) {
+      const size = rand(16, 100);
+      const side = Math.random() < 0.5 ? 'left' : 'right';
+      const edgeOffset = rand(0.5, 8.5);
+      const top = rand(6, 94);
+
+      const el = document.createElement('div');
+      el.className = 'floating-3d ball-3d';
+      el.setAttribute('aria-hidden', 'true');
+      el.style.width = size + 'px';
+      el.style.height = size + 'px';
+      el.style.top = top + 'vh';
+      el.style[side] = edgeOffset + 'vw';
+      el.style.opacity = String(rand(0.55, 1));
+      ballField.appendChild(el);
+
+      balls3d.push({
+        el,
+        ampY: rand(8, 36),
+        freq: rand(0.0008, 0.0022),
+        phase: rand(0, Math.PI * 2),
+        spin: rand(-1, 1),
+        driftAmp: rand(6, 28),
+        driftFreq: rand(0.0012, 0.0032),
+      });
+    }
+  }
 
   function animateBalls(timestamp) {
     if (balls3d.length) {

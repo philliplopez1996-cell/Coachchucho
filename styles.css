@@ -126,12 +126,6 @@
         radial-gradient(circle at 40% 40%, #d4ff8a, #8fc93a 45%, #3f6614 78%, #172808 100%);
       box-shadow: 0 24px 45px rgba(0,0,0,0.55), inset -8px -10px 20px rgba(0,0,0,0.35);
     }
-    .ball-3d-1 { width: 92px; height: 92px; top: 18vh; left: 3.5vw; }
-    .ball-3d-2 { width: 50px; height: 50px; top: 34vh; right: 5vw; }
-    .ball-3d-3 { width: 34px; height: 34px; top: 47vh; left: 2vw; }
-    .ball-3d-4 { width: 68px; height: 68px; top: 58vh; right: 3.5vw; }
-    .ball-3d-5 { width: 26px; height: 26px; top: 74vh; left: 5vw; }
-    .ball-3d-6 { width: 82px; height: 82px; top: 84vh; right: 2.5vw; }
     @media (max-width: 1300px) {
       .floating-3d { display: none; }
     }
