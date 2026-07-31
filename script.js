@@ -30,6 +30,12 @@
   // Parallax glow orbs — drift at different rates as the page scrolls
   const orb1 = document.querySelector('.orb-1');
   const orb2 = document.querySelector('.orb-2');
+
+  // Floating 3D objects (home page only) — spin and drift in the empty side margins on scroll
+  const ball3d1 = document.getElementById('ball3d1');
+  const ball3d2 = document.getElementById('ball3d2');
+  const cube3d = document.getElementById('cube3d');
+
   let ticking = false;
   window.addEventListener('scroll', () => {
     if (ticking) return;
@@ -38,6 +44,15 @@
       const y = window.scrollY;
       orb1.style.transform = `translateY(${y * 0.18}px)`;
       orb2.style.transform = `translateY(${y * -0.12}px)`;
+      if (ball3d1) {
+        ball3d1.style.transform = `translateY(${Math.sin(y * 0.002) * 40}px) rotate(${y * 0.5}deg)`;
+      }
+      if (ball3d2) {
+        ball3d2.style.transform = `translateY(${Math.sin(y * 0.0025 + 2) * 55}px) rotate(${y * -0.4}deg)`;
+      }
+      if (cube3d) {
+        cube3d.style.transform = `rotateX(${y * 0.25}deg) rotateY(${y * 0.35}deg)`;
+      }
       ticking = false;
     });
   }, { passive: true });
