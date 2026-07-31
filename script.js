@@ -52,10 +52,18 @@
   const balls3d = [];
   if (ballField) {
     const rand = (min, max) => Math.random() * (max - min) + min;
-    const BALL_COUNT = 10;
+    const BALL_COUNT = 12;
     const pageHeight = document.body.scrollHeight;
     const MIN_GAP = 70; // minimum px gap (beyond combined radii) between balls on the same side
     const placed = { left: [], right: [] };
+
+    // Keep the hero photo completely clear — spheres only start appearing once you scroll past it
+    const heroEl = document.querySelector('.hero');
+    const heroBottom = heroEl ? heroEl.offsetTop + heroEl.offsetHeight : 0;
+    // Extra buffer accounts for the largest possible bounce+drift swing so no sphere ever
+    // animates back up into the hero photo
+    const zoneStart = (heroBottom + 110) / pageHeight;
+    const zoneEnd = 0.97;
 
     const TIERS = [
       { name: 'small',  min: 16, max: 34, opacity: [0.35, 0.55], blur: 1.4, ampScale: 0.5 },
@@ -76,10 +84,10 @@
       const side = Math.random() < 0.5 ? 'left' : 'right';
       const edgeOffset = rand(0.5, 8.5);
 
-      // Try to find a top position that doesn't crowd existing balls on the same side
-      let top = rand(0.03, 0.97) * pageHeight;
+      // Try to find a top position (below the hero) that doesn't crowd existing balls on the same side
+      let top = rand(zoneStart, zoneEnd) * pageHeight;
       for (let attempt = 0; attempt < 25; attempt++) {
-        const candidate = rand(0.03, 0.97) * pageHeight;
+        const candidate = rand(zoneStart, zoneEnd) * pageHeight;
         const tooClose = placed[side].some(p => Math.abs(p.top - candidate) < (p.size + size) / 2 + MIN_GAP);
         if (!tooClose) { top = candidate; break; }
       }
