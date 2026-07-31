@@ -30,8 +30,6 @@
   // Parallax glow orbs — drift at different rates as the page scrolls
   const orb1 = document.querySelector('.orb-1');
   const orb2 = document.querySelector('.orb-2');
-  // Soccer ball (home page only) — rolls and drifts as the page scrolls
-  const soccerBall = document.getElementById('soccerBall');
   let ticking = false;
   window.addEventListener('scroll', () => {
     if (ticking) return;
@@ -40,9 +38,6 @@
       const y = window.scrollY;
       orb1.style.transform = `translateY(${y * 0.18}px)`;
       orb2.style.transform = `translateY(${y * -0.12}px)`;
-      if (soccerBall) {
-        soccerBall.style.transform = `translateY(${y * 0.1}px) rotate(${y * 0.25}deg)`;
-      }
       ticking = false;
     });
   }, { passive: true });
