@@ -197,7 +197,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 48px 24px 60px;
+      padding: 96px 28px 72px;
       width: 100%;
       max-width: 540px;
     }
@@ -228,7 +228,7 @@
       color: var(--txt3);
       text-transform: uppercase;
       text-align: center;
-      margin-bottom: 36px;
+      margin-bottom: 44px;
     }
 
     /* Mode switcher tabs */
@@ -240,7 +240,7 @@
       padding: 3px;
       gap: 3px;
       width: 100%;
-      margin-bottom: 36px;
+      margin-bottom: 40px;
     }
     .mode-tab {
       flex: 1;
@@ -268,7 +268,7 @@
       box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 1px 4px rgba(0,0,0,.3);
     }
 
-    .opt-group { width: 100%; margin-bottom: 28px; }
+    .opt-group { width: 100%; margin-bottom: 32px; }
     .opt-label {
       font-family: var(--font-u);
       font-size: .58rem;
@@ -305,8 +305,8 @@
     .pill:hover { border-color: var(--brd2); color: var(--txt); }
     .pill.act      { border-color: rgba(74,255,63,.5);   background: rgba(74,255,63,.07);   color: var(--lime); box-shadow: inset 0 0 0 1px rgba(74,255,63,.15); }
     .pill.act-gold { border-color: rgba(201,168,76,.5); background: rgba(201,168,76,.07); color: var(--gold); box-shadow: inset 0 0 0 1px rgba(201,168,76,.15); }
-    .setup-go { margin-top: 28px; width: 100%; }
-    .setup-go .btn { width: 100%; padding: 17px; font-size: .82rem; letter-spacing: .14em; }
+    .setup-go { margin-top: 0; margin-bottom: 36px; width: 100%; }
+    .setup-go .btn { width: 100%; padding: 18px; font-size: .82rem; letter-spacing: .14em; }
 
     /* ── BUTTONS ────────────────────────────────────────── */
     .btn {
@@ -846,7 +846,7 @@
       .board-area { padding:8px; gap:8px; }
       .board-controls { flex-wrap:wrap; gap:6px; }
       .pup-hud-btn { padding:4px 8px; }
-      .setup-wrap { padding:28px 20px 36px; }
+      .setup-wrap { padding:72px 20px 36px; }
       .s-logo { font-size:1.4rem; }
       .s-logo-sub { display:none; }
       .profile-card { padding:10px 14px; }
@@ -1947,13 +1947,20 @@ function buildPupSelector(mode) {
   const id   = `pup-select-${mode}`;
   const wrap = document.getElementById(id);
   if (!wrap) return;
-  const eligible = Object.values(POWERUPS).filter(p => p.modes.includes(mode));
   const group = document.getElementById(`pup-group-${mode}`);
   if (group) group.style.display = '';
-  wrap.innerHTML = eligible.map(p => {
-    const owned = isUnlocked(p.id);
-    const checked = owned && profile.selectedPups.includes(p.id);
-    if (owned) {
+  wrap.innerHTML = Object.values(POWERUPS).map(p => {
+    const modeOk = p.modes.includes(mode);
+    const owned  = isUnlocked(p.id);
+    const checked = owned && modeOk && profile.selectedPups.includes(p.id);
+    if (!modeOk) {
+      return `<div class="pup-sel-card locked" id="pupsel-${p.id}-${mode}">
+        <div class="pup-icon">${p.icon}</div>
+        <div class="pup-name">${p.name}</div>
+        <div class="pup-desc">${p.desc}</div>
+        <div class="pup-lock-lbl">Challenge only</div>
+      </div>`;
+    } else if (owned) {
       return `<div class="pup-sel-card${checked?' checked':''}" onclick="togglePupSel('${p.id}')" id="pupsel-${p.id}-${mode}">
         <div class="pup-icon">${p.icon}</div>
         <div class="pup-name">${p.name}</div>
