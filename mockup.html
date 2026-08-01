@@ -1296,6 +1296,7 @@ function buildRadar(){
   s+='</svg>';document.getElementById('radar-svg-wrap').innerHTML=s;
   // update legend to note team avg
   if(avgA){const t=teamOf(ra);const legExtra=document.createElement('div');legExtra.className='leg-item';legExtra.style='opacity:.55';legExtra.innerHTML=`<span style="display:inline-block;width:10px;height:2px;background:rgba(255,255,255,.5);border-top:1px dashed rgba(255,255,255,.5);vertical-align:middle;margin-right:4px;"></span><span>${t?t.name+' avg':'Team Avg'}</span>`;const leg=document.getElementById('rdr-legend')||document.querySelector('.rdr-legend');if(leg){const old=leg.querySelector('.leg-avg');if(old)old.remove();legExtra.classList.add('leg-avg');leg.appendChild(legExtra);}}
+}
 
 function renderAttrBreakdown(){
   const ra=radarA,rb=radarB;
@@ -1319,7 +1320,7 @@ function renderAttrBreakdown(){
 }
 
 /* ── Calendar ─── */
-let calYear=2025,calMonth=6; // 0-indexed month (6=July)
+const _calNow=new Date();let calYear=_calNow.getFullYear(),calMonth=_calNow.getMonth();
 const MONTH_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DAY_NAMES=['M','T','W','T','F','S','S'];
 
@@ -1567,7 +1568,7 @@ function renderEventForm(){
       <input class="ap-input" id="evTitle" type="text" placeholder="${type==='game'?'e.g. vs FC Wolves':'e.g. Team Practice'}" value="${ev?ev.title:''}">
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-      <div class="ap-field"><div class="ap-label">Date</div><input class="ap-input" id="evDate" type="date" value="${ev?ev.date:evPrefillDate||'2025-07-31'}"></div>
+      <div class="ap-field"><div class="ap-label">Date</div><input class="ap-input" id="evDate" type="date" value="${ev?ev.date:evPrefillDate||new Date().toISOString().split('T')[0]}"></div>
       <div class="ap-field"><div class="ap-label">Time</div><input class="ap-input" id="evTime" type="time" value="${ev?ev.time:'10:00'}"></div>
     </div>
     <div class="ap-field"><div class="ap-label">Location</div><input class="ap-input" id="evLocation" type="text" value="${ev?ev.location||'':''}"></div>
@@ -1802,7 +1803,7 @@ function buildFaq(){
 /* ── Tab switching ─── */
 function switchTab(id){
   const prev=document.querySelector('.tab-pane.active');
-  if(prev&&prev.id!==id){prev.style.opacity='0';prev.style.transform='translateY(-4px)';setTimeout(()=>{prev.classList.remove('active');prev.style='';},180);}
+  if(prev&&prev.id!==id){prev.style.transition='opacity .18s,transform .18s';prev.style.opacity='0';prev.style.transform='translateY(-4px)';setTimeout(()=>{prev.classList.remove('active');prev.style='';},180);}
   const next=document.getElementById(id);
   if(!next||next.classList.contains('active'))return;
   next.classList.add('active');
