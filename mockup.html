@@ -892,6 +892,12 @@ button{transition:transform .08s ease;}
           <div class="picker-title" id="pickerTitle">Select Player</div>
           <button class="picker-close" id="pickerClose">✕</button>
         </div>
+        <div style="padding:8px 16px 4px;">
+          <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:0 12px;height:36px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3D5845" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21L16.65 16.65"/></svg>
+            <input id="radarPickerSearch" type="text" placeholder="Search name, position, team…" autocomplete="off" style="flex:1;background:none;border:none;outline:none;font-size:12px;color:#DFF0E3;font-family:system-ui,sans-serif;">
+          </div>
+        </div>
         <div id="pickerList"></div>
       </div>
     </div>
@@ -1290,12 +1296,12 @@ function buildRadar(){
   [.2,.4,.6,.8,1].forEach((f,ri)=>{const ps=lbs.map((_,i)=>pt(i,f).join(',')).join(' ');s+=`<polygon points="${ps}" fill="none" stroke="rgba(255,255,255,${ri===4?.2:.09})" stroke-width="${ri===4?1.1:.75}"/>`;});
   lbs.forEach((l,i)=>{const[x,y]=pt(i,1);s+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(255,255,255,0.1)" stroke-width=".7"/>`;const[lx,ly]=pt(i,1.2);s+=`<text x="${lx}" y="${ly}" fill="#9fd8ae" font-size="12" font-family="system-ui" font-weight="800" text-anchor="middle" dominant-baseline="middle">${l}</text>`;});
   // team average polygon (grey)
-  if(avgA){const ps=avgA.map((v,i)=>pt(i,Math.max(.04,v/99)).join(',')).join(' ');s+=`<polygon points="${ps}" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.22)" stroke-width="1.2" stroke-dasharray="4 3"/>`;}
+  if(avgA){const ps=avgA.map((v,i)=>pt(i,Math.max(.04,v/99)).join(',')).join(' ');s+=`<polygon points="${ps}" fill="rgba(255,215,0,.07)" stroke="rgba(255,215,0,.75)" stroke-width="1.8" stroke-dasharray="5 3"/>`;}
   const series=[{c:'#00E564',v:[ra.pac,ra.sho,ra.pas,ra.dri,ra.def,ra.phy]},{c:'#FF8C42',v:[rb.pac,rb.sho,rb.pas,rb.dri,rb.def,rb.phy]}];
   series.forEach(sr=>{const ps=sr.v.map((v,i)=>pt(i,Math.max(.04,v/99)).join(',')).join(' ');s+=`<polygon points="${ps}" fill="${sr.c}" fill-opacity=".24" stroke="${sr.c}" stroke-width="2.2"/>`;sr.v.forEach((v,i)=>{const[x,y]=pt(i,Math.max(.04,v/99));s+=`<circle cx="${x}" cy="${y}" r="4.5" fill="${sr.c}" fill-opacity=".28"/>`;s+=`<circle cx="${x}" cy="${y}" r="2.8" fill="${sr.c}" stroke="rgba(0,0,0,.5)" stroke-width=".9"/>`;});});
   s+='</svg>';document.getElementById('radar-svg-wrap').innerHTML=s;
   // update legend to note team avg
-  if(avgA){const t=teamOf(ra);const legExtra=document.createElement('div');legExtra.className='leg-item';legExtra.style='opacity:.55';legExtra.innerHTML=`<span style="display:inline-block;width:10px;height:2px;background:rgba(255,255,255,.5);border-top:1px dashed rgba(255,255,255,.5);vertical-align:middle;margin-right:4px;"></span><span>${t?t.name+' avg':'Team Avg'}</span>`;const leg=document.getElementById('rdr-legend')||document.querySelector('.rdr-legend');if(leg){const old=leg.querySelector('.leg-avg');if(old)old.remove();legExtra.classList.add('leg-avg');leg.appendChild(legExtra);}}
+  if(avgA){const t=teamOf(ra);const legExtra=document.createElement('div');legExtra.className='leg-item leg-avg';legExtra.style='opacity:.8';legExtra.innerHTML=`<span style="display:inline-block;width:12px;height:0;border-top:2px dashed rgba(255,215,0,.9);vertical-align:middle;margin-right:4px;position:relative;top:-1px;"></span><span style="color:#FFD700;">${t?t.name+' Avg':'Team Avg'}</span>`;const leg=document.getElementById('rdr-legend')||document.querySelector('.rdr-legend');if(leg){const old=leg.querySelector('.leg-avg');if(old)old.remove();leg.appendChild(legExtra);}}
 }
 
 function renderAttrBreakdown(){
@@ -1835,6 +1841,7 @@ document.getElementById('teamsBackBtn').addEventListener('click',showTeamsList);
 document.getElementById('rdrSlotA').addEventListener('click',()=>openRadarPicker('A'));
 document.getElementById('rdrSlotB').addEventListener('click',()=>openRadarPicker('B'));
 
+
 /* ── Slide menu ─── */
 function openMenu(){document.getElementById('slideMenu').classList.add('open');document.getElementById('slideOverlay').classList.add('open');}
 function closeMenu(){document.getElementById('slideMenu').classList.remove('open');document.getElementById('slideOverlay').classList.remove('open');}
@@ -1948,35 +1955,46 @@ function renderPlayerModal(){
 }
 
 /* ── Radar picker ─── */
-let pickerSlot=null; // 'A' or 'B'
-function openRadarPicker(slot){
-  pickerSlot=slot;
-  document.getElementById('pickerTitle').textContent=slot==='A'?'Player A — Select':'Player B — Select';
+let pickerSlot=null;
+function _renderPickerList(term=''){
+  const lower=term.toLowerCase().trim();
   const list=document.getElementById('pickerList');
-  list.innerHTML=TEAMS.filter(t=>t.players.length>0).map(t=>`
-    <div class="picker-team-hd">${t.name}</div>
-    ${t.players.map(p=>`
+  list.innerHTML=TEAMS.filter(t=>t.players.length>0).map(t=>{
+    const players=lower
+      ?t.players.filter(p=>p.name.toLowerCase().includes(lower)||p.pos.toLowerCase().includes(lower)||t.name.toLowerCase().includes(lower))
+      :t.players;
+    if(!players.length)return'';
+    return`<div class="picker-team-hd">${t.name}</div>`+players.map(p=>`
       <div class="picker-player-row" data-name="${p.name}" data-tid="${t.id}">
         <div class="pp-av">${p.init}</div>
-        <div class="pp-info"><div class="pp-name">${p.name}</div><div class="pp-meta">${p.pos} · #${p.num} · ${t.name}</div></div>
+        <div class="pp-info"><div class="pp-name">${p.name}</div><div class="pp-meta">${p.pos} · #${p.num}${lower?` · ${t.name}`:''}</div></div>
         <div class="pp-ovr">${p.ovr}</div>
-      </div>`).join('')}`).join('');
+      </div>`).join('');
+  }).join('')||`<div style="text-align:center;padding:24px 0;color:#3D5845;font-size:12px;font-weight:700;">No players match "${term}"</div>`;
   list.querySelectorAll('.picker-player-row').forEach(row=>{
     row.addEventListener('click',()=>{
-      const name=row.dataset.name;
-      const tid=row.dataset.tid;
-      const team=TEAMS.find(t=>t.id===tid);
-      const player=team.players.find(p=>p.name===name);
+      const team=TEAMS.find(t=>t.id===row.dataset.tid);
+      const player=team&&team.players.find(p=>p.name===row.dataset.name);
+      if(!player)return;
       if(pickerSlot==='A') radarA=player; else radarB=player;
       closeRadarPicker();
       renderRadarSlots();
     });
   });
+}
+function openRadarPicker(slot){
+  pickerSlot=slot;
+  document.getElementById('pickerTitle').textContent=slot==='A'?'Player A — Select':'Player B — Select';
+  const searchEl=document.getElementById('radarPickerSearch');
+  searchEl.value='';
+  _renderPickerList('');
   document.getElementById('radarPickerOverlay').classList.add('open');
+  setTimeout(()=>searchEl.focus(),120);
 }
 function closeRadarPicker(){document.getElementById('radarPickerOverlay').classList.remove('open');}
+document.getElementById('radarPickerSearch').addEventListener('input',e=>_renderPickerList(e.target.value));
 document.getElementById('pickerClose').addEventListener('click',closeRadarPicker);
-document.getElementById('radarPickerOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('radarPickerOverlay')) closeRadarPicker();});
+document.getElementById('radarPickerOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('radarPickerOverlay'))closeRadarPicker();});
 
 /* ── Add Player ─── */
 let _apFoot='Right';
