@@ -919,12 +919,25 @@
       border-radius: 10px; padding: 14px 16px; margin: 14px 0 0;
     }
     .dp-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .dp-avatar-wrap {
+      position: relative; flex-shrink: 0; width: 52px; height: 52px; cursor: pointer;
+    }
     .dp-avatar {
-      width: 38px; height: 38px; border-radius: 50%;
+      width: 52px; height: 52px; border-radius: 50%; overflow: hidden;
       background: linear-gradient(135deg, var(--lime) 0%, var(--cyan) 100%);
       display: flex; align-items: center; justify-content: center;
-      font-family: var(--font-m); font-size: .65rem; font-weight: 700;
-      color: #060d09; flex-shrink: 0; letter-spacing: .04em;
+      font-family: var(--font-m); font-size: .72rem; font-weight: 700;
+      color: #060d09; letter-spacing: .04em;
+      border: 2px solid transparent; transition: border-color .15s;
+    }
+    .dp-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .dp-avatar-wrap:hover .dp-avatar { border-color: var(--lime); }
+    .dp-avatar-edit {
+      position: absolute; bottom: 0; right: 0;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--surf2); border: 1px solid var(--brd2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .5rem; color: var(--txt2); pointer-events: none;
     }
     .dp-info { flex: 1; }
     .dp-lvl { font-family: var(--font-m); font-size: .52rem; letter-spacing: .18em; color: var(--lime); }
@@ -1091,6 +1104,7 @@
 
 <!-- XP Toast -->
 <div id="xp-toast">+0 XP</div>
+<input type="file" id="pfp-input" accept="image/*" style="display:none" onchange="handlePfpChange(this)">
 
 <!-- ══ SIDE DRAWER ══ -->
 <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
@@ -1855,6 +1869,7 @@ function defaultProfile() {
     xp: 0, totalXp: 0, theme: 'default',
     selectedPups: [], ownedItems: ['default'],
     gamesPlayed: 0, bestTime: null, mostBoards: 0,
+    pfp: null,
   };
 }
 function loadProfile() {
@@ -1915,6 +1930,36 @@ function showXpToast(amount) {
   el.classList.add('show');
 }
 function renderProfile() { renderDrawer(); }
+function openPfpPicker() {
+  document.getElementById('pfp-input').click();
+}
+function handlePfpChange(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const size = 160;
+      const cvs = document.createElement('canvas');
+      cvs.width = cvs.height = size;
+      const ctx = cvs.getContext('2d');
+      const dim = Math.min(img.width, img.height);
+      const sx = (img.width - dim) / 2;
+      const sy = (img.height - dim) / 2;
+      ctx.beginPath();
+      ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+      ctx.clip();
+      ctx.drawImage(img, sx, sy, dim, dim, 0, 0, size, size);
+      profile.pfp = cvs.toDataURL('image/jpeg', 0.82);
+      saveProfile();
+      renderDrawer();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
 function openLevelUp(lv) {
   const card = document.getElementById('ov-card');
   card.innerHTML = `<div class="ov-eyebrow">Level Up</div>
@@ -2099,9 +2144,15 @@ function renderDrawer() {
   const played = profile.gamesPlayed || 0;
 
   // ── Profile ──
+  const avatarInner = profile.pfp
+    ? `<img src="${profile.pfp}" alt="Profile photo">`
+    : initials;
   let html = `<div class="dp-card">
     <div class="dp-top">
-      <div class="dp-avatar">${initials}</div>
+      <div class="dp-avatar-wrap" onclick="openPfpPicker()" title="Change photo">
+        <div class="dp-avatar">${avatarInner}</div>
+        <div class="dp-avatar-edit">✎</div>
+      </div>
       <div class="dp-info">
         <div class="dp-lvl">LEVEL ${lv + 1}</div>
         <div class="dp-name">${lvName}</div>
