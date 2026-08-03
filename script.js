@@ -19,6 +19,8 @@
       document.getElementById('calendlyConfirmed').style.display = 'none';
       document.getElementById('calendlyContainer').style.display = '';
       document.getElementById('calendlyContainer').innerHTML = '';
+      document.getElementById('calendlyFallback').style.display = 'none';
+      document.getElementById('calFallbackContainer').innerHTML = '';
       document.getElementById('bookingForm').reset();
     }, 300);
   }
@@ -27,7 +29,110 @@
   // e.g. 'https://calendly.com/your-name/soccer-session'. Configure your
   // 7:30am-4:30pm / 7-day availability and 30-minute buffer in Calendly's own
   // Availability settings — this embed just displays whatever it shows you.
+  // Until it's set, booking uses the built-in calendar picker below instead.
   const CALENDLY_URL = '';
+
+  // ====== BUILT-IN SCHEDULE / TIME-SLOT PICKER ======
+  // Coach's working hours and session spacing — edit these to change availability everywhere.
+  const SCHEDULE_START_MIN = 7 * 60 + 30;   // 7:30 AM
+  const SCHEDULE_END_MIN = 16 * 60 + 30;    // 4:30 PM
+  const SESSION_MINUTES = 75;               // length of a session
+  const BUFFER_MINUTES = 30;                // gap required after a session before the next can start
+
+  function getDaySlots() {
+    const slots = [];
+    for (let t = SCHEDULE_START_MIN; t + SESSION_MINUTES <= SCHEDULE_END_MIN; t += SESSION_MINUTES + BUFFER_MINUTES) {
+      slots.push(t);
+    }
+    return slots;
+  }
+  function formatTime(mins) {
+    const h = Math.floor(mins / 60), m = mins % 60;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return h12 + (m ? ':' + String(m).padStart(2, '0') : '') + ' ' + ampm;
+  }
+
+  // Renders a self-contained month calendar + open-times list into `container`,
+  // calling onPick(dateLabel, timeLabel) when a time slot is chosen. Every day
+  // Mon–Sun is available (per the coach's hours above); only past days are blocked.
+  function createCalendarWidget(container, onPick) {
+    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    let viewYear, viewMonth;
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    viewYear = today.getFullYear();
+    viewMonth = today.getMonth();
+    let selectedDate = new Date(today);
+
+    function render() {
+      const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+      const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+      const isCurrentMonth = viewYear === today.getFullYear() && viewMonth === today.getMonth();
+
+      let cells = ['S','M','T','W','T','F','S'].map(d => `<div class="cal-dow">${d}</div>`).join('');
+      for (let i = 0; i < firstDay; i++) cells += '<div class="cal-day empty"></div>';
+      for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(viewYear, viewMonth, d);
+        const isPast = date < today;
+        const isSelected = date.getTime() === selectedDate.getTime();
+        cells += `<button type="button" class="cal-day${isPast ? ' disabled' : ''}${isSelected ? ' selected' : ''}" ${isPast ? 'disabled' : ''} data-d="${d}">${d}</button>`;
+      }
+
+      const slots = getDaySlots();
+      const dateLabel = selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+      const slotsHtml = slots.map(mins => `<button type="button" class="cal-slot" data-mins="${mins}">${formatTime(mins)}</button>`).join('');
+
+      container.innerHTML = `
+        <div class="cal-header">
+          <button type="button" class="cal-nav" data-nav="-1" ${isCurrentMonth ? 'disabled' : ''}>‹</button>
+          <div class="cal-month-label">${monthNames[viewMonth]} ${viewYear}</div>
+          <button type="button" class="cal-nav" data-nav="1">›</button>
+        </div>
+        <div class="cal-grid">${cells}</div>
+        <div class="cal-slots">
+          <div class="cal-slots-label">Open times — ${dateLabel}</div>
+          <div class="cal-slots-grid">${slotsHtml}</div>
+        </div>
+      `;
+
+      container.querySelectorAll('.cal-day:not(.empty):not(.disabled)').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selectedDate = new Date(viewYear, viewMonth, parseInt(btn.dataset.d, 10));
+          render();
+        });
+      });
+      container.querySelectorAll('.cal-nav').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (btn.disabled) return;
+          const delta = parseInt(btn.dataset.nav, 10);
+          const next = new Date(viewYear, viewMonth + delta, 1);
+          viewYear = next.getFullYear();
+          viewMonth = next.getMonth();
+          render();
+        });
+      });
+      container.querySelectorAll('.cal-slot').forEach(btn => {
+        btn.addEventListener('click', () => onPick(dateLabel, formatTime(parseInt(btn.dataset.mins, 10))));
+      });
+    }
+    render();
+  }
+
+  // Sidebar "Calendar" — schedule preview with a book-this-slot shortcut
+  function openSchedule() {
+    closeMenu();
+    document.getElementById('scheduleModal').classList.add('show');
+    createCalendarWidget(document.getElementById('calScheduleContainer'), function(dateLabel, timeLabel) {
+      closeSchedule();
+      openModal('Session request — ' + dateLabel + ' at ' + timeLabel);
+    });
+  }
+  function closeSchedule() {
+    document.getElementById('scheduleModal').classList.remove('show');
+  }
+  document.getElementById('scheduleModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeSchedule();
+  });
 
   function submitBooking(e) {
     e.preventDefault();
@@ -41,6 +146,12 @@
     if (!CALENDLY_URL) {
       container.style.display = 'none';
       fallback.style.display = 'block';
+      createCalendarWidget(document.getElementById('calFallbackContainer'), function(dateLabel, timeLabel) {
+        fallback.style.display = 'none';
+        const confirmed = document.getElementById('calendlyConfirmed');
+        confirmed.textContent = '✓ Requested ' + dateLabel + ' at ' + timeLabel + " — we'll confirm by email shortly.";
+        confirmed.style.display = 'block';
+      });
       return;
     }
     fallback.style.display = 'none';
@@ -54,11 +165,13 @@
     }
   }
 
-  // Swap in a confirmation message once the parent actually picks a slot
+  // Swap in a confirmation message once the parent actually picks a slot via Calendly
   window.addEventListener('message', function(e) {
     if (e.data && e.data.event === 'calendly.event_scheduled') {
       document.getElementById('calendlyContainer').style.display = 'none';
-      document.getElementById('calendlyConfirmed').style.display = 'block';
+      const confirmed = document.getElementById('calendlyConfirmed');
+      confirmed.textContent = "✓ You're all set! A confirmation email is on its way.";
+      confirmed.style.display = 'block';
     }
   });
   document.getElementById('bookingModal')?.addEventListener('click', function(e) {
