@@ -12,14 +12,55 @@
   }
   function closeModal() {
     document.getElementById('bookingModal').classList.remove('show');
+    // Reset back to the intake form after the close animation finishes
+    setTimeout(() => {
+      document.getElementById('bookingStep1').style.display = '';
+      document.getElementById('bookingStep2').style.display = 'none';
+      document.getElementById('calendlyConfirmed').style.display = 'none';
+      document.getElementById('calendlyContainer').style.display = '';
+      document.getElementById('calendlyContainer').innerHTML = '';
+      document.getElementById('bookingForm').reset();
+    }, 300);
   }
+
+  // Set this to your Calendly scheduling page URL once your account is set up,
+  // e.g. 'https://calendly.com/your-name/soccer-session'. Configure your
+  // 7:30am-4:30pm / 7-day availability and 30-minute buffer in Calendly's own
+  // Availability settings — this embed just displays whatever it shows you.
+  const CALENDLY_URL = '';
+
   function submitBooking(e) {
     e.preventDefault();
     const name = document.getElementById('parentName').value;
-    alert('Thank you ' + name + '! Your inquiry has been sent. We will be in touch soon!');
-    e.target.reset();
-    closeModal();
+    const email = document.getElementById('email').value;
+    document.getElementById('bookingStep1').style.display = 'none';
+    document.getElementById('bookingStep2').style.display = 'block';
+
+    const container = document.getElementById('calendlyContainer');
+    const fallback = document.getElementById('calendlyFallback');
+    if (!CALENDLY_URL) {
+      container.style.display = 'none';
+      fallback.style.display = 'block';
+      return;
+    }
+    fallback.style.display = 'none';
+    container.style.display = 'block';
+    if (window.Calendly) {
+      window.Calendly.initInlineWidget({
+        url: CALENDLY_URL + '?background_color=121212&text_color=e7e9ec&primary_color=c6ff3d',
+        parentElement: container,
+        prefill: { name: name, email: email }
+      });
+    }
   }
+
+  // Swap in a confirmation message once the parent actually picks a slot
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.event === 'calendly.event_scheduled') {
+      document.getElementById('calendlyContainer').style.display = 'none';
+      document.getElementById('calendlyConfirmed').style.display = 'block';
+    }
+  });
   document.getElementById('bookingModal')?.addEventListener('click', function(e) {
     if (e.target === this) closeModal();
   });

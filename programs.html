@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Programs & Pricing | Coach Chucho Elite Training</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://assets.calendly.com/assets/external/widget.js"></script>
 </head>
 <body>
 
@@ -166,49 +167,64 @@
 <!-- BOOKING MODAL -->
 <div class="modal" id="bookingModal">
   <div class="modal-box">
-    <div class="modal-title">Book Now</div>
-    <div class="modal-plan" id="planLabel"></div>
-    <form onsubmit="submitBooking(event)">
-      <div class="form-row">
-        <div class="form-grp">
-          <label>Kid's name</label>
-          <input type="text" id="kidsName" placeholder="Alex" required>
+    <div id="bookingStep1">
+      <div class="modal-title">Book Now</div>
+      <div class="modal-plan" id="planLabel"></div>
+      <form id="bookingForm" onsubmit="submitBooking(event)">
+        <div class="form-row">
+          <div class="form-grp">
+            <label>Kid's name</label>
+            <input type="text" id="kidsName" placeholder="Alex" required>
+          </div>
+          <div class="form-grp">
+            <label>Kid's age</label>
+            <input type="number" id="kidsAge" placeholder="10" min="1" max="20" required>
+          </div>
         </div>
         <div class="form-grp">
-          <label>Kid's age</label>
-          <input type="number" id="kidsAge" placeholder="10" min="1" max="20" required>
+          <label>Position(s) played</label>
+          <input type="text" id="positions" placeholder="e.g., Forward, Midfielder" required>
         </div>
-      </div>
-      <div class="form-grp">
-        <label>Position(s) played</label>
-        <input type="text" id="positions" placeholder="e.g., Forward, Midfielder" required>
-      </div>
-      <div class="form-row">
+        <div class="form-row">
+          <div class="form-grp">
+            <label>Parent's name</label>
+            <input type="text" id="parentName" placeholder="John Doe" required>
+          </div>
+          <div class="form-grp">
+            <label>Parent's phone</label>
+            <input type="tel" id="phone" placeholder="(555) 123-4567" required>
+          </div>
+        </div>
         <div class="form-grp">
-          <label>Parent's name</label>
-          <input type="text" id="parentName" placeholder="John Doe" required>
+          <label>Parent's email</label>
+          <input type="email" id="email" placeholder="you@email.com" required>
         </div>
         <div class="form-grp">
-          <label>Parent's phone</label>
-          <input type="tel" id="phone" placeholder="(555) 123-4567" required>
+          <label>Additional notes</label>
+          <textarea id="notes" placeholder="Any injuries, goals, or special requests..." style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(198,255,61,0.2); border-radius: 8px; font-family: 'Manrope', sans-serif; color: #E7E9EC; font-size: 14px; resize: vertical; min-height: 80px;"></textarea>
         </div>
+        <div style="background: rgba(198,255,61,0.1); border: 1px solid rgba(198,255,61,0.3); border-radius: 8px; padding: 12px; margin-bottom: 18px; font-size: 13px; color: var(--gold); text-align: center;">
+          <strong>50% deposit required</strong> to complete this booking
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="send-btn">Next: pick a time</button>
+          <button type="button" class="cancel-btn" onclick="closeModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="bookingStep2" style="display:none">
+      <div class="modal-title">Pick a date &amp; time</div>
+      <p class="step2-hint">Available 7:30 AM – 4:30 PM, every day. Sessions are automatically spaced 30 minutes apart.</p>
+      <div id="calendlyContainer" style="min-height: 480px;"></div>
+      <div id="calendlyFallback" style="display:none;">
+        <p class="step2-hint" style="margin-bottom: 0;">Online scheduling is launching soon — we'll reach out by phone or email within 24 hours to confirm your date and time.</p>
       </div>
-      <div class="form-grp">
-        <label>Parent's email</label>
-        <input type="email" id="email" placeholder="you@email.com" required>
-      </div>
-      <div class="form-grp">
-        <label>Additional notes</label>
-        <textarea id="notes" placeholder="Any injuries, goals, or special requests..." style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(198,255,61,0.2); border-radius: 8px; font-family: 'Manrope', sans-serif; color: #E7E9EC; font-size: 14px; resize: vertical; min-height: 80px;"></textarea>
-      </div>
-      <div style="background: rgba(198,255,61,0.1); border: 1px solid rgba(198,255,61,0.3); border-radius: 8px; padding: 12px; margin-bottom: 18px; font-size: 13px; color: var(--gold); text-align: center;">
-        <strong>50% deposit required</strong> to complete this booking
-      </div>
+      <div id="calendlyConfirmed" class="booking-confirmed" style="display:none;">✓ You're all set! A confirmation email is on its way.</div>
       <div class="modal-actions">
-        <button type="submit" class="send-btn">Send inquiry</button>
-        <button type="button" class="cancel-btn" onclick="closeModal()">Cancel</button>
+        <button type="button" class="cancel-btn" onclick="closeModal()" style="width: 100%;">Close</button>
       </div>
-    </form>
+    </div>
   </div>
 </div>
 
