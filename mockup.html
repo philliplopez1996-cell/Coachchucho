@@ -601,6 +601,19 @@ button{transition:transform .08s ease;}
 .pgm-section-title{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.3px;color:#3D5845;margin-top:12px;margin-bottom:5px;}
 .pgm-stat-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;color:#DFF0E3;font-weight:700;}
 .pgm-stat-row:last-child{border-bottom:none;}
+/* ── Game-mode layout: pitch always fully visible ── */
+#tab-pitch.game-mode{overflow:hidden!important;padding:7px 12px 8px!important;gap:5px!important;}
+#tab-pitch.game-mode .pitch-board{flex:1;min-height:0;}
+#tab-pitch.game-mode .pitch-board svg{height:100%;}
+#tab-pitch.game-mode .pitch-game-hud{padding:7px 10px;flex-shrink:0;}
+#tab-pitch.game-mode .pitch-form-bar{flex-shrink:0;}
+#tab-pitch.game-mode .lp-btn{padding:6px 4px;font-size:10px;}
+#tab-pitch.game-mode .pitch-game-actions{flex-shrink:0;}
+#tab-pitch.game-mode .pitch-match-log{max-height:56px;flex-shrink:0;}
+#tab-pitch.game-mode .pitch-bench-section{flex-shrink:0;padding:6px 8px;}
+#tab-pitch.game-mode .bench-chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;}
+#tab-pitch.game-mode .bench-chips::-webkit-scrollbar{display:none;}
+#tab-pitch.game-mode .bench-title{margin-bottom:5px;}
 </style>
 
 <div class="pg-header">
@@ -2316,6 +2329,7 @@ const _svgPOTM=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stro
 const _svgAssist=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#00E564" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M15 8l4 4-4 4"/><circle cx="5" cy="12" r="1.5" fill="#00E564"/></svg>`;
 
 function activateGameMode(){
+  document.getElementById('tab-pitch').classList.add('game-mode');
   document.getElementById('pitchNormalHead').style.display='none';
   document.getElementById('pitchGameHud').style.display='flex';
   document.getElementById('saveFormBtn').style.display='none';
@@ -2326,8 +2340,10 @@ function activateGameMode(){
   renderBench();
 }
 function deactivateGameMode(){
+  document.getElementById('tab-pitch').classList.remove('game-mode');
   document.getElementById('pitchNormalHead').style.display='flex';
   document.getElementById('pitchGameHud').style.display='none';
+  document.getElementById('pitchFormBar').style.display='flex';
   document.getElementById('saveFormBtn').style.display='';
   document.getElementById('pitchFormationLbl').style.display='block';
   document.getElementById('pitchDragHint').style.display='flex';
@@ -2433,8 +2449,8 @@ function showPostGameSummary(){
 }
 document.getElementById('pgmClose').addEventListener('click',()=>{
   document.getElementById('postGameModal').classList.remove('open');
-  deactivateGameMode();
   _mtEvent=null;
+  deactivateGameMode();
 });
 document.getElementById('pgaGoalBtn').addEventListener('click',()=>{
   const ev=_mtEvent;
