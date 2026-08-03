@@ -972,30 +972,32 @@
     }
     .cal-month-label {
       font-family: 'Iceland', sans-serif;
-      font-size: 19px;
+      font-size: 20px;
       letter-spacing: 0.03em;
-      color: #E7E9EC;
+      color: var(--lime);
+      text-shadow: 0 0 12px rgba(198,255,61,0.35);
     }
     .cal-grid {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      gap: 5px;
-      margin-bottom: 20px;
+      gap: 6px;
+      margin-bottom: 22px;
     }
     .cal-dow {
       text-align: center;
       font-size: 11px;
-      font-weight: 700;
-      color: #9aa5b1;
-      padding-bottom: 4px;
+      font-weight: 800;
+      color: var(--gold);
+      padding-bottom: 6px;
     }
     .cal-day {
       aspect-ratio: 1;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 8px;
+      background: rgba(198,255,61,0.07);
+      border: 1px solid rgba(198,255,61,0.22);
+      border-radius: 9px;
       color: #E7E9EC;
       font-family: 'Manrope', sans-serif;
+      font-weight: 600;
       font-size: 13px;
       cursor: pointer;
       transition: all 0.2s;
@@ -1006,17 +1008,27 @@
       cursor: default;
     }
     .cal-day:hover:not(.disabled):not(.empty) {
-      border-color: rgba(198,255,61,0.4);
-      background: rgba(198,255,61,0.1);
+      border-color: var(--lime);
+      background: rgba(198,255,61,0.28);
+      transform: translateY(-1px);
+    }
+    .cal-day.today {
+      border: 1.5px solid var(--gold);
+      color: var(--gold);
+      font-weight: 800;
     }
     .cal-day.selected {
-      background: var(--lime);
+      background: linear-gradient(135deg, var(--gold), var(--lime));
       border-color: var(--lime);
       color: var(--dark);
       font-weight: 800;
+      box-shadow: 0 0 16px rgba(198,255,61,0.55);
     }
     .cal-day.disabled {
-      opacity: 0.25;
+      background: rgba(255,255,255,0.03);
+      border-color: rgba(255,255,255,0.06);
+      color: #9aa5b1;
+      opacity: 0.4;
       cursor: default;
     }
     .cal-slots-label {
@@ -1034,20 +1046,42 @@
     }
     .cal-slot {
       padding: 9px 14px;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(198,255,61,0.25);
+      background: rgba(198,255,61,0.14);
+      border: 1px solid rgba(198,255,61,0.5);
       border-radius: 20px;
-      color: #E7E9EC;
+      color: var(--lime);
       font-family: 'Manrope', sans-serif;
+      font-weight: 700;
       font-size: 13px;
       cursor: pointer;
       transition: all 0.2s;
     }
     .cal-slot:hover {
-      background: var(--lime);
+      background: linear-gradient(135deg, var(--gold), var(--lime));
       border-color: var(--lime);
       color: var(--dark);
-      font-weight: 700;
+      box-shadow: 0 0 14px rgba(198,255,61,0.4);
+      transform: translateY(-1px);
+    }
+    .cal-confirm {
+      text-align: center;
+      padding: 16px 4px 4px;
+    }
+    .cal-confirm-label {
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+    .cal-confirm-datetime {
+      font-family: 'Iceland', sans-serif;
+      font-size: 28px;
+      color: var(--lime);
+      line-height: 1.35;
+      text-shadow: 0 0 14px rgba(198,255,61,0.35);
+      margin-bottom: 26px;
     }
     .send-btn {
       flex: 1;

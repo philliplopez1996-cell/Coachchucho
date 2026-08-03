@@ -56,7 +56,8 @@
   // Renders a self-contained month calendar + open-times list into `container`,
   // calling onPick(dateLabel, timeLabel) when a time slot is chosen. Every day
   // Mon–Sun is available (per the coach's hours above); only past days are blocked.
-  function createCalendarWidget(container, onPick) {
+  function createCalendarWidget(container, onPick, confirmLabel) {
+    confirmLabel = confirmLabel || 'Confirm time';
     const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
     let viewYear, viewMonth;
     const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -75,7 +76,8 @@
         const date = new Date(viewYear, viewMonth, d);
         const isPast = date < today;
         const isSelected = date.getTime() === selectedDate.getTime();
-        cells += `<button type="button" class="cal-day${isPast ? ' disabled' : ''}${isSelected ? ' selected' : ''}" ${isPast ? 'disabled' : ''} data-d="${d}">${d}</button>`;
+        const isToday = date.getTime() === today.getTime();
+        cells += `<button type="button" class="cal-day${isPast ? ' disabled' : ''}${isSelected ? ' selected' : ''}${isToday && !isSelected ? ' today' : ''}" ${isPast ? 'disabled' : ''} data-d="${d}">${d}</button>`;
       }
 
       const slots = getDaySlots();
@@ -112,8 +114,27 @@
         });
       });
       container.querySelectorAll('.cal-slot').forEach(btn => {
-        btn.addEventListener('click', () => onPick(dateLabel, formatTime(parseInt(btn.dataset.mins, 10))));
+        btn.addEventListener('click', () => {
+          renderConfirm(dateLabel, formatTime(parseInt(btn.dataset.mins, 10)));
+        });
       });
+    }
+
+    // A tap on a time slot doesn't commit right away — show a confirm/back
+    // screen first so an accidental tap never books the wrong time.
+    function renderConfirm(dateLabel, timeLabel) {
+      container.innerHTML = `
+        <div class="cal-confirm">
+          <div class="cal-confirm-label">Confirm this time?</div>
+          <div class="cal-confirm-datetime">${dateLabel}<br>${timeLabel}</div>
+          <div class="modal-actions">
+            <button type="button" class="send-btn" id="calConfirmBtn">${confirmLabel}</button>
+            <button type="button" class="cancel-btn" id="calBackBtn">Choose another time</button>
+          </div>
+        </div>
+      `;
+      document.getElementById('calConfirmBtn').addEventListener('click', () => onPick(dateLabel, timeLabel));
+      document.getElementById('calBackBtn').addEventListener('click', render);
     }
     render();
   }
@@ -125,7 +146,7 @@
     createCalendarWidget(document.getElementById('calScheduleContainer'), function(dateLabel, timeLabel) {
       closeSchedule();
       openModal('Session request — ' + dateLabel + ' at ' + timeLabel);
-    });
+    }, 'Confirm & start booking');
   }
   function closeSchedule() {
     document.getElementById('scheduleModal').classList.remove('show');
@@ -151,7 +172,7 @@
         const confirmed = document.getElementById('calendlyConfirmed');
         confirmed.textContent = '✓ Requested ' + dateLabel + ' at ' + timeLabel + " — we'll confirm by email shortly.";
         confirmed.style.display = 'block';
-      });
+      }, 'Confirm & send request');
       return;
     }
     fallback.style.display = 'none';
