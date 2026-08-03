@@ -2374,7 +2374,13 @@ function haptic(pattern) {
 // CANVAS ART
 // ══════════════════════════════════════════
 
+function _clearPhotoBg(canvas) {
+  const wrap = canvas && canvas.parentElement;
+  if (wrap) { wrap.style.backgroundImage = ''; wrap.style.backgroundSize = ''; wrap.style.backgroundPosition = ''; }
+}
+
 function drawArtDefault(canvas) {
+  _clearPhotoBg(canvas);
   const W = canvas.width, H = canvas.height;
   const ctx = canvas.getContext('2d');
 
@@ -2547,6 +2553,7 @@ function drawArtDefault(canvas) {
 }
 
 function drawArtNature(canvas) {
+  _clearPhotoBg(canvas);
   const W = canvas.width, H = canvas.height;
   const ctx = canvas.getContext('2d');
   const sky = ctx.createLinearGradient(0, 0, 0, H * 0.65);
@@ -2597,6 +2604,7 @@ function drawArtNature(canvas) {
 }
 
 function drawArtCyber(canvas) {
+  _clearPhotoBg(canvas);
   const W = canvas.width, H = canvas.height;
   const ctx = canvas.getContext('2d');
   const sky=ctx.createLinearGradient(0,0,0,H*.55);
@@ -2720,13 +2728,12 @@ _IMG_BEACH.src = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQY
 function drawArtBeach(canvas) {
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  const draw = () => {
-    ctx.drawImage(_IMG_BEACH, 0, 0, canvas.width, canvas.height);
-    const v = ctx.createRadialGradient(canvas.width/2,canvas.height/2,0,canvas.width/2,canvas.height/2,Math.max(canvas.width,canvas.height)*.75);
-    v.addColorStop(.45,'rgba(0,0,0,0)'); v.addColorStop(1,'rgba(0,0,0,.38)');
-    ctx.fillStyle=v; ctx.fillRect(0,0,canvas.width,canvas.height);
-  };
-  if (_IMG_BEACH.complete && _IMG_BEACH.naturalWidth) draw(); else _IMG_BEACH.onload = draw;
+  const wrap = canvas.parentElement;
+  if (wrap) {
+    wrap.style.backgroundImage = "url('" + _IMG_BEACH.src + "')";
+    wrap.style.backgroundSize = 'cover';
+    wrap.style.backgroundPosition = 'center';
+  }
 }
 
 const _IMG_HIIGH = new Image();
@@ -2734,13 +2741,12 @@ _IMG_HIIGH.src = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQY
 function drawArtHiigh(canvas) {
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  const draw = () => {
-    ctx.drawImage(_IMG_HIIGH, 0, 0, canvas.width, canvas.height);
-    const v = ctx.createRadialGradient(canvas.width/2,canvas.height/2,0,canvas.width/2,canvas.height/2,Math.max(canvas.width,canvas.height)*.75);
-    v.addColorStop(.45,'rgba(0,0,0,0)'); v.addColorStop(1,'rgba(0,0,0,.38)');
-    ctx.fillStyle=v; ctx.fillRect(0,0,canvas.width,canvas.height);
-  };
-  if (_IMG_HIIGH.complete && _IMG_HIIGH.naturalWidth) draw(); else _IMG_HIIGH.onload = draw;
+  const wrap = canvas.parentElement;
+  if (wrap) {
+    wrap.style.backgroundImage = "url('" + _IMG_HIIGH.src + "')";
+    wrap.style.backgroundSize = 'cover';
+    wrap.style.backgroundPosition = 'center';
+  }
 }
 
 function triggerWinReveal() {
