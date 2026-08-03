@@ -25,12 +25,11 @@
     }, 300);
   }
 
-  // Set this to your Calendly scheduling page URL once your account is set up,
-  // e.g. 'https://calendly.com/your-name/soccer-session'. Configure your
-  // 7:30am-4:30pm / 7-day availability and 30-minute buffer in Calendly's own
-  // Availability settings — this embed just displays whatever it shows you.
-  // Until it's set, booking uses the built-in calendar picker below instead.
-  const CALENDLY_URL = '';
+  // Coach's real Calendly scheduling page. 7:30am-4:30pm / 7-day availability and the
+  // 30-minute buffer are configured on the Calendly side (Availability settings) —
+  // this embed just displays whatever it shows. Clear this to fall back to the
+  // built-in calendar picker instead (e.g. while testing without a Calendly account).
+  const CALENDLY_URL = 'https://calendly.com/felipe-gsasoccer';
 
   // ====== BUILT-IN SCHEDULE / TIME-SLOT PICKER ======
   // Coach's working hours and session spacing — edit these to change availability everywhere.
@@ -143,10 +142,26 @@
   function openSchedule() {
     closeMenu();
     document.getElementById('scheduleModal').classList.add('show');
-    createCalendarWidget(document.getElementById('calScheduleContainer'), function(dateLabel, timeLabel) {
-      closeSchedule();
-      openModal('Session request — ' + dateLabel + ' at ' + timeLabel);
-    }, 'Confirm & start booking');
+    const container = document.getElementById('calScheduleContainer');
+    const bookBtnWrap = document.getElementById('scheduleBookBtnWrap');
+    if (CALENDLY_URL) {
+      // Real, live availability — show the actual Calendly picker to browse,
+      // then a plain button to start the real booking flow (intake form first).
+      bookBtnWrap.style.display = 'flex';
+      container.innerHTML = '';
+      if (window.Calendly) {
+        window.Calendly.initInlineWidget({
+          url: CALENDLY_URL + '?background_color=121212&text_color=e7e9ec&primary_color=c6ff3d',
+          parentElement: container
+        });
+      }
+    } else {
+      bookBtnWrap.style.display = 'none';
+      createCalendarWidget(container, function(dateLabel, timeLabel) {
+        closeSchedule();
+        openModal('Session request — ' + dateLabel + ' at ' + timeLabel);
+      }, 'Confirm & start booking');
+    }
   }
   function closeSchedule() {
     document.getElementById('scheduleModal').classList.remove('show');
