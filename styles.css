@@ -996,7 +996,9 @@
       .hero { padding: 80px 20px 30px; min-height: clamp(480px, 130vw, 640px); background-position: center !important; }
       .pricing-home, .testimonials-home { padding: 35px 18px; }
       .gallery-section { padding: 35px 18px 40px; width: 100%; }
-      .form-row { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .form-grp { margin-bottom: 14px; }
+      .form-grp input { padding: 11px 12px; }
       .eval-banner { flex-direction: column; text-align: center; }
       .eval-banner p { max-width: 100%; }
       .camp-banner { flex-direction: column; text-align: center; }
