@@ -993,7 +993,7 @@
     @media (max-width: 768px) {
       .pricing-grid, .testi-grid { grid-template-columns: 1fr; }
       .price-card.featured { transform: scale(1); }
-      .hero { padding: 80px 20px 30px; min-height: 70vh; background-position: center 30% !important; }
+      .hero { padding: 80px 20px 30px; min-height: clamp(480px, 130vw, 640px); background-position: center !important; }
       .pricing-home, .testimonials-home { padding: 35px 18px; }
       .gallery-section { padding: 35px 18px 40px; width: 100%; }
       .form-row { grid-template-columns: 1fr; }
