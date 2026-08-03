@@ -563,14 +563,16 @@ button{transition:transform .08s ease;}
 .pgh-live-dot{width:7px;height:7px;border-radius:50%;background:#FF4444;box-shadow:0 0 6px rgba(255,68,68,.8);animation:live-pulse 1.2s ease-in-out infinite;}
 @keyframes live-pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
 /* Pitch game action buttons */
-.pitch-game-actions{display:flex;gap:6px;width:100%;}
-.pga-btn{flex:1;padding:10px 4px;border-radius:12px;font-size:10px;font-weight:900;letter-spacing:.4px;text-transform:uppercase;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:transform .08s;}
-.pga-btn:active{transform:scale(0.9);}
-.pga-btn span{font-size:17px;line-height:1;}
+.pitch-game-actions{display:flex;gap:8px;width:100%;}
+.pga-btn{flex:1;padding:9px 6px;border-radius:10px;font-size:9.5px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:transform .08s;}
+.pga-btn:active{transform:scale(0.92);}
+.pga-btn svg{width:18px;height:18px;}
 .pga-goal{background:rgba(0,229,100,.12);border:1px solid rgba(0,229,100,.35);color:#00E564;}
 .pga-sub{background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);color:#FFD700;}
-.pga-potm{background:rgba(255,140,66,.1);border:1px solid rgba(255,140,66,.3);color:#FF8C42;}
-.pga-end{background:rgba(255,96,96,.12);border:1px solid rgba(255,96,96,.3);color:#FF6060;}
+.pgh-end-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 8px;border-radius:9px;background:rgba(255,68,68,.12);border:1px solid rgba(255,68,68,.35);color:#FF4444;cursor:pointer;transition:transform .08s;}
+.pgh-end-btn:active{transform:scale(0.92);}
+.pgh-end-btn svg{width:13px;height:13px;}
+.pgh-end-lbl{font-size:6px;font-weight:900;text-transform:uppercase;letter-spacing:.8px;}
 /* Pitch match log */
 .pitch-match-log{background:rgba(0,0,0,.22);border-radius:10px;padding:8px 10px;border:1px solid rgba(255,255,255,.04);max-height:84px;overflow-y:auto;scrollbar-width:none;}
 .pitch-match-log::-webkit-scrollbar{display:none;}
@@ -584,7 +586,8 @@ button{transition:transform .08s ease;}
 .pitch-bench-section{background:rgba(0,0,0,.2);border-radius:10px;padding:8px 10px;border:1px solid rgba(255,255,255,.04);}
 .bench-title{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.3px;color:#3D5845;margin-bottom:7px;}
 .bench-chips{display:flex;gap:5px;flex-wrap:wrap;}
-.bench-chip{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 6px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);min-width:40px;}
+.bench-chip{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 6px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);min-width:40px;cursor:pointer;transition:background .1s,border-color .1s;}
+.bench-chip:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.18);}
 .bench-av{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-family:'Impact',Arial,sans-serif;font-size:7px;color:rgba(255,255,255,.65);}
 .bench-nm{font-size:7.5px;font-weight:800;color:#DFF0E3;text-align:center;white-space:nowrap;overflow:hidden;max-width:38px;text-overflow:ellipsis;}
 .bench-pos{font-size:6.5px;font-weight:800;text-transform:uppercase;color:#3D5845;}
@@ -729,10 +732,10 @@ button{transition:transform .08s ease;}
             <div class="pgh-score" id="pghScore">0 – 0</div>
             <div class="pgh-teams" id="pghTeams">Home · Away</div>
           </div>
-          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;">
-            <div class="pgh-live-dot"></div>
-            <div style="font-size:7px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#FF4444;">Live</div>
-          </div>
+          <button class="pgh-end-btn" id="pitchHudEndBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><rect x="7" y="7" width="10" height="10" fill="currentColor" stroke="none"/></svg>
+            <span class="pgh-end-lbl">End</span>
+          </button>
         </div>
         <!-- Formation bar (hidden in game mode) -->
         <div class="pitch-form-bar" id="pitchFormBar">
@@ -767,10 +770,8 @@ button{transition:transform .08s ease;}
         </div>
         <!-- Game action buttons (shown in game mode) -->
         <div class="pitch-game-actions" id="pitchGameActions" style="display:none;">
-          <button class="pga-btn pga-goal" id="pgaGoalBtn"><span>⚽</span>Goal</button>
-          <button class="pga-btn pga-sub" id="pgaSubBtn"><span>↔</span>Sub</button>
-          <button class="pga-btn pga-potm" id="pgaPOTMBtn"><span>🏆</span>POTM</button>
-          <button class="pga-btn pga-end" id="pgaEndBtn"><span>🏁</span>Full Time</button>
+          <button class="pga-btn pga-goal" id="pgaGoalBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/></svg>Goal</button>
+          <button class="pga-btn pga-sub" id="pgaSubBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 4v16l-4-4M17 20V4l4 4"/></svg>Sub</button>
         </div>
         <!-- Match event log (shown in game mode) -->
         <div class="pitch-match-log" id="pitchMatchLog" style="display:none;"><div class="pml-empty">Match events will appear here</div></div>
@@ -1285,10 +1286,10 @@ function renderCards(){
   if(!filtered.length){g.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:32px 0;color:#3D5845;font-size:13px;font-weight:700;">No players found</div>`;return;}
   g.innerHTML=filtered.map(p=>{
     const badges=[
-      p.goals>0?`<span class="pc-ss-badge goals">⚽${p.goals}</span>`:'',
+      p.goals>0?`<span class="pc-ss-badge goals">G${p.goals}</span>`:'',
       p.assists>0?`<span class="pc-ss-badge assists">A${p.assists}</span>`:'',
       p.potm>0?`<span class="pc-ss-badge potm">★${p.potm}</span>`:'',
-      (p.pos==='GK'&&p.cs>0)?`<span class="pc-ss-badge cs">🧤${p.cs}</span>`:'',
+      (p.pos==='GK'&&p.cs>0)?`<span class="pc-ss-badge cs">CS${p.cs}</span>`:'',
     ].join('');
     return `<div class="pc pc-${p.tier}" data-pname="${p.name}">
       <div class="pc-top"><div class="pc-ovr-grp"><div class="pc-ovr">${p.ovr}</div><div class="pc-pos">${p.pos}</div></div><div>${p.flag}</div><div class="pc-num">${p.num}</div></div>
@@ -1662,8 +1663,8 @@ function renderEventForm(){
       <div class="ap-label" style="margin-bottom:4px;">Scorers &amp; Assists</div>
       <div style="display:grid;grid-template-columns:1fr 28px 28px;gap:4px;margin-bottom:4px;padding:0 2px;">
         <div class="spr-col-hd" style="text-align:left;font-size:9px;font-weight:800;text-transform:uppercase;color:#3D5845;">Player</div>
-        <div class="spr-col-hd">⚽</div>
-        <div class="spr-col-hd">🅐</div>
+        <div class="spr-col-hd">G</div>
+        <div class="spr-col-hd">A</div>
       </div>
       <div id="evScorerList">${renderScorerRows(team)}</div>
     </div>`;
@@ -2309,11 +2310,15 @@ document.getElementById('pitchCompareBtn').addEventListener('click',()=>{
 /* ── In-Pitch Game Mode ─── */
 let _mtEvent=null,_mtInterval=null,_mtSeconds=0,_mtHomeGoals=0,_mtAwayGoals=0,_mtLog=[];
 let _mtScorerCounts={},_mtAssistCounts={},_mtPOTM=null,_mtSubMinutes={};
+const _svgGoal=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#00E564" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/></svg>`;
+const _svgSub=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round"><path d="M7 4v16l-4-4M17 20V4l4 4"/></svg>`;
+const _svgPOTM=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#FF8C42" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+const _svgAssist=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#00E564" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M15 8l4 4-4 4"/><circle cx="5" cy="12" r="1.5" fill="#00E564"/></svg>`;
 
 function activateGameMode(){
   document.getElementById('pitchNormalHead').style.display='none';
   document.getElementById('pitchGameHud').style.display='flex';
-  document.getElementById('pitchFormBar').style.display='none';
+  document.getElementById('saveFormBtn').style.display='none';
   document.getElementById('pitchFormationLbl').style.display='none';
   document.getElementById('pitchDragHint').style.display='none';
   document.getElementById('pitchGameActions').style.display='flex';
@@ -2323,7 +2328,7 @@ function activateGameMode(){
 function deactivateGameMode(){
   document.getElementById('pitchNormalHead').style.display='flex';
   document.getElementById('pitchGameHud').style.display='none';
-  document.getElementById('pitchFormBar').style.display='flex';
+  document.getElementById('saveFormBtn').style.display='';
   document.getElementById('pitchFormationLbl').style.display='block';
   document.getElementById('pitchDragHint').style.display='flex';
   document.getElementById('pitchGameActions').style.display='none';
@@ -2350,8 +2355,14 @@ function renderBench(){
     if(isSubbedOff) cls+=' bench-chip-off';
     else if(isOnPitch) cls+=' bench-chip-on';
     const lastName=p.name.split(' ').slice(-1)[0];
-    return `<div class="${cls}"><div class="bench-av">${p.init}</div><div class="bench-nm">${lastName}</div><div class="bench-pos">${p.pos}</div></div>`;
+    return `<div class="${cls}" data-bpname="${p.name}"><div class="bench-av">${p.init}</div><div class="bench-nm">${lastName}</div><div class="bench-pos">${p.pos}</div></div>`;
   }).join('');
+  chips.querySelectorAll('[data-bpname]').forEach(chip=>{
+    chip.addEventListener('click',()=>{
+      const p=players.find(x=>x.name===chip.dataset.bpname);
+      if(p)openPitchSheet(p);
+    });
+  });
 }
 function openMatchTimer(ev){
   _mtEvent=ev;_mtSeconds=0;_mtHomeGoals=0;_mtAwayGoals=0;_mtLog=[];
@@ -2401,9 +2412,9 @@ function showPostGameSummary(){
   const teamName=t?t.name:'Home';
   const resColor=_mtHomeGoals>_mtAwayGoals?'#00E564':_mtHomeGoals<_mtAwayGoals?'#FF6060':'#FFD700';
   const resLabel=_mtHomeGoals>_mtAwayGoals?'WIN':_mtHomeGoals<_mtAwayGoals?'LOSS':'DRAW';
-  const goalRows=Object.entries(_mtScorerCounts).map(([n,g])=>`<div class="pgm-stat-row"><span>⚽ ${n}</span><span style="color:#FFD700">${g} goal${g>1?'s':''}</span></div>`).join('');
-  const astRows=Object.entries(_mtAssistCounts).map(([n,a])=>`<div class="pgm-stat-row"><span>🎯 ${n}</span><span style="color:#00E564">${a} assist${a>1?'s':''}</span></div>`).join('');
-  const subRows=Object.entries(_mtSubMinutes).map(([n,m])=>`<div class="pgm-stat-row"><span>↔ ${n}</span><span style="color:#6B9A78">${m}'</span></div>`).join('');
+  const goalRows=Object.entries(_mtScorerCounts).map(([n,g])=>`<div class="pgm-stat-row"><span style="display:flex;align-items:center;gap:5px;">${_svgGoal} ${n}</span><span style="color:#FFD700">${g} goal${g>1?'s':''}</span></div>`).join('');
+  const astRows=Object.entries(_mtAssistCounts).map(([n,a])=>`<div class="pgm-stat-row"><span style="display:flex;align-items:center;gap:5px;">${_svgAssist} ${n}</span><span style="color:#00E564">${a} assist${a>1?'s':''}</span></div>`).join('');
+  const subRows=Object.entries(_mtSubMinutes).map(([n,m])=>`<div class="pgm-stat-row"><span style="display:flex;align-items:center;gap:5px;">${_svgSub} ${n}</span><span style="color:#6B9A78">${m}'</span></div>`).join('');
   const totalMin=Math.floor(_mtSeconds/60);
   document.getElementById('pgmBody').innerHTML=`
     <div style="background:${resColor}18;border:1px solid ${resColor}40;border-radius:14px;padding:16px;text-align:center;margin-bottom:4px;">
@@ -2414,7 +2425,7 @@ function showPostGameSummary(){
     </div>
     ${goalRows?`<div class="pgm-section-title">Goals</div>${goalRows}`:''}
     ${astRows?`<div class="pgm-section-title">Assists</div>${astRows}`:''}
-    ${_mtPOTM?`<div class="pgm-section-title">Player of the Match</div><div class="pgm-stat-row"><span>🏆 ${_mtPOTM}</span><span style="color:#FF8C42;font-weight:900;">POTM</span></div>`:''}
+    ${_mtPOTM?`<div class="pgm-section-title">Player of the Match</div><div class="pgm-stat-row"><span style="display:flex;align-items:center;gap:5px;">${_svgPOTM} ${_mtPOTM}</span><span style="color:#FF8C42;font-weight:900;">POTM</span></div>`:''}
     ${subRows?`<div class="pgm-section-title">Substitutions</div>${subRows}`:''}
     <div style="margin-top:14px;padding:10px 0;text-align:center;font-size:11px;color:#3D5845;font-weight:700;border-top:1px solid rgba(255,255,255,.05);">✓ Stats saved to player cards</div>
   `;
@@ -2435,7 +2446,7 @@ document.getElementById('pgaGoalBtn').addEventListener('click',()=>{
   picker.style.cssText='position:absolute;inset:0;background:rgba(0,0,0,.78);z-index:88;display:flex;flex-direction:column;justify-content:flex-end;';
   picker.innerHTML=`<div class="mt-gp-sheet"><div class="mt-gp-title">Who scored?</div><button class="mt-gp-opp" id="gpOpp">Opponent Goal</button>${players.map(p=>`<div class="picker-player-row" data-gp="${p.name}"><div class="pp-av">${p.init}</div><div class="pp-info"><div class="pp-name">${p.name}</div><div class="pp-meta">${p.pos} · #${p.num}</div></div><div class="pp-ovr">${p.ovr}</div></div>`).join('')}<button class="mt-gp-cancel" id="gpCancel">Cancel</button></div>`;
   screen.appendChild(picker);
-  picker.querySelector('#gpOpp').addEventListener('click',()=>{_mtAwayGoals++;document.getElementById('pghScore').textContent=`${_mtHomeGoals} – ${_mtAwayGoals}`;_mtAddLog('⚽','Opponent Goal');picker.remove();});
+  picker.querySelector('#gpOpp').addEventListener('click',()=>{_mtAwayGoals++;document.getElementById('pghScore').textContent=`${_mtHomeGoals} – ${_mtAwayGoals}`;_mtAddLog(_svgGoal,'Opponent Goal');picker.remove();});
   picker.querySelector('#gpCancel').addEventListener('click',()=>picker.remove());
   picker.querySelectorAll('[data-gp]').forEach(row=>row.addEventListener('click',()=>{
     const scorerName=row.dataset.gp;
@@ -2449,8 +2460,8 @@ document.getElementById('pgaGoalBtn').addEventListener('click',()=>{
     picker2.innerHTML=`<div class="mt-gp-sheet"><div class="mt-gp-title">Who assisted?</div><button class="mt-gp-opp" id="gpNoAssist">No Assist</button>${players.filter(x=>x.name!==scorerName).map(p=>`<div class="picker-player-row" data-ast="${p.name}"><div class="pp-av">${p.init}</div><div class="pp-info"><div class="pp-name">${p.name}</div><div class="pp-meta">${p.pos} · #${p.num}</div></div><div class="pp-ovr">${p.ovr}</div></div>`).join('')}<button class="mt-gp-cancel" id="astCancel">Cancel</button></div>`;
     screen.appendChild(picker2);
     const finishGoal=(assistName)=>{
-      if(assistName){_mtAssistCounts[assistName]=(_mtAssistCounts[assistName]||0)+1;_mtAddLog('⚽',`${scorerName} scored! (A: ${assistName})`);}
-      else{_mtAddLog('⚽',`${scorerName} scored!`);}
+      if(assistName){_mtAssistCounts[assistName]=(_mtAssistCounts[assistName]||0)+1;_mtAddLog(_svgGoal,`${scorerName} scored! (A: ${assistName})`);}
+      else{_mtAddLog(_svgGoal,`${scorerName} scored!`);}
       picker2.remove();
     };
     picker2.querySelector('#gpNoAssist').addEventListener('click',()=>finishGoal(null));
@@ -2481,13 +2492,13 @@ document.getElementById('pgaSubBtn').addEventListener('click',()=>{
     screen.appendChild(picker2);
     picker2.querySelector('#subCancelOn').addEventListener('click',()=>picker2.remove());
     picker2.querySelectorAll('[data-subon]').forEach(r=>r.addEventListener('click',()=>{
-      _mtAddLog('↔',`${offName} (${offMin}') ↔ ${r.dataset.subon}`);
+      _mtAddLog(_svgSub,`${offName} (${offMin}') → ${r.dataset.subon}`);
       renderBench();
       picker2.remove();
     }));
   }));
 });
-document.getElementById('pgaPOTMBtn').addEventListener('click',()=>{
+function showPOTMThenSummary(){
   const ev=_mtEvent;
   const t=ev?TEAMS.find(x=>x.id===ev.teamId):null;
   const players=t?t.players:[];
@@ -2495,17 +2506,16 @@ document.getElementById('pgaPOTMBtn').addEventListener('click',()=>{
   const picker=document.createElement('div');
   picker.className='mt-goal-picker';
   picker.style.cssText='position:absolute;inset:0;background:rgba(0,0,0,.78);z-index:88;display:flex;flex-direction:column;justify-content:flex-end;';
-  picker.innerHTML=`<div class="mt-gp-sheet"><div class="mt-gp-title">Player of the Match</div>${players.map(p=>`<div class="picker-player-row${_mtPOTM===p.name?' on':''}" data-potm="${p.name}"><div class="pp-av">${p.init}</div><div class="pp-info"><div class="pp-name">${p.name}</div><div class="pp-meta">${p.pos} · #${p.num}</div></div><div class="pp-ovr">${p.ovr}</div></div>`).join('')}<button class="mt-gp-cancel" id="potmCancel">Cancel</button></div>`;
+  picker.innerHTML=`<div class="mt-gp-sheet"><div class="mt-gp-title">Player of the Match</div>${players.map(p=>`<div class="picker-player-row" data-potm="${p.name}"><div class="pp-av">${p.init}</div><div class="pp-info"><div class="pp-name">${p.name}</div><div class="pp-meta">${p.pos} · #${p.num}</div></div><div class="pp-ovr">${p.ovr}</div></div>`).join('')}<button class="mt-gp-opp" id="potmSkip">Skip</button></div>`;
   screen.appendChild(picker);
-  picker.querySelector('#potmCancel').addEventListener('click',()=>picker.remove());
-  picker.querySelectorAll('[data-potm]').forEach(row=>row.addEventListener('click',()=>{
-    _mtPOTM=row.dataset.potm;
-    _mtLog=_mtLog.filter(e=>!e.text.startsWith('POTM:'));
-    _mtAddLog('🏆',`POTM: ${_mtPOTM}`);
-    picker.remove();
-  }));
+  const finish=(name)=>{_mtPOTM=name||null;picker.remove();showPostGameSummary();};
+  picker.querySelector('#potmSkip').addEventListener('click',()=>finish(null));
+  picker.querySelectorAll('[data-potm]').forEach(row=>row.addEventListener('click',()=>finish(row.dataset.potm)));
+}
+document.getElementById('pitchHudEndBtn').addEventListener('click',()=>{
+  clearInterval(_mtInterval);_mtInterval=null;
+  showPOTMThenSummary();
 });
-document.getElementById('pgaEndBtn').addEventListener('click',()=>showPostGameSummary());
 
 /* ── Player modal action buttons ─── */
 document.getElementById('pmShareCard').addEventListener('click',()=>{if(curPlayer)sharePlayerCard(curPlayer);});
