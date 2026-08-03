@@ -552,6 +552,52 @@ button{transition:transform .08s ease;}
 /* ── Live match start btn ─────────────── */
 .live-match-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,rgba(0,229,100,.2),rgba(0,180,80,.3));border:1px solid rgba(0,229,100,.45);color:#00E564;font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:.8px;cursor:pointer;box-shadow:0 0 18px rgba(0,229,100,.12);}
 .live-match-btn:active{transform:scale(0.97);}
+/* ── In-Pitch Game Mode ─── */
+.pitch-game-hud{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:rgba(0,0,0,.45);border-radius:12px;border:1px solid rgba(0,229,100,.25);box-shadow:0 0 14px rgba(0,229,100,.08);}
+.pgh-left{display:flex;flex-direction:column;align-items:flex-start;}
+.pgh-clock{font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:26px;letter-spacing:-0.5px;color:#00E564;text-shadow:0 0 14px rgba(0,229,100,.55);line-height:1;}
+.pgh-half{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#3D5845;margin-top:2px;}
+.pgh-center{display:flex;flex-direction:column;align-items:center;}
+.pgh-score{font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:24px;letter-spacing:4px;color:#DFF0E3;text-align:center;line-height:1;}
+.pgh-teams{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#3D5845;text-align:center;margin-top:2px;}
+.pgh-live-dot{width:7px;height:7px;border-radius:50%;background:#FF4444;box-shadow:0 0 6px rgba(255,68,68,.8);animation:live-pulse 1.2s ease-in-out infinite;}
+@keyframes live-pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+/* Pitch game action buttons */
+.pitch-game-actions{display:flex;gap:6px;width:100%;}
+.pga-btn{flex:1;padding:10px 4px;border-radius:12px;font-size:10px;font-weight:900;letter-spacing:.4px;text-transform:uppercase;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:transform .08s;}
+.pga-btn:active{transform:scale(0.9);}
+.pga-btn span{font-size:17px;line-height:1;}
+.pga-goal{background:rgba(0,229,100,.12);border:1px solid rgba(0,229,100,.35);color:#00E564;}
+.pga-sub{background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);color:#FFD700;}
+.pga-potm{background:rgba(255,140,66,.1);border:1px solid rgba(255,140,66,.3);color:#FF8C42;}
+.pga-end{background:rgba(255,96,96,.12);border:1px solid rgba(255,96,96,.3);color:#FF6060;}
+/* Pitch match log */
+.pitch-match-log{background:rgba(0,0,0,.22);border-radius:10px;padding:8px 10px;border:1px solid rgba(255,255,255,.04);max-height:84px;overflow-y:auto;scrollbar-width:none;}
+.pitch-match-log::-webkit-scrollbar{display:none;}
+.pml-empty{text-align:center;padding:8px 0;color:#3D5845;font-size:10px;font-weight:700;}
+.pml-entry{display:flex;align-items:center;gap:7px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.pml-entry:last-child{border-bottom:none;}
+.pml-min{font-weight:900;color:#00E564;width:28px;font-size:9px;flex-shrink:0;}
+.pml-icon{font-size:12px;flex-shrink:0;}
+.pml-text{color:#DFF0E3;font-weight:700;flex:1;font-size:10px;}
+/* Bench section */
+.pitch-bench-section{background:rgba(0,0,0,.2);border-radius:10px;padding:8px 10px;border:1px solid rgba(255,255,255,.04);}
+.bench-title{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.3px;color:#3D5845;margin-bottom:7px;}
+.bench-chips{display:flex;gap:5px;flex-wrap:wrap;}
+.bench-chip{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 6px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);min-width:40px;}
+.bench-av{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-family:'Impact',Arial,sans-serif;font-size:7px;color:rgba(255,255,255,.65);}
+.bench-nm{font-size:7.5px;font-weight:800;color:#DFF0E3;text-align:center;white-space:nowrap;overflow:hidden;max-width:38px;text-overflow:ellipsis;}
+.bench-pos{font-size:6.5px;font-weight:800;text-transform:uppercase;color:#3D5845;}
+.bench-chip-on{opacity:.35;}
+.bench-chip-off{background:rgba(255,215,0,.07);border-color:rgba(255,215,0,.3);}
+.bench-chip-off .bench-av{border-color:rgba(255,215,0,.45);color:#FFD700;}
+.bench-chip-off .bench-nm{color:#FFD700;}
+.bench-empty{font-size:10px;color:#3D5845;font-weight:700;padding:4px 0;}
+/* Post-game summary modal */
+.pgm-score-big{font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:52px;letter-spacing:6px;line-height:1;margin:4px 0;}
+.pgm-section-title{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.3px;color:#3D5845;margin-top:12px;margin-bottom:5px;}
+.pgm-stat-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;color:#DFF0E3;font-weight:700;}
+.pgm-stat-row:last-child{border-bottom:none;}
 </style>
 
 <div class="pg-header">
@@ -671,8 +717,25 @@ button{transition:transform .08s ease;}
 
       <!-- PITCH -->
       <div class="tab-pane" id="tab-pitch">
-        <div class="pitch-head sec-head"><div class="sec-title">Pitch</div><div style="display:flex;align-items:center;gap:8px;"><div class="pitch-team-nm" id="pitchTeamNm">GSA United U14</div><button class="pitch-start-btn" id="pitchStartMatchBtn"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>Match</button></div></div>
-        <div class="pitch-form-bar">
+        <!-- Normal mode header -->
+        <div class="pitch-head sec-head" id="pitchNormalHead"><div class="sec-title">Pitch</div><div style="display:flex;align-items:center;gap:8px;"><div class="pitch-team-nm" id="pitchTeamNm">GSA United U14</div><button class="pitch-start-btn" id="pitchStartMatchBtn"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>Match</button></div></div>
+        <!-- Game mode HUD -->
+        <div class="pitch-game-hud" id="pitchGameHud" style="display:none;">
+          <div class="pgh-left">
+            <div class="pgh-clock" id="pghClock">00:00</div>
+            <div class="pgh-half">1st Half · <span style="color:#FF4444;">Live</span></div>
+          </div>
+          <div class="pgh-center">
+            <div class="pgh-score" id="pghScore">0 – 0</div>
+            <div class="pgh-teams" id="pghTeams">Home · Away</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;">
+            <div class="pgh-live-dot"></div>
+            <div style="font-size:7px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:#FF4444;">Live</div>
+          </div>
+        </div>
+        <!-- Formation bar (hidden in game mode) -->
+        <div class="pitch-form-bar" id="pitchFormBar">
           <div class="lineup-pills" id="formSlots">
             <button class="lp-btn" data-slot="defensive"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>DEF<span class="slot-dot" id="dot-defensive"></span></button>
             <button class="lp-btn active" data-slot="balanced"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"/><polyline points="8 6 3 12 8 18"/><polyline points="16 6 21 12 16 18"/></svg>BAL<span class="slot-dot" id="dot-balanced"></span></button>
@@ -681,6 +744,7 @@ button{transition:transform .08s ease;}
           <button class="save-form-btn" id="saveFormBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Save</button>
         </div>
         <div class="pitch-formation-lbl" id="pitchFormationLbl">Formation: 4–3–3 · Balanced</div>
+        <!-- Pitch board always visible -->
         <div class="pitch-board">
           <svg viewBox="0 0 68 100" preserveAspectRatio="none">
             <defs>
@@ -696,9 +760,24 @@ button{transition:transform .08s ease;}
           </svg>
           <div class="pitch-tokens-overlay" id="pitchOverlay"></div>
         </div>
-        <div style="display:flex;gap:5px;justify-content:center;align-items:center;font-size:10px;color:#3D5845;font-weight:700;">
+        <!-- Drag hint (hidden in game mode) -->
+        <div id="pitchDragHint" style="display:flex;gap:5px;justify-content:center;align-items:center;font-size:10px;color:#3D5845;font-weight:700;">
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><rect width="10" height="10" rx="2" fill="#3a2400" stroke="rgba(255,215,0,0.5)" stroke-width="1"/></svg>
           Drag tokens to reposition · Tap to view player
+        </div>
+        <!-- Game action buttons (shown in game mode) -->
+        <div class="pitch-game-actions" id="pitchGameActions" style="display:none;">
+          <button class="pga-btn pga-goal" id="pgaGoalBtn"><span>⚽</span>Goal</button>
+          <button class="pga-btn pga-sub" id="pgaSubBtn"><span>↔</span>Sub</button>
+          <button class="pga-btn pga-potm" id="pgaPOTMBtn"><span>🏆</span>POTM</button>
+          <button class="pga-btn pga-end" id="pgaEndBtn"><span>🏁</span>Full Time</button>
+        </div>
+        <!-- Match event log (shown in game mode) -->
+        <div class="pitch-match-log" id="pitchMatchLog" style="display:none;"><div class="pml-empty">Match events will appear here</div></div>
+        <!-- Bench (always visible) -->
+        <div class="pitch-bench-section" id="pitchBench">
+          <div class="bench-title">Bench</div>
+          <div class="bench-chips" id="benchChips"></div>
         </div>
         <div class="pitch-toast" id="pitchToast">Formation saved!</div>
       </div>
@@ -974,24 +1053,16 @@ button{transition:transform .08s ease;}
       </div>
     </div>
 
-    <!-- Match Timer Overlay -->
-    <div class="match-timer-overlay" id="matchTimerOverlay">
-      <div class="mt-topbar">
-        <button class="mt-close-btn" id="mtCloseBtn">← Back</button>
-        <div class="mt-event-title" id="mtEventTitle">Live Match</div>
-      </div>
-      <div class="mt-body">
-        <div class="mt-clock" id="mtClock">00:00</div>
-        <div class="mt-half-lbl">1st Half · Live</div>
-        <div class="mt-score-live" id="mtScore">0 – 0</div>
-        <div class="mt-score-sub" id="mtScoreSub">Home · Away</div>
-        <div class="mt-action-row">
-          <button class="mt-action-btn mt-btn-goal" id="mtGoalBtn"><span class="mt-action-icon">⚽</span>Goal</button>
-          <button class="mt-action-btn mt-btn-sub" id="mtSubBtn"><span class="mt-action-icon">↔</span>Sub</button>
-          <button class="mt-action-btn mt-btn-potm" id="mtPOTMBtn"><span class="mt-action-icon">🏆</span>POTM</button>
-          <button class="mt-action-btn mt-btn-end" id="mtEndBtn"><span class="mt-action-icon">🏁</span>End</button>
+    <!-- Post-Game Summary Modal -->
+    <div class="add-player-overlay" id="postGameModal">
+      <div class="add-player-sheet" style="max-height:88%;">
+        <div class="ap-topbar">
+          <div class="ap-title">Full Time</div>
+          <button class="ap-close" id="pgmClose">✕</button>
         </div>
-        <div class="mt-log" id="mtLog"><div class="mt-log-empty">Match events will appear here</div></div>
+        <div class="ap-body" id="pgmBody" style="padding-bottom:24px;">
+          <!-- populated by showPostGameSummary() -->
+        </div>
       </div>
     </div>
 
@@ -2235,61 +2306,148 @@ document.getElementById('pitchCompareBtn').addEventListener('click',()=>{
   setTimeout(()=>openRadarPicker('B'),320);
 });
 
-/* ── Match Timer ─── */
+/* ── In-Pitch Game Mode ─── */
 let _mtEvent=null,_mtInterval=null,_mtSeconds=0,_mtHomeGoals=0,_mtAwayGoals=0,_mtLog=[];
 let _mtScorerCounts={},_mtAssistCounts={},_mtPOTM=null,_mtSubMinutes={};
+
+function activateGameMode(){
+  document.getElementById('pitchNormalHead').style.display='none';
+  document.getElementById('pitchGameHud').style.display='flex';
+  document.getElementById('pitchFormBar').style.display='none';
+  document.getElementById('pitchFormationLbl').style.display='none';
+  document.getElementById('pitchDragHint').style.display='none';
+  document.getElementById('pitchGameActions').style.display='flex';
+  document.getElementById('pitchMatchLog').style.display='block';
+  renderBench();
+}
+function deactivateGameMode(){
+  document.getElementById('pitchNormalHead').style.display='flex';
+  document.getElementById('pitchGameHud').style.display='none';
+  document.getElementById('pitchFormBar').style.display='flex';
+  document.getElementById('pitchFormationLbl').style.display='block';
+  document.getElementById('pitchDragHint').style.display='flex';
+  document.getElementById('pitchGameActions').style.display='none';
+  document.getElementById('pitchMatchLog').style.display='none';
+  renderBench();
+}
+function renderBench(){
+  const chips=document.getElementById('benchChips');
+  const onPitchNames=new Set(PITCH_PLAYERS.map(x=>x.name));
+  const subbedOff=new Set(Object.keys(_mtSubMinutes));
+  let players=[];
+  if(_mtEvent){
+    const t=TEAMS.find(x=>x.id===_mtEvent.teamId);
+    players=t?t.players:[];
+  } else {
+    const t=TEAMS[0];
+    players=(t?t.players:[]).filter(p=>!onPitchNames.has(p.name));
+  }
+  if(!players.length){chips.innerHTML='<div class="bench-empty">No bench players</div>';return;}
+  chips.innerHTML=players.map(p=>{
+    const isOnPitch=_mtEvent&&onPitchNames.has(p.name)&&!subbedOff.has(p.name);
+    const isSubbedOff=subbedOff.has(p.name);
+    let cls='bench-chip';
+    if(isSubbedOff) cls+=' bench-chip-off';
+    else if(isOnPitch) cls+=' bench-chip-on';
+    const lastName=p.name.split(' ').slice(-1)[0];
+    return `<div class="${cls}"><div class="bench-av">${p.init}</div><div class="bench-nm">${lastName}</div><div class="bench-pos">${p.pos}</div></div>`;
+  }).join('');
+}
 function openMatchTimer(ev){
   _mtEvent=ev;_mtSeconds=0;_mtHomeGoals=0;_mtAwayGoals=0;_mtLog=[];
   _mtScorerCounts={};_mtAssistCounts={};_mtPOTM=null;_mtSubMinutes={};
-  document.getElementById('mtEventTitle').textContent=ev.title||'Live Match';
-  document.getElementById('mtClock').textContent='00:00';
-  document.getElementById('mtScore').textContent='0 – 0';
   const t=TEAMS.find(x=>x.id===ev.teamId)||TEAMS[0];
-  document.getElementById('mtScoreSub').textContent=(t?t.name:'Home')+' · Away';
-  document.getElementById('mtLog').innerHTML='<div class="mt-log-empty">Match events will appear here</div>';
-  document.getElementById('matchTimerOverlay').classList.add('open');
+  document.getElementById('pghClock').textContent='00:00';
+  document.getElementById('pghScore').textContent='0 – 0';
+  document.getElementById('pghTeams').textContent=(t?t.name:'Home')+' · Away';
+  document.getElementById('pitchMatchLog').innerHTML='<div class="pml-empty">Match events will appear here</div>';
+  switchTab('tab-pitch');
+  activateGameMode();
   _mtInterval=setInterval(()=>{
     _mtSeconds++;
     const m=Math.floor(_mtSeconds/60),s=_mtSeconds%60;
-    document.getElementById('mtClock').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    document.getElementById('pghClock').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
   },1000);
 }
 function closeMatchTimer(){
   clearInterval(_mtInterval);_mtInterval=null;
-  document.getElementById('matchTimerOverlay').classList.remove('open');
+  _mtEvent=null;
+  deactivateGameMode();
 }
 function _mtAddLog(icon,text){
   const m=Math.floor(_mtSeconds/60),s=_mtSeconds%60;
   const minStr=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
   _mtLog.push({min:minStr,icon,text});
-  const logEl=document.getElementById('mtLog');
-  logEl.innerHTML=_mtLog.slice().reverse().map(e=>`<div class="mt-log-entry"><div class="mt-log-min">${e.min}</div><div class="mt-log-icon">${e.icon}</div><div class="mt-log-text">${e.text}</div></div>`).join('');
+  const logEl=document.getElementById('pitchMatchLog');
+  logEl.innerHTML=_mtLog.slice().reverse().map(e=>`<div class="pml-entry"><div class="pml-min">${e.min}</div><div class="pml-icon">${e.icon}</div><div class="pml-text">${e.text}</div></div>`).join('');
 }
-document.getElementById('mtCloseBtn').addEventListener('click',()=>{
-  closeMatchTimer();
-  if(_mtEvent)openEventModal(_mtEvent);
+function showPostGameSummary(){
+  clearInterval(_mtInterval);_mtInterval=null;
+  const ev=_mtEvent;
+  if(!ev){deactivateGameMode();_mtEvent=null;return;}
+  const t=TEAMS.find(x=>x.id===ev.teamId);
+  if(t){
+    Object.entries(_mtScorerCounts).forEach(([name,goals])=>{const p=t.players.find(x=>x.name===name);if(p)p.goals=(p.goals||0)+goals;});
+    Object.entries(_mtAssistCounts).forEach(([name,asts])=>{const p=t.players.find(x=>x.name===name);if(p)p.assists=(p.assists||0)+asts;});
+    if(_mtPOTM){const p=t.players.find(x=>x.name===_mtPOTM);if(p)p.potm=(p.potm||0)+1;}
+    if(_mtAwayGoals===0){t.players.filter(p=>p.pos==='GK').forEach(p=>{p.cs=(p.cs||0)+1;});}
+  }
+  const idx=EVENTS.findIndex(e=>e.id===ev.id);
+  const evData={...ev,done:true,homeScore:_mtHomeGoals,awayScore:_mtAwayGoals,
+    scorers:{..._mtScorerCounts},assisters:{..._mtAssistCounts},potm:_mtPOTM,minutesPlayed:{..._mtSubMinutes}};
+  if(idx>-1){EVENTS[idx]=evData;}
+  else if(ev._isSynth){EVENTS.push(evData);}
+  saveStorage();showTeamsList();buildCal();
+  const teamName=t?t.name:'Home';
+  const resColor=_mtHomeGoals>_mtAwayGoals?'#00E564':_mtHomeGoals<_mtAwayGoals?'#FF6060':'#FFD700';
+  const resLabel=_mtHomeGoals>_mtAwayGoals?'WIN':_mtHomeGoals<_mtAwayGoals?'LOSS':'DRAW';
+  const goalRows=Object.entries(_mtScorerCounts).map(([n,g])=>`<div class="pgm-stat-row"><span>⚽ ${n}</span><span style="color:#FFD700">${g} goal${g>1?'s':''}</span></div>`).join('');
+  const astRows=Object.entries(_mtAssistCounts).map(([n,a])=>`<div class="pgm-stat-row"><span>🎯 ${n}</span><span style="color:#00E564">${a} assist${a>1?'s':''}</span></div>`).join('');
+  const subRows=Object.entries(_mtSubMinutes).map(([n,m])=>`<div class="pgm-stat-row"><span>↔ ${n}</span><span style="color:#6B9A78">${m}'</span></div>`).join('');
+  const totalMin=Math.floor(_mtSeconds/60);
+  document.getElementById('pgmBody').innerHTML=`
+    <div style="background:${resColor}18;border:1px solid ${resColor}40;border-radius:14px;padding:16px;text-align:center;margin-bottom:4px;">
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:${resColor};opacity:.7;">${teamName}</div>
+      <div class="pgm-score-big" style="color:${resColor}">${_mtHomeGoals} – ${_mtAwayGoals}</div>
+      <div style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:2px;color:${resColor};">${resLabel}</div>
+      <div style="font-size:9px;color:#3D5845;margin-top:5px;font-weight:700;">${totalMin} min played</div>
+    </div>
+    ${goalRows?`<div class="pgm-section-title">Goals</div>${goalRows}`:''}
+    ${astRows?`<div class="pgm-section-title">Assists</div>${astRows}`:''}
+    ${_mtPOTM?`<div class="pgm-section-title">Player of the Match</div><div class="pgm-stat-row"><span>🏆 ${_mtPOTM}</span><span style="color:#FF8C42;font-weight:900;">POTM</span></div>`:''}
+    ${subRows?`<div class="pgm-section-title">Substitutions</div>${subRows}`:''}
+    <div style="margin-top:14px;padding:10px 0;text-align:center;font-size:11px;color:#3D5845;font-weight:700;border-top:1px solid rgba(255,255,255,.05);">✓ Stats saved to player cards</div>
+  `;
+  document.getElementById('postGameModal').classList.add('open');
+}
+document.getElementById('pgmClose').addEventListener('click',()=>{
+  document.getElementById('postGameModal').classList.remove('open');
+  deactivateGameMode();
+  _mtEvent=null;
 });
-document.getElementById('mtGoalBtn').addEventListener('click',()=>{
+document.getElementById('pgaGoalBtn').addEventListener('click',()=>{
   const ev=_mtEvent;
   const t=ev?TEAMS.find(x=>x.id===ev.teamId):null;
   const players=t?t.players:[];
+  const screen=document.querySelector('.device-screen');
   const picker=document.createElement('div');
   picker.className='mt-goal-picker';
+  picker.style.cssText='position:absolute;inset:0;background:rgba(0,0,0,.78);z-index:88;display:flex;flex-direction:column;justify-content:flex-end;';
   picker.innerHTML=`<div class="mt-gp-sheet"><div class="mt-gp-title">Who scored?</div><button class="mt-gp-opp" id="gpOpp">Opponent Goal</button>${players.map(p=>`<div class="picker-player-row" data-gp="${p.name}"><div class="pp-av">${p.init}</div><div class="pp-info"><div class="pp-name">${p.name}</div><div class="pp-meta">${p.pos} · #${p.num}</div></div><div class="pp-ovr">${p.ovr}</div></div>`).join('')}<button class="mt-gp-cancel" id="gpCancel">Cancel</button></div>`;
-  document.getElementById('matchTimerOverlay').appendChild(picker);
-  picker.querySelector('#gpOpp').addEventListener('click',()=>{_mtAwayGoals++;document.getElementById('mtScore').textContent=`${_mtHomeGoals} – ${_mtAwayGoals}`;_mtAddLog('⚽','Opponent Goal');picker.remove();});
+  screen.appendChild(picker);
+  picker.querySelector('#gpOpp').addEventListener('click',()=>{_mtAwayGoals++;document.getElementById('pghScore').textContent=`${_mtHomeGoals} – ${_mtAwayGoals}`;_mtAddLog('⚽','Opponent Goal');picker.remove();});
   picker.querySelector('#gpCancel').addEventListener('click',()=>picker.remove());
   picker.querySelectorAll('[data-gp]').forEach(row=>row.addEventListener('click',()=>{
     const scorerName=row.dataset.gp;
     _mtHomeGoals++;
-    document.getElementById('mtScore').textContent=`${_mtHomeGoals} – ${_mtAwayGoals}`;
+    document.getElementById('pghScore').textContent=`${_mtHomeGoals} – ${_mtAwayGoals}`;
     _mtScorerCounts[scorerName]=(_mtScorerCounts[scorerName]||0)+1;
     picker.remove();
-    // Step 2: assister
     const picker2=document.createElement('div');
     picker2.className='mt-goal-picker';
+    picker2.style.cssText='position:absolute;inset:0;background:rgba(0,0,0,.78);z-index:88;display:flex;flex-direction:column;justify-content:flex-end;';
     picker2.innerHTML=`<div class="mt-gp-sheet"><div class="mt-gp-title">Who assisted?</div><button class="mt-gp-opp" id="gpNoAssist">No Assist</button>${players.filter(x=>x.name!==scorerName).map(p=>`<div class="picker-player-row" data-ast="${p.name}"><div class="pp-av">${p.init}</div><div class="pp-info"><div class="pp-name">${p.name}</div><div class="pp-meta">${p.pos} · #${p.num}</div></div><div class="pp-ovr">${p.ovr}</div></div>`).join('')}<button class="mt-gp-cancel" id="astCancel">Cancel</button></div>`;
-    document.getElementById('matchTimerOverlay').appendChild(picker2);
+    screen.appendChild(picker2);
     const finishGoal=(assistName)=>{
       if(assistName){_mtAssistCounts[assistName]=(_mtAssistCounts[assistName]||0)+1;_mtAddLog('⚽',`${scorerName} scored! (A: ${assistName})`);}
       else{_mtAddLog('⚽',`${scorerName} scored!`);}
@@ -2300,41 +2458,45 @@ document.getElementById('mtGoalBtn').addEventListener('click',()=>{
     picker2.querySelectorAll('[data-ast]').forEach(r=>r.addEventListener('click',()=>finishGoal(r.dataset.ast)));
   }));
 });
-document.getElementById('mtSubBtn').addEventListener('click',()=>{
+document.getElementById('pgaSubBtn').addEventListener('click',()=>{
   const ev=_mtEvent;
   const t=ev?TEAMS.find(x=>x.id===ev.teamId):null;
   const players=t?t.players:[];
-  // Step 1: who's coming OFF
+  const screen=document.querySelector('.device-screen');
   const picker=document.createElement('div');
   picker.className='mt-goal-picker';
+  picker.style.cssText='position:absolute;inset:0;background:rgba(0,0,0,.78);z-index:88;display:flex;flex-direction:column;justify-content:flex-end;';
   picker.innerHTML=`<div class="mt-gp-sheet"><div class="mt-gp-title">Coming OFF:</div>${players.map(p=>`<div class="picker-player-row" data-suboff="${p.name}"><div class="pp-av">${p.init}</div><div class="pp-info"><div class="pp-name">${p.name}</div><div class="pp-meta">${p.pos} · #${p.num} · ${Math.floor(_mtSeconds/60)}'</div></div></div>`).join('')}<button class="mt-gp-cancel" id="subCancelOff">Cancel</button></div>`;
-  document.getElementById('matchTimerOverlay').appendChild(picker);
+  screen.appendChild(picker);
   picker.querySelector('#subCancelOff').addEventListener('click',()=>picker.remove());
   picker.querySelectorAll('[data-suboff]').forEach(row=>row.addEventListener('click',()=>{
     const offName=row.dataset.suboff;
     const offMin=Math.floor(_mtSeconds/60);
     _mtSubMinutes[offName]=offMin;
     picker.remove();
-    // Step 2: who's coming ON
     const picker2=document.createElement('div');
     picker2.className='mt-goal-picker';
+    picker2.style.cssText='position:absolute;inset:0;background:rgba(0,0,0,.78);z-index:88;display:flex;flex-direction:column;justify-content:flex-end;';
     picker2.innerHTML=`<div class="mt-gp-sheet"><div class="mt-gp-title">Coming ON (for ${offName.split(' ')[0]}):</div>${players.filter(x=>x.name!==offName).map(p=>`<div class="picker-player-row" data-subon="${p.name}"><div class="pp-av">${p.init}</div><div class="pp-info"><div class="pp-name">${p.name}</div><div class="pp-meta">${p.pos} · #${p.num}</div></div></div>`).join('')}<button class="mt-gp-cancel" id="subCancelOn">Cancel</button></div>`;
-    document.getElementById('matchTimerOverlay').appendChild(picker2);
+    screen.appendChild(picker2);
     picker2.querySelector('#subCancelOn').addEventListener('click',()=>picker2.remove());
     picker2.querySelectorAll('[data-subon]').forEach(r=>r.addEventListener('click',()=>{
       _mtAddLog('↔',`${offName} (${offMin}') ↔ ${r.dataset.subon}`);
+      renderBench();
       picker2.remove();
     }));
   }));
 });
-document.getElementById('mtPOTMBtn').addEventListener('click',()=>{
+document.getElementById('pgaPOTMBtn').addEventListener('click',()=>{
   const ev=_mtEvent;
   const t=ev?TEAMS.find(x=>x.id===ev.teamId):null;
   const players=t?t.players:[];
+  const screen=document.querySelector('.device-screen');
   const picker=document.createElement('div');
   picker.className='mt-goal-picker';
+  picker.style.cssText='position:absolute;inset:0;background:rgba(0,0,0,.78);z-index:88;display:flex;flex-direction:column;justify-content:flex-end;';
   picker.innerHTML=`<div class="mt-gp-sheet"><div class="mt-gp-title">Player of the Match</div>${players.map(p=>`<div class="picker-player-row${_mtPOTM===p.name?' on':''}" data-potm="${p.name}"><div class="pp-av">${p.init}</div><div class="pp-info"><div class="pp-name">${p.name}</div><div class="pp-meta">${p.pos} · #${p.num}</div></div><div class="pp-ovr">${p.ovr}</div></div>`).join('')}<button class="mt-gp-cancel" id="potmCancel">Cancel</button></div>`;
-  document.getElementById('matchTimerOverlay').appendChild(picker);
+  screen.appendChild(picker);
   picker.querySelector('#potmCancel').addEventListener('click',()=>picker.remove());
   picker.querySelectorAll('[data-potm]').forEach(row=>row.addEventListener('click',()=>{
     _mtPOTM=row.dataset.potm;
@@ -2343,31 +2505,7 @@ document.getElementById('mtPOTMBtn').addEventListener('click',()=>{
     picker.remove();
   }));
 });
-document.getElementById('mtEndBtn').addEventListener('click',()=>{
-  clearInterval(_mtInterval);_mtInterval=null;
-  if(_mtEvent){
-    const team=TEAMS.find(x=>x.id===_mtEvent.teamId);
-    if(team){
-      // Commit goals to players
-      Object.entries(_mtScorerCounts).forEach(([name,goals])=>{const p=team.players.find(x=>x.name===name);if(p)p.goals=(p.goals||0)+goals;});
-      // Commit assists to players
-      Object.entries(_mtAssistCounts).forEach(([name,asts])=>{const p=team.players.find(x=>x.name===name);if(p)p.assists=(p.assists||0)+asts;});
-      // Commit POTM
-      if(_mtPOTM){const p=team.players.find(x=>x.name===_mtPOTM);if(p)p.potm=(p.potm||0)+1;}
-      // Clean sheet: 0 goals conceded → credit GK(s) only
-      if(_mtAwayGoals===0){team.players.filter(p=>p.pos==='GK').forEach(p=>{p.cs=(p.cs||0)+1;});}
-    }
-    // Update or push event record
-    const idx=EVENTS.findIndex(e=>e.id===_mtEvent.id);
-    const evData={..._mtEvent,done:true,homeScore:_mtHomeGoals,awayScore:_mtAwayGoals,
-      scorers:{..._mtScorerCounts},assisters:{..._mtAssistCounts},potm:_mtPOTM,minutesPlayed:{..._mtSubMinutes}};
-    if(idx>-1){EVENTS[idx]=evData;}
-    else if(_mtEvent._isSynth){EVENTS.push(evData);}
-    // else: real event not found in list — skip
-    saveStorage();showTeamsList();buildCal();
-  }
-  closeMatchTimer();
-});
+document.getElementById('pgaEndBtn').addEventListener('click',()=>showPostGameSummary());
 
 /* ── Player modal action buttons ─── */
 document.getElementById('pmShareCard').addEventListener('click',()=>{if(curPlayer)sharePlayerCard(curPlayer);});
@@ -2388,4 +2526,5 @@ Object.keys(SAVED_FORMATIONS).forEach(slot=>{
 renderRadarSlots();
 buildCal();
 buildFaq();
+renderBench();
 </script>
