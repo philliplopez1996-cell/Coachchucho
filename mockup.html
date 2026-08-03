@@ -191,6 +191,25 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;background-im
 .pitch-tok-silver .tok-ovr{color:#B8B8CC;text-shadow:none}
 .tok-av{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-family:'Impact',Arial,sans-serif;font-size:6px;color:rgba(255,255,255,.75);margin:1px 0}
 .tok-pos{font-size:5.5px;font-weight:800;text-transform:uppercase;color:rgba(255,255,255,.5)}
+/* Pitch start match button */
+.pitch-start-btn{display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:9px;background:rgba(0,229,100,.13);color:#00E564;font-size:10px;font-weight:800;cursor:pointer;text-transform:uppercase;letter-spacing:.4px;border:1px solid rgba(0,229,100,.38);flex-shrink:0;}
+.pitch-start-btn svg{width:11px;height:11px;fill:currentColor;flex-shrink:0;}
+.pitch-start-btn.live{background:rgba(255,80,80,.15);border-color:rgba(255,80,80,.45);color:#FF6060;}
+/* Player card season stats badges */
+.pc-season-stats{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-bottom:4px;min-height:15px;}
+.pc-ss-badge{font-size:8px;font-weight:800;padding:1px 5px;border-radius:999px;display:flex;align-items:center;gap:2px;line-height:1.4;}
+.pc-ss-badge.goals{color:#00E564;background:rgba(0,229,100,.1);border:1px solid rgba(0,229,100,.2);}
+.pc-ss-badge.assists{color:#FFD700;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.18);}
+.pc-ss-badge.potm{color:#FF8C42;background:rgba(255,140,66,.08);border:1px solid rgba(255,140,66,.18);}
+.pc-ss-badge.cs{color:#5AABFF;background:rgba(90,170,255,.08);border:1px solid rgba(90,170,255,.18);}
+/* POTM action button */
+.mt-btn-potm{background:rgba(255,140,66,.1);border:1px solid rgba(255,140,66,.3);color:#FF8C42;}
+/* Pitch compare button */
+.pitch-compare-btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,215,0,.28);background:rgba(255,215,0,.06);color:#FFD700;font-size:11px;font-weight:800;cursor:pointer;text-transform:uppercase;letter-spacing:.4px;}
+.pitch-compare-btn svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;}
+/* Quick match start picker sheet */
+.quick-match-sheet{background:linear-gradient(170deg,#0a1a0c 0%,#060d08 100%);border-radius:22px 22px 0 0;border:1px solid rgba(0,229,100,.12);border-bottom:none;padding:0 0 24px;max-height:65%;overflow-y:auto;scrollbar-width:none;}
+.quick-match-sheet::-webkit-scrollbar{display:none;}
 
 /* ── Slide-out menu ────────────────────── */
 .slide-overlay{position:absolute;inset:0;background:rgba(0,0,0,.65);z-index:50;opacity:0;pointer-events:none;transition:opacity .28s}
@@ -485,7 +504,9 @@ button{transition:transform .08s ease;}
 .mt-action-icon{font-size:16px;}
 .mt-btn-goal{background:rgba(0,229,100,.12);border:1px solid rgba(0,229,100,.35);color:#00E564;}
 .mt-btn-sub{background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);color:#FFD700;}
-.mt-btn-end{background:rgba(255,96,96,.12);border:1px solid rgba(255,96,96,.3);color:#FF6060;flex:1.4;}
+.mt-btn-end{background:rgba(255,96,96,.12);border:1px solid rgba(255,96,96,.3);color:#FF6060;}
+.mt-action-row{gap:5px!important;}
+.mt-action-btn{padding:10px 2px!important;font-size:9.5px!important;}
 .mt-log{width:100%;flex:1;overflow-y:auto;background:rgba(0,0,0,.2);border-radius:12px;padding:8px 10px;border:1px solid rgba(255,255,255,.04);scrollbar-width:none;}
 .mt-log::-webkit-scrollbar{display:none;}
 .mt-log-empty{text-align:center;padding:16px 0;color:#3D5845;font-size:11px;font-weight:700;}
@@ -650,7 +671,7 @@ button{transition:transform .08s ease;}
 
       <!-- PITCH -->
       <div class="tab-pane" id="tab-pitch">
-        <div class="pitch-head sec-head"><div class="sec-title">Pitch</div><div class="pitch-team-nm">GSA United U14</div></div>
+        <div class="pitch-head sec-head"><div class="sec-title">Pitch</div><div style="display:flex;align-items:center;gap:8px;"><div class="pitch-team-nm" id="pitchTeamNm">GSA United U14</div><button class="pitch-start-btn" id="pitchStartMatchBtn"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>Match</button></div></div>
         <div class="pitch-form-bar">
           <div class="lineup-pills" id="formSlots">
             <button class="lp-btn" data-slot="defensive"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>DEF<span class="slot-dot" id="dot-defensive"></span></button>
@@ -967,7 +988,8 @@ button{transition:transform .08s ease;}
         <div class="mt-action-row">
           <button class="mt-action-btn mt-btn-goal" id="mtGoalBtn"><span class="mt-action-icon">⚽</span>Goal</button>
           <button class="mt-action-btn mt-btn-sub" id="mtSubBtn"><span class="mt-action-icon">↔</span>Sub</button>
-          <button class="mt-action-btn mt-btn-end" id="mtEndBtn"><span class="mt-action-icon">🏁</span>Full Time</button>
+          <button class="mt-action-btn mt-btn-potm" id="mtPOTMBtn"><span class="mt-action-icon">🏆</span>POTM</button>
+          <button class="mt-action-btn mt-btn-end" id="mtEndBtn"><span class="mt-action-icon">🏁</span>End</button>
         </div>
         <div class="mt-log" id="mtLog"><div class="mt-log-empty">Match events will appear here</div></div>
       </div>
@@ -996,6 +1018,12 @@ button{transition:transform .08s ease;}
         <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.4px;color:#3D5845;margin-bottom:10px;">Attributes</div>
         <div id="pmShAttrs"></div>
       </div>
+      <div style="padding:0 16px 8px;">
+        <button class="pitch-compare-btn" id="pitchCompareBtn">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          Compare on Radar
+        </button>
+      </div>
       <div class="pm-spacer"></div>
     </div>
 
@@ -1015,8 +1043,8 @@ button{transition:transform .08s ease;}
 let TEAMS=[
   {id:'u14',name:'GSA United U14',initial:'G',formation:'4-3-3',season:'Spring 2025',ovr:79,players:[
     {name:'Carlos Mendez', pos:'ST', num:9, ovr:84,tier:'gold',  init:'CM',flag:'🇲🇽',pac:88,sho:85,pas:72,dri:83,def:45,phy:76,goals:12,assists:4, potm:3,cs:0},
-    {name:'Jordan Lee',    pos:'CAM',num:10,ovr:80,tier:'gold',  init:'JL',flag:'🇺🇸',pac:79,sho:77,pas:86,dri:84,def:48,phy:62,goals:6, assists:9, potm:4,cs:1},
-    {name:'Rafael Santos', pos:'CDM',num:6, ovr:88,tier:'elite', init:'RS',flag:'🇧🇷',pac:74,sho:58,pas:78,dri:72,def:87,phy:90,goals:2, assists:5, potm:5,cs:8},
+    {name:'Jordan Lee',    pos:'CAM',num:10,ovr:80,tier:'gold',  init:'JL',flag:'🇺🇸',pac:79,sho:77,pas:86,dri:84,def:48,phy:62,goals:6, assists:9, potm:4,cs:0},
+    {name:'Rafael Santos', pos:'CDM',num:6, ovr:88,tier:'elite', init:'RS',flag:'🇧🇷',pac:74,sho:58,pas:78,dri:72,def:87,phy:90,goals:2, assists:5, potm:5,cs:0},
     {name:'Diego Rivera',  pos:'GK', num:1, ovr:81,tier:'gold',  init:'DR',flag:'🇲🇽',pac:55,sho:35,pas:62,dri:40,def:88,phy:82,goals:0, assists:0, potm:2,cs:7},
     {name:'Marco Santos',  pos:'CM', num:8, ovr:76,tier:'gold',  init:'MS',flag:'🇺🇸',pac:76,sho:70,pas:82,dri:79,def:68,phy:74,goals:4, assists:6, potm:1,cs:0},
     {name:'Alex Torres',   pos:'LB', num:3, ovr:69,tier:'silver',init:'AT',flag:'🇺🇸',pac:82,sho:45,pas:71,dri:74,def:78,phy:72,goals:1, assists:3, potm:0,cs:0},
@@ -1024,7 +1052,7 @@ let TEAMS=[
   {id:'u16',name:'GSA Elite U16',initial:'E',formation:'4-2-3-1',season:'Spring 2025',ovr:82,players:[
     {name:'Miguel Herrera',pos:'ST', num:9, ovr:87,tier:'elite', init:'MH',flag:'🇲🇽',pac:86,sho:90,pas:74,dri:85,def:42,phy:80,goals:18,assists:6, potm:5,cs:0},
     {name:'David Park',    pos:'CAM',num:10,ovr:84,tier:'gold',  init:'DP',flag:'🇰🇷',pac:80,sho:79,pas:88,dri:86,def:50,phy:65,goals:9, assists:14,potm:6,cs:0},
-    {name:'Omar Diaz',     pos:'CDM',num:6, ovr:80,tier:'gold',  init:'OD',flag:'🇨🇴',pac:72,sho:55,pas:80,dri:70,def:85,phy:88,goals:1, assists:4, potm:2,cs:5},
+    {name:'Omar Diaz',     pos:'CDM',num:6, ovr:80,tier:'gold',  init:'OD',flag:'🇨🇴',pac:72,sho:55,pas:80,dri:70,def:85,phy:88,goals:1, assists:4, potm:2,cs:0},
     {name:'Luca Ferrari',  pos:'GK', num:1, ovr:83,tier:'gold',  init:'LF',flag:'🇮🇹',pac:58,sho:38,pas:65,dri:45,def:90,phy:84,goals:0, assists:0, potm:3,cs:10},
     {name:'Nathan Webb',   pos:'RB', num:2, ovr:77,tier:'gold',  init:'NW',flag:'🇬🇧',pac:84,sho:50,pas:73,dri:76,def:80,phy:75,goals:3, assists:7, potm:1,cs:0},
     {name:'Kai Chen',      pos:'LW', num:11,ovr:79,tier:'gold',  init:'KC',flag:'🇨🇳',pac:88,sho:74,pas:76,dri:84,def:44,phy:62,goals:7, assists:10,potm:2,cs:0},
@@ -1184,10 +1212,17 @@ function renderCards(){
   document.getElementById('playersCount').textContent=`${filtered.length} Players`;
   const g=document.getElementById('card-grid');
   if(!filtered.length){g.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:32px 0;color:#3D5845;font-size:13px;font-weight:700;">No players found</div>`;return;}
-  g.innerHTML=filtered.map(p=>`
-    <div class="pc pc-${p.tier}" data-pname="${p.name}">
+  g.innerHTML=filtered.map(p=>{
+    const badges=[
+      p.goals>0?`<span class="pc-ss-badge goals">⚽${p.goals}</span>`:'',
+      p.assists>0?`<span class="pc-ss-badge assists">A${p.assists}</span>`:'',
+      p.potm>0?`<span class="pc-ss-badge potm">★${p.potm}</span>`:'',
+      (p.pos==='GK'&&p.cs>0)?`<span class="pc-ss-badge cs">🧤${p.cs}</span>`:'',
+    ].join('');
+    return `<div class="pc pc-${p.tier}" data-pname="${p.name}">
       <div class="pc-top"><div class="pc-ovr-grp"><div class="pc-ovr">${p.ovr}</div><div class="pc-pos">${p.pos}</div></div><div>${p.flag}</div><div class="pc-num">${p.num}</div></div>
       <div class="pc-photo-wrap"><div class="pc-avatar">${p.init}</div></div>
+      <div class="pc-season-stats">${badges}</div>
       <div class="pc-name">${p.name}</div>
       <div class="pc-stats">
         <div class="pc-stat"><div class="pc-sv">${p.pac}</div><div class="pc-sl">PAC</div></div>
@@ -1197,7 +1232,8 @@ function renderCards(){
         <div class="pc-stat"><div class="pc-sv">${p.def}</div><div class="pc-sl">DEF</div></div>
         <div class="pc-stat"><div class="pc-sv">${p.phy}</div><div class="pc-sl">PHY</div></div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   g.querySelectorAll('.pc').forEach(c=>{
     const name=c.dataset.pname;
     const p=activeTeam.players.find(x=>x.name===name);
@@ -2172,10 +2208,39 @@ function openMovePlayer(p){
 function closeMovePlayer(){document.getElementById('movePlayerModal').classList.remove('open');}
 document.getElementById('mvCloseBtn').addEventListener('click',closeMovePlayer);
 
+/* ── Pitch: Start Match button ─── */
+document.getElementById('pitchStartMatchBtn').addEventListener('click',()=>{
+  const today=new Date().toISOString().split('T')[0];
+  const upcoming=EVENTS.filter(e=>e.type==='game'&&!e.done&&e.date>=today);
+  const picker=document.createElement('div');
+  picker.style.cssText='position:absolute;inset:0;background:rgba(0,0,0,.75);z-index:82;display:flex;flex-direction:column;justify-content:flex-end;';
+  picker.innerHTML=`<div class="quick-match-sheet"><div class="picker-topbar"><div class="picker-title">Start Live Match</div><button class="picker-close" id="qmsClose">✕</button></div>${upcoming.length?`<div class="picker-team-hd">Upcoming Games</div>${upcoming.map(ev=>{const t=TEAMS.find(x=>x.id===ev.teamId);return`<div class="picker-player-row" data-evid="${ev.id}"><div class="pp-av">${t?t.initial:'?'}</div><div class="pp-info"><div class="pp-name">${ev.title}</div><div class="pp-meta">${ev.date}${t?' · '+t.name:''}</div></div></div>`;}).join('')}`:''}${TEAMS.length?`<div class="picker-team-hd">Quick Start (Free Match)</div>${TEAMS.map(t=>`<div class="picker-player-row" data-qsid="${t.id}"><div class="pp-av">${t.initial}</div><div class="pp-info"><div class="pp-name">${t.name}</div><div class="pp-meta">${t.players.length} players</div></div></div>`).join('')}`:''}</div>`;
+  document.querySelector('.device-screen').appendChild(picker);
+  picker.querySelector('#qmsClose').addEventListener('click',()=>picker.remove());
+  picker.querySelectorAll('[data-evid]').forEach(row=>row.addEventListener('click',()=>{const ev=EVENTS.find(e=>e.id===row.dataset.evid);if(ev){picker.remove();openMatchTimer(ev);}}));
+  picker.querySelectorAll('[data-qsid]').forEach(row=>row.addEventListener('click',()=>{
+    const t=TEAMS.find(x=>x.id===row.dataset.qsid);if(!t)return;
+    picker.remove();
+    openMatchTimer({id:'_s'+Date.now(),type:'game',title:'Free Match · '+t.name,date:new Date().toISOString().split('T')[0],teamId:t.id,done:false,_isSynth:true});
+  }));
+});
+
+/* ── Pitch: Compare on Radar button ─── */
+document.getElementById('pitchCompareBtn').addEventListener('click',()=>{
+  if(!pitchSheetPlayer)return;
+  radarA=pitchSheetPlayer;
+  closePitchSheet();
+  switchTab('tab-radar');
+  renderRadarSlots();
+  setTimeout(()=>openRadarPicker('B'),320);
+});
+
 /* ── Match Timer ─── */
 let _mtEvent=null,_mtInterval=null,_mtSeconds=0,_mtHomeGoals=0,_mtAwayGoals=0,_mtLog=[];
+let _mtScorerCounts={},_mtAssistCounts={},_mtPOTM=null,_mtSubMinutes={};
 function openMatchTimer(ev){
   _mtEvent=ev;_mtSeconds=0;_mtHomeGoals=0;_mtAwayGoals=0;_mtLog=[];
+  _mtScorerCounts={};_mtAssistCounts={};_mtPOTM=null;_mtSubMinutes={};
   document.getElementById('mtEventTitle').textContent=ev.title||'Live Match';
   document.getElementById('mtClock').textContent='00:00';
   document.getElementById('mtScore').textContent='0 – 0';
@@ -2207,35 +2272,98 @@ document.getElementById('mtCloseBtn').addEventListener('click',()=>{
 document.getElementById('mtGoalBtn').addEventListener('click',()=>{
   const ev=_mtEvent;
   const t=ev?TEAMS.find(x=>x.id===ev.teamId):null;
-  // Show quick picker
+  const players=t?t.players:[];
   const picker=document.createElement('div');
   picker.className='mt-goal-picker';
-  const players=t?t.players:[];
   picker.innerHTML=`<div class="mt-gp-sheet"><div class="mt-gp-title">Who scored?</div><button class="mt-gp-opp" id="gpOpp">Opponent Goal</button>${players.map(p=>`<div class="picker-player-row" data-gp="${p.name}"><div class="pp-av">${p.init}</div><div class="pp-info"><div class="pp-name">${p.name}</div><div class="pp-meta">${p.pos} · #${p.num}</div></div><div class="pp-ovr">${p.ovr}</div></div>`).join('')}<button class="mt-gp-cancel" id="gpCancel">Cancel</button></div>`;
   document.getElementById('matchTimerOverlay').appendChild(picker);
   picker.querySelector('#gpOpp').addEventListener('click',()=>{_mtAwayGoals++;document.getElementById('mtScore').textContent=`${_mtHomeGoals} – ${_mtAwayGoals}`;_mtAddLog('⚽','Opponent Goal');picker.remove();});
   picker.querySelector('#gpCancel').addEventListener('click',()=>picker.remove());
-  picker.querySelectorAll('[data-gp]').forEach(row=>row.addEventListener('click',()=>{_mtHomeGoals++;document.getElementById('mtScore').textContent=`${_mtHomeGoals} – ${_mtAwayGoals}`;_mtAddLog('⚽',row.dataset.gp+' scored!');picker.remove();}));
+  picker.querySelectorAll('[data-gp]').forEach(row=>row.addEventListener('click',()=>{
+    const scorerName=row.dataset.gp;
+    _mtHomeGoals++;
+    document.getElementById('mtScore').textContent=`${_mtHomeGoals} – ${_mtAwayGoals}`;
+    _mtScorerCounts[scorerName]=(_mtScorerCounts[scorerName]||0)+1;
+    picker.remove();
+    // Step 2: assister
+    const picker2=document.createElement('div');
+    picker2.className='mt-goal-picker';
+    picker2.innerHTML=`<div class="mt-gp-sheet"><div class="mt-gp-title">Who assisted?</div><button class="mt-gp-opp" id="gpNoAssist">No Assist</button>${players.filter(x=>x.name!==scorerName).map(p=>`<div class="picker-player-row" data-ast="${p.name}"><div class="pp-av">${p.init}</div><div class="pp-info"><div class="pp-name">${p.name}</div><div class="pp-meta">${p.pos} · #${p.num}</div></div><div class="pp-ovr">${p.ovr}</div></div>`).join('')}<button class="mt-gp-cancel" id="astCancel">Cancel</button></div>`;
+    document.getElementById('matchTimerOverlay').appendChild(picker2);
+    const finishGoal=(assistName)=>{
+      if(assistName){_mtAssistCounts[assistName]=(_mtAssistCounts[assistName]||0)+1;_mtAddLog('⚽',`${scorerName} scored! (A: ${assistName})`);}
+      else{_mtAddLog('⚽',`${scorerName} scored!`);}
+      picker2.remove();
+    };
+    picker2.querySelector('#gpNoAssist').addEventListener('click',()=>finishGoal(null));
+    picker2.querySelector('#astCancel').addEventListener('click',()=>finishGoal(null));
+    picker2.querySelectorAll('[data-ast]').forEach(r=>r.addEventListener('click',()=>finishGoal(r.dataset.ast)));
+  }));
 });
 document.getElementById('mtSubBtn').addEventListener('click',()=>{
   const ev=_mtEvent;
   const t=ev?TEAMS.find(x=>x.id===ev.teamId):null;
   const players=t?t.players:[];
+  // Step 1: who's coming OFF
   const picker=document.createElement('div');
   picker.className='mt-goal-picker';
-  picker.innerHTML=`<div class="mt-gp-sheet"><div class="mt-gp-title">Substitution — player coming on:</div>${players.map(p=>`<div class="picker-player-row" data-sub="${p.name}"><div class="pp-av">${p.init}</div><div class="pp-info"><div class="pp-name">${p.name}</div><div class="pp-meta">${p.pos} · #${p.num}</div></div></div>`).join('')}<button class="mt-gp-cancel" id="subCancel">Cancel</button></div>`;
+  picker.innerHTML=`<div class="mt-gp-sheet"><div class="mt-gp-title">Coming OFF:</div>${players.map(p=>`<div class="picker-player-row" data-suboff="${p.name}"><div class="pp-av">${p.init}</div><div class="pp-info"><div class="pp-name">${p.name}</div><div class="pp-meta">${p.pos} · #${p.num} · ${Math.floor(_mtSeconds/60)}'</div></div></div>`).join('')}<button class="mt-gp-cancel" id="subCancelOff">Cancel</button></div>`;
   document.getElementById('matchTimerOverlay').appendChild(picker);
-  picker.querySelector('#subCancel').addEventListener('click',()=>picker.remove());
-  picker.querySelectorAll('[data-sub]').forEach(row=>row.addEventListener('click',()=>{_mtAddLog('↔',row.dataset.sub+' enters');picker.remove();}));
+  picker.querySelector('#subCancelOff').addEventListener('click',()=>picker.remove());
+  picker.querySelectorAll('[data-suboff]').forEach(row=>row.addEventListener('click',()=>{
+    const offName=row.dataset.suboff;
+    const offMin=Math.floor(_mtSeconds/60);
+    _mtSubMinutes[offName]=offMin;
+    picker.remove();
+    // Step 2: who's coming ON
+    const picker2=document.createElement('div');
+    picker2.className='mt-goal-picker';
+    picker2.innerHTML=`<div class="mt-gp-sheet"><div class="mt-gp-title">Coming ON (for ${offName.split(' ')[0]}):</div>${players.filter(x=>x.name!==offName).map(p=>`<div class="picker-player-row" data-subon="${p.name}"><div class="pp-av">${p.init}</div><div class="pp-info"><div class="pp-name">${p.name}</div><div class="pp-meta">${p.pos} · #${p.num}</div></div></div>`).join('')}<button class="mt-gp-cancel" id="subCancelOn">Cancel</button></div>`;
+    document.getElementById('matchTimerOverlay').appendChild(picker2);
+    picker2.querySelector('#subCancelOn').addEventListener('click',()=>picker2.remove());
+    picker2.querySelectorAll('[data-subon]').forEach(r=>r.addEventListener('click',()=>{
+      _mtAddLog('↔',`${offName} (${offMin}') ↔ ${r.dataset.subon}`);
+      picker2.remove();
+    }));
+  }));
+});
+document.getElementById('mtPOTMBtn').addEventListener('click',()=>{
+  const ev=_mtEvent;
+  const t=ev?TEAMS.find(x=>x.id===ev.teamId):null;
+  const players=t?t.players:[];
+  const picker=document.createElement('div');
+  picker.className='mt-goal-picker';
+  picker.innerHTML=`<div class="mt-gp-sheet"><div class="mt-gp-title">Player of the Match</div>${players.map(p=>`<div class="picker-player-row${_mtPOTM===p.name?' on':''}" data-potm="${p.name}"><div class="pp-av">${p.init}</div><div class="pp-info"><div class="pp-name">${p.name}</div><div class="pp-meta">${p.pos} · #${p.num}</div></div><div class="pp-ovr">${p.ovr}</div></div>`).join('')}<button class="mt-gp-cancel" id="potmCancel">Cancel</button></div>`;
+  document.getElementById('matchTimerOverlay').appendChild(picker);
+  picker.querySelector('#potmCancel').addEventListener('click',()=>picker.remove());
+  picker.querySelectorAll('[data-potm]').forEach(row=>row.addEventListener('click',()=>{
+    _mtPOTM=row.dataset.potm;
+    _mtLog=_mtLog.filter(e=>!e.text.startsWith('POTM:'));
+    _mtAddLog('🏆',`POTM: ${_mtPOTM}`);
+    picker.remove();
+  }));
 });
 document.getElementById('mtEndBtn').addEventListener('click',()=>{
   clearInterval(_mtInterval);_mtInterval=null;
-  // Apply result to event
   if(_mtEvent){
-    const idx=EVENTS.findIndex(e=>e.id===_mtEvent.id);
-    if(idx>-1){
-      EVENTS[idx]={...EVENTS[idx],done:true,homeScore:_mtHomeGoals,awayScore:_mtAwayGoals};
+    const team=TEAMS.find(x=>x.id===_mtEvent.teamId);
+    if(team){
+      // Commit goals to players
+      Object.entries(_mtScorerCounts).forEach(([name,goals])=>{const p=team.players.find(x=>x.name===name);if(p)p.goals=(p.goals||0)+goals;});
+      // Commit assists to players
+      Object.entries(_mtAssistCounts).forEach(([name,asts])=>{const p=team.players.find(x=>x.name===name);if(p)p.assists=(p.assists||0)+asts;});
+      // Commit POTM
+      if(_mtPOTM){const p=team.players.find(x=>x.name===_mtPOTM);if(p)p.potm=(p.potm||0)+1;}
+      // Clean sheet: 0 goals conceded → credit GK(s) only
+      if(_mtAwayGoals===0){team.players.filter(p=>p.pos==='GK').forEach(p=>{p.cs=(p.cs||0)+1;});}
     }
+    // Update or push event record
+    const idx=EVENTS.findIndex(e=>e.id===_mtEvent.id);
+    const evData={..._mtEvent,done:true,homeScore:_mtHomeGoals,awayScore:_mtAwayGoals,
+      scorers:{..._mtScorerCounts},assisters:{..._mtAssistCounts},potm:_mtPOTM,minutesPlayed:{..._mtSubMinutes}};
+    if(idx>-1){EVENTS[idx]=evData;}
+    else if(_mtEvent._isSynth){EVENTS.push(evData);}
+    // else: real event not found in list — skip
     saveStorage();showTeamsList();buildCal();
   }
   closeMatchTimer();
