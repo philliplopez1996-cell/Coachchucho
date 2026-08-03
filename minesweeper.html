@@ -884,6 +884,44 @@
     }
     .dr-edit-btn:hover { color:var(--lime); border-color:rgba(74,255,63,.4); }
 
+    /* ── PROFILE CORNER (top-right of setup screen) ── */
+    .profile-corner {
+      position: absolute; top: 14px; right: 14px; z-index: 10;
+      display: flex; align-items: center; gap: 9px;
+      background: var(--surf); border: 1px solid rgba(74,255,63,.28);
+      border-radius: 10px; padding: 7px 12px 7px 8px;
+      transition: border-color .14s, box-shadow .14s;
+    }
+    .profile-corner:hover { border-color: rgba(74,255,63,.55); box-shadow: 0 0 14px rgba(74,255,63,.1); }
+    .pc-avatar-wrap { cursor: pointer; flex-shrink: 0; }
+    .pc-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: var(--surf2); border: 1.5px solid var(--lime);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .5rem; font-weight: 700; color: var(--lime);
+      font-family: var(--font-m); overflow: hidden;
+      transition: border-color .14s;
+    }
+    .pc-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .pc-avatar-wrap:hover .pc-avatar { border-color: var(--cyan); }
+    .pc-info { display: flex; flex-direction: column; gap: 2px; }
+    .pc-name-row { display: flex; align-items: center; gap: 5px; }
+    .pc-name {
+      font-size: .6rem; font-weight: 600; color: var(--txt);
+      letter-spacing: .03em; white-space: nowrap;
+      max-width: 100px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .pc-edit-btn {
+      background: transparent; border: 1px solid var(--brd); border-radius: 3px;
+      color: var(--txt2); cursor: pointer; font-size: .44rem; padding: 1px 4px;
+      transition: color .12s, border-color .12s; line-height: 1.4;
+    }
+    .pc-edit-btn:hover { color: var(--lime); border-color: rgba(74,255,63,.4); }
+    .pc-xp {
+      font-family: var(--font-m); font-size: .44rem; color: var(--gold);
+      letter-spacing: .08em;
+    }
+
     /* ── DRAWER OVERLAY + PANEL ──────────────────── */
     .drawer-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,.65);
@@ -1023,6 +1061,20 @@
     <div class="hamburger-label">Menu</div>
   </button>
 
+  <!-- Profile Corner -->
+  <div class="profile-corner" id="profile-corner">
+    <div class="pc-avatar-wrap" onclick="openPfpPicker()" title="Change photo">
+      <div class="pc-avatar" id="pc-avatar"></div>
+    </div>
+    <div class="pc-info">
+      <div class="pc-name-row">
+        <span class="pc-name" id="pc-name"></span>
+        <button class="pc-edit-btn" onclick="editDisplayName()">✎</button>
+      </div>
+      <div class="pc-xp" id="pc-xp"></div>
+    </div>
+  </div>
+
   <div class="setup-wrap">
 
     <div class="s-logo">Minesweeper</div>
@@ -1157,10 +1209,9 @@ const NUM_COLORS    = ['', '#4EBDC9','#4AFF3F','#d9713a','#C9A84C','#e05050','#c
 const NUM_COLORS_CB = ['', '#0077bb','#ee7733','#aa3377','#009988','#ee3377','#33bbee','#bbbbbb','#44aa99'];
 
 const THEMES = {
-  default: { id:'default', name:'Void',       cls:'',        unlock:0,    desc:'Synthwave horizon',  swatch:'linear-gradient(90deg,#060d09,#0b1810,#1a3520)', art:'drawArtDefault' },
   nature:  { id:'nature',  name:'Forest',     cls:'t-nature',unlock:500,  desc:'Ancient woodland',   swatch:'linear-gradient(90deg,#040c05,#071008,#152e18)', art:'drawArtNature'  },
   cyber:   { id:'cyber',   name:'Cyberpunk',  cls:'t-cyber', unlock:2000, desc:'Neon city rain',     swatch:'linear-gradient(90deg,#07030f,#0f0720,#2a1148)', art:'drawArtCyber'   },
-  beach:   { id:'beach',   name:'Beach Vibes',cls:'',        unlock:0,    desc:'Revolu7ion art',     swatch:'linear-gradient(90deg,#e86f0c,#d94f0a,#f5c800)', art:'drawArtBeach'   },
+  beach:   { id:'beach',   name:'Bankr Vibes',cls:'',        unlock:0,    desc:'bankr art',     swatch:'linear-gradient(90deg,#e86f0c,#d94f0a,#f5c800)', art:'drawArtBeach'   },
   hiigh:   { id:'hiigh',   name:'HiighPhill', cls:'',        unlock:0,    desc:'HiighPhill edition', swatch:'linear-gradient(90deg,#1a5c28,#2d8a40,#f5a500)', art:'drawArtHiigh'   },
 };
 
@@ -1556,7 +1607,7 @@ function buildGrid() {
   }
   cvs.width  = G.cols * cs;
   cvs.height = G.rows * cs;
-  const _themeArt = THEMES[profile.theme] || THEMES.default;
+  const _themeArt = THEMES[profile.theme] || THEMES.hiigh;
   window[_themeArt.art](cvs);
 
   grid.innerHTML = '';
@@ -1887,8 +1938,8 @@ const LS_LB      = 'chucho_lb_v1';
 
 function defaultProfile() {
   return {
-    xp: 0, totalXp: 0, theme: 'default',
-    selectedPups: [], ownedItems: ['default'],
+    xp: 0, totalXp: 0, theme: 'hiigh',
+    selectedPups: [], ownedItems: [],
     gamesPlayed: 0, bestTime: null, mostBoards: 0,
     pfp: null,
     displayName: null,
@@ -1917,6 +1968,7 @@ function loadProfile() {
     if (p.bestStreak == null) p.bestStreak = 0;
     if (p.soundsOn == null)   p.soundsOn   = true;
     if (p.colorblind == null) p.colorblind = false;
+    if (!THEMES[p.theme]) p.theme = 'hiigh';
     return p;
   } catch { return defaultProfile(); }
 }
@@ -1929,7 +1981,6 @@ function getLevel(xp) {
   return lv;
 }
 function isUnlocked(id) {
-  if (id === 'default') return true;
   const item = THEMES[id] || POWERUPS[id];
   if (item && item.unlock === 0) return true;
   return Array.isArray(profile.ownedItems) && profile.ownedItems.includes(id);
@@ -1939,7 +1990,7 @@ function buyItem(id) {
   if (!item || isUnlocked(id)) return;
   if (profile.xp < item.unlock) return;
   profile.xp -= item.unlock;
-  if (!Array.isArray(profile.ownedItems)) profile.ownedItems = ['default'];
+  if (!Array.isArray(profile.ownedItems)) profile.ownedItems = [];
   profile.ownedItems.push(id);
   saveProfile();
   renderDrawer();
@@ -2058,7 +2109,7 @@ function openLevelUp(lv) {
 
 function applyTheme(id) {
   if (!isUnlocked(id)) return;
-  const t = THEMES[id] || THEMES.default;
+  const t = THEMES[id] || THEMES.hiigh;
   Object.values(THEMES).forEach(th => { if (th.cls) document.body.classList.remove(th.cls); });
   if (t.cls) document.body.classList.add(t.cls);
   profile.theme = id;
@@ -2207,7 +2258,23 @@ function closeDrawer() {
   document.getElementById('drawer-overlay').classList.remove('show');
 }
 
+function renderProfileCorner() {
+  const totalXp = profile.totalXp || 0;
+  const lv      = getLevel(totalXp);
+  const lvName  = LEVEL_NAMES[lv] || 'Legend';
+  const initials = lvName.slice(0, 2).toUpperCase();
+  const dName   = profile.displayName || lvName;
+  const av = document.getElementById('pc-avatar');
+  const nm = document.getElementById('pc-name');
+  const xp = document.getElementById('pc-xp');
+  if (!av) return;
+  av.innerHTML = profile.pfp ? `<img src="${profile.pfp}" alt="pfp">` : initials;
+  if (nm) nm.textContent = dName;
+  if (xp) xp.textContent = `${profile.xp.toLocaleString()} XP`;
+}
+
 function renderDrawer() {
+  renderProfileCorner();
   if (!drawerOpen) return;
   const body = document.getElementById('drawer-body');
   if (!body) return;
@@ -2226,44 +2293,8 @@ function renderDrawer() {
   const streak = profile.winStreak || 0;
   const bStreak = profile.bestStreak || 0;
 
-  // ── Profile ──
-  const avatarInner = profile.pfp
-    ? `<img src="${profile.pfp}" alt="Profile photo">`
-    : initials;
-  const dName = profile.displayName || lvName;
-  let html = `<div class="dp-card">
-    <div class="dp-top">
-      <div class="dp-avatar-wrap" onclick="openPfpPicker()" title="Change photo">
-        <div class="dp-avatar">${avatarInner}</div>
-        <div class="dp-avatar-edit">✎</div>
-      </div>
-      <div class="dp-info">
-        <div class="dp-lvl">LEVEL ${lv + 1} &nbsp;·&nbsp; ${lvName}</div>
-        <div class="dp-name" style="display:flex;align-items:center;gap:6px">
-          <span>${dName}</span>
-          <button class="dr-edit-btn" onclick="editDisplayName()">✎</button>
-        </div>
-        <div class="dp-balance">${profile.xp.toLocaleString()} XP available</div>
-      </div>
-    </div>
-    <div class="dp-xp-row">
-      <div class="dp-xp-lbl">${totalXp.toLocaleString()} / ${hi ? hi.toLocaleString() : 'MAX'} total XP</div>
-      <div class="dp-xp-lbl">${pct}%</div>
-    </div>
-    <div class="dp-xp-track"><div class="dp-xp-fill" style="width:${pct}%"></div></div>
-    <div class="dp-stats">
-      <div class="dp-stat"><div class="dp-stat-val">${played}</div><div class="dp-stat-lbl">Played</div></div>
-      <div class="dp-stat"><div class="dp-stat-val">${streak}</div><div class="dp-stat-lbl">Streak</div></div>
-      <div class="dp-stat"><div class="dp-stat-val">${boards}</div><div class="dp-stat-lbl">Most Boards</div></div>
-    </div>
-    <div class="dp-stats" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--brd)">
-      <div class="dp-stat"><div class="dp-stat-val">${bStreak}</div><div class="dp-stat-lbl">Best Streak</div></div>
-      <div class="dp-stat"><div class="dp-stat-val">${profile.bestTimes&&profile.bestTimes.easy!=null?fmt(profile.bestTimes.easy):'—'}</div><div class="dp-stat-lbl">Easy Best</div></div>
-      <div class="dp-stat"><div class="dp-stat-val">${profile.bestTimes&&profile.bestTimes.hard!=null?fmt(profile.bestTimes.hard):'—'}</div><div class="dp-stat-lbl">Hard Best</div></div>
-    </div>
-  </div>`;
-
   // ── Themes ──
+  let html = '';
   html += `<div class="dr-sec"><div class="dr-sec-title">Themes</div>`;
   html += Object.values(THEMES).map(t => {
     const owned    = isUnlocked(t.id);
@@ -2758,6 +2789,7 @@ function triggerWinReveal() {
 // ══════════════════════════════════════════
 profile = loadProfile();
 applyTheme(profile.theme);
+renderProfileCorner();
 buildPupSelector('regular');
 buildPupSelector('challenge');
 syncRegSetup();
