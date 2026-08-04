@@ -954,9 +954,85 @@
       padding: 5px 9px; border-radius: 4px; transition: color .14s;
     }
     .drawer-close:hover { color: var(--txt); }
-    .drawer-body { flex: 1; overflow-y: auto; padding: 0 16px 40px; }
+    .drawer-body { flex: 1; overflow-y: auto; padding: 0 0 40px; }
     .drawer-body::-webkit-scrollbar { width: 4px; }
     .drawer-body::-webkit-scrollbar-thumb { background: var(--brd2); border-radius: 2px; }
+
+    /* ── DRAWER ICON TABS ── */
+    .dr-tabs {
+      display: flex; border-bottom: 1px solid var(--brd);
+      background: var(--surf); flex-shrink: 0;
+    }
+    .dr-tab {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 11px 6px 10px; background: transparent; border: none; cursor: pointer;
+      color: var(--txt2); font-family: var(--font-u); font-size: .42rem;
+      letter-spacing: .14em; text-transform: uppercase; font-weight: 600;
+      border-bottom: 2px solid transparent; transition: color .15s, border-color .15s;
+    }
+    .dr-tab svg { transition: stroke .15s; }
+    .dr-tab.act { color: var(--lime); border-bottom-color: var(--lime); }
+    .dr-tab.act svg { stroke: var(--lime); }
+    .dr-tab:hover:not(.act) { color: var(--txt); }
+
+    /* ── STORE LABELS ── */
+    .dr-store-lbl {
+      font-family: var(--font-m); font-size: .48rem; letter-spacing: .22em;
+      text-transform: uppercase; color: var(--txt2);
+      padding: 14px 16px 6px; font-weight: 600;
+    }
+    .dr-tab-content { padding: 12px 16px 0; }
+
+    /* ── PROFILE MODAL ── */
+    .pm-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 500;
+      display: none; align-items: flex-start; justify-content: flex-end;
+      padding: 64px 14px 0;
+    }
+    .pm-overlay.show { display: flex; }
+    .pm-card {
+      background: var(--surf); border: 1px solid var(--brd);
+      border-radius: 14px; padding: 20px 18px 18px; width: min(320px, 92vw);
+      box-shadow: 0 12px 48px rgba(0,0,0,.7);
+    }
+    .pm-top { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+    .pm-avatar-wrap { position: relative; flex-shrink: 0; cursor: pointer; }
+    .pm-avatar {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--surf2); border: 2px solid var(--lime);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .72rem; font-weight: 700; color: var(--lime);
+      font-family: var(--font-m); overflow: hidden;
+    }
+    .pm-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .pm-avatar-hint {
+      position: absolute; bottom: -1px; right: -1px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--surf); border: 1px solid var(--brd2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .44rem; color: var(--txt2);
+    }
+    .pm-info { flex: 1; }
+    .pm-level { font-family: var(--font-m); font-size: .48rem; color: var(--lime); letter-spacing: .18em; text-transform: uppercase; margin-bottom: 3px; }
+    .pm-name-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+    .pm-name { font-size: .82rem; font-weight: 600; color: var(--txt); }
+    .pm-edit-btn {
+      background: transparent; border: 1px solid var(--brd); border-radius: 3px;
+      color: var(--txt2); cursor: pointer; font-size: .46rem; padding: 1px 5px;
+      transition: color .12s, border-color .12s;
+    }
+    .pm-edit-btn:hover { color: var(--lime); border-color: rgba(74,255,63,.4); }
+    .pm-balance { font-family: var(--font-m); font-size: .58rem; color: var(--gold); letter-spacing: .06em; }
+    .pm-xp-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .pm-xp-lbl { font-family: var(--font-m); font-size: .5rem; color: var(--txt2); letter-spacing: .06em; }
+    .pm-xp-track { height: 3px; background: var(--brd); border-radius: 2px; overflow: hidden; margin-bottom: 14px; }
+    .pm-xp-fill { height: 100%; background: linear-gradient(90deg, var(--lime), var(--cyan)); border-radius: 2px; }
+    .pm-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+    .pm-stat { text-align: center; background: var(--surf2); border-radius: 8px; padding: 8px 4px; }
+    .pm-stat-val { font-family: var(--font-m); font-size: .78rem; font-weight: 700; color: var(--txt); }
+    .pm-stat-lbl { font-family: var(--font-u); font-size: .42rem; letter-spacing: .16em; text-transform: uppercase; color: var(--txt2); margin-top: 2px; }
+    .pm-close { display: block; width: 100%; margin-top: 14px; background: transparent; border: 1px solid var(--brd); border-radius: 7px; padding: 8px; color: var(--txt2); font-family: var(--font-m); font-size: .52rem; letter-spacing: .12em; cursor: pointer; transition: color .14s, border-color .14s; }
+    .pm-close:hover { color: var(--txt); border-color: var(--brd2); }
 
     /* ── DRAWER PROFILE ──────────────────────────── */
     .dp-card {
@@ -1009,7 +1085,7 @@
     .shop-row {
       display: flex; align-items: center; gap: 10px;
       background: var(--surf); border: 1px solid var(--brd);
-      border-radius: 8px; padding: 9px 12px; margin-bottom: 6px;
+      border-radius: 8px; padding: 9px 12px; margin: 0 16px 6px;
     }
     .shop-row.equipped { border-color: rgba(74,255,63,.4); background: rgba(74,255,63,.03); }
     body.t-cyber .shop-row.equipped { border-color: rgba(192,96,255,.4); background: rgba(192,96,255,.03); }
@@ -1062,14 +1138,13 @@
   </button>
 
   <!-- Profile Corner -->
-  <div class="profile-corner" id="profile-corner">
-    <div class="pc-avatar-wrap" onclick="openPfpPicker()" title="Change photo">
+  <div class="profile-corner" id="profile-corner" onclick="openPm()" title="View profile">
+    <div class="pc-avatar-wrap">
       <div class="pc-avatar" id="pc-avatar"></div>
     </div>
     <div class="pc-info">
       <div class="pc-name-row">
         <span class="pc-name" id="pc-name"></span>
-        <button class="pc-edit-btn" onclick="editDisplayName()">✎</button>
       </div>
       <div class="pc-xp" id="pc-xp"></div>
     </div>
@@ -1165,6 +1240,13 @@
 <div id="xp-toast">+0 XP</div>
 <input type="file" id="pfp-input" accept="image/*" style="display:none" onchange="handlePfpChange(this)">
 
+<!-- ══ PROFILE MODAL ══ -->
+<div class="pm-overlay" id="pm-overlay" onclick="closePm()">
+  <div class="pm-card" onclick="event.stopPropagation()" id="pm-card">
+    <!-- rendered by JS -->
+  </div>
+</div>
+
 <!-- ══ SIDE DRAWER ══ -->
 <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
 <div class="drawer" id="drawer">
@@ -1209,10 +1291,10 @@ const NUM_COLORS    = ['', '#4EBDC9','#4AFF3F','#d9713a','#C9A84C','#e05050','#c
 const NUM_COLORS_CB = ['', '#0077bb','#ee7733','#aa3377','#009988','#ee3377','#33bbee','#bbbbbb','#44aa99'];
 
 const THEMES = {
-  nature:  { id:'nature',  name:'Forest',     cls:'t-nature',unlock:500,  desc:'Ancient woodland',   swatch:'linear-gradient(90deg,#040c05,#071008,#152e18)', art:'drawArtNature'  },
-  cyber:   { id:'cyber',   name:'Cyberpunk',  cls:'t-cyber', unlock:2000, desc:'Neon city rain',     swatch:'linear-gradient(90deg,#07030f,#0f0720,#2a1148)', art:'drawArtCyber'   },
-  beach:   { id:'beach',   name:'Bankr Vibes',cls:'',        unlock:0,    desc:'bankr art',     swatch:'linear-gradient(90deg,#e86f0c,#d94f0a,#f5c800)', art:'drawArtBeach'   },
   hiigh:   { id:'hiigh',   name:'HiighPhill', cls:'',        unlock:0,    desc:'HiighPhill edition', swatch:'linear-gradient(90deg,#1a5c28,#2d8a40,#f5a500)', art:'drawArtHiigh'   },
+  beach:   { id:'beach',   name:'Bankr Vibes',cls:'',        unlock:1000, desc:'bankr art',          swatch:'linear-gradient(90deg,#e86f0c,#d94f0a,#f5c800)', art:'drawArtBeach'   },
+  cyber:   { id:'cyber',   name:'Cyberpunk',  cls:'t-cyber', unlock:200,  desc:'Neon city rain',     swatch:'linear-gradient(90deg,#07030f,#0f0720,#2a1148)', art:'drawArtCyber'   },
+  nature:  { id:'nature',  name:'Forest',     cls:'t-nature',unlock:200,  desc:'Ancient woodland',   swatch:'linear-gradient(90deg,#040c05,#071008,#152e18)', art:'drawArtNature'  },
 };
 
 const POWERUPS = {
@@ -2245,6 +2327,7 @@ function saveLbEntry(mode, entry) {
 
 let drawerOpen = false;
 let drLbTab = 'regular';
+let drTab = 'store';
 
 function openDrawer() {
   drawerOpen = true;
@@ -2258,7 +2341,65 @@ function closeDrawer() {
   document.getElementById('drawer-overlay').classList.remove('show');
 }
 
+function openPm() {
+  document.getElementById('pm-overlay').classList.add('show');
+  renderPm();
+}
+function closePm() {
+  document.getElementById('pm-overlay').classList.remove('show');
+}
+function renderPm() {
+  const card = document.getElementById('pm-card');
+  if (!card) return;
+  const totalXp = profile.totalXp || 0;
+  const lv      = getLevel(totalXp);
+  const lo      = XP_THRESHOLDS[lv] || 0;
+  const hi      = XP_THRESHOLDS[lv + 1];
+  const pct     = hi ? Math.round((totalXp - lo) / (hi - lo) * 100) : 100;
+  const lvName  = LEVEL_NAMES[lv] || 'Legend';
+  const initials = lvName.slice(0, 2).toUpperCase();
+  const dName   = profile.displayName || lvName;
+  const av      = profile.pfp ? `<img src="${profile.pfp}" alt="pfp">` : initials;
+  const played  = profile.gamesPlayed || 0;
+  const streak  = profile.winStreak   || 0;
+  const bStreak = profile.bestStreak  || 0;
+  const boards  = profile.mostBoards  || 0;
+  const easyB   = profile.bestTimes?.easy != null ? fmt(profile.bestTimes.easy) : '—';
+  const hardB   = profile.bestTimes?.hard != null ? fmt(profile.bestTimes.hard) : '—';
+  card.innerHTML = `
+    <div class="pm-top">
+      <div class="pm-avatar-wrap" onclick="openPfpPicker()" title="Change photo">
+        <div class="pm-avatar">${av}</div>
+        <div class="pm-avatar-hint">✎</div>
+      </div>
+      <div class="pm-info">
+        <div class="pm-level">Level ${lv + 1} · ${lvName}</div>
+        <div class="pm-name-row">
+          <span class="pm-name">${dName}</span>
+          <button class="pm-edit-btn" onclick="editDisplayName()">✎</button>
+        </div>
+        <div class="pm-balance">${profile.xp.toLocaleString()} XP available</div>
+      </div>
+    </div>
+    <div class="pm-xp-row">
+      <span class="pm-xp-lbl">${totalXp.toLocaleString()} / ${hi ? hi.toLocaleString() : 'MAX'} XP</span>
+      <span class="pm-xp-lbl">${pct}%</span>
+    </div>
+    <div class="pm-xp-track"><div class="pm-xp-fill" style="width:${pct}%"></div></div>
+    <div class="pm-stats">
+      <div class="pm-stat"><div class="pm-stat-val">${played}</div><div class="pm-stat-lbl">Played</div></div>
+      <div class="pm-stat"><div class="pm-stat-val">${streak}</div><div class="pm-stat-lbl">Streak</div></div>
+      <div class="pm-stat"><div class="pm-stat-val">${bStreak}</div><div class="pm-stat-lbl">Best Streak</div></div>
+      <div class="pm-stat"><div class="pm-stat-val">${easyB}</div><div class="pm-stat-lbl">Easy Best</div></div>
+      <div class="pm-stat"><div class="pm-stat-val">${hardB}</div><div class="pm-stat-lbl">Hard Best</div></div>
+      <div class="pm-stat"><div class="pm-stat-val">${boards}</div><div class="pm-stat-lbl">Boards</div></div>
+    </div>
+    <button class="pm-close" onclick="closePm()">Close</button>
+  `;
+}
+
 function renderProfileCorner() {
+  if (document.getElementById('pm-overlay')?.classList.contains('show')) renderPm();
   const totalXp = profile.totalXp || 0;
   const lv      = getLevel(totalXp);
   const lvName  = LEVEL_NAMES[lv] || 'Legend';
@@ -2293,75 +2434,83 @@ function renderDrawer() {
   const streak = profile.winStreak || 0;
   const bStreak = profile.bestStreak || 0;
 
-  // ── Themes ──
-  let html = '';
-  html += `<div class="dr-sec"><div class="dr-sec-title">Themes</div>`;
-  html += Object.values(THEMES).map(t => {
-    const owned    = isUnlocked(t.id);
-    const equipped = profile.theme === t.id;
-    const canBuy   = !owned && profile.xp >= t.unlock;
-    return `<div class="shop-row${equipped ? ' equipped' : ''}">
-      <div class="shop-swatch" style="background:${t.swatch}"></div>
-      <div class="shop-info">
-        <div class="shop-name">${t.name}</div>
-        <div class="shop-desc">${t.desc}</div>
-      </div>
-      <div class="shop-action">
-        ${equipped
-          ? `<span class="shop-equipped-lbl">Active</span>`
-          : owned
-            ? `<button class="shop-btn shop-equip" onclick="applyTheme('${t.id}'); renderDrawer()">Use</button>`
-            : `<button class="shop-btn shop-buy" onclick="buyItem('${t.id}')" ${canBuy?'':'disabled'}>${t.unlock.toLocaleString()} XP</button>`
-        }
-      </div>
-    </div>`;
-  }).join('');
-  html += `</div>`;
+  // ── Tab-based store/settings/records ──
+  const STORE_IC = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>`;
+  const SETT_IC  = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="9" cy="6" r="2.5" fill="var(--base)"/><circle cx="15" cy="12" r="2.5" fill="var(--base)"/><circle cx="9" cy="18" r="2.5" fill="var(--base)"/></svg>`;
+  const REC_IC   = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14v7a7 7 0 01-14 0V4z"/><path d="M5 8H2a3 3 0 003 3M19 8h3a3 3 0 01-3 3"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/></svg>`;
 
-  // ── Power-ups ──
-  html += `<div class="dr-sec"><div class="dr-sec-title">Power-Ups</div>`;
-  html += Object.values(POWERUPS).map(p => {
-    const owned    = isUnlocked(p.id);
-    const selected = owned && profile.selectedPups.includes(p.id);
-    const canBuy   = !owned && profile.xp >= p.unlock;
-    return `<div class="shop-row${selected ? ' equipped' : ''}">
-      <div class="shop-icon">${p.icon}</div>
-      <div class="shop-info">
-        <div class="shop-name">${p.name}</div>
-        <div class="shop-desc">${p.desc}</div>
-      </div>
-      <div class="shop-action">
-        ${owned
-          ? `<button class="shop-toggle ${selected?'on':'off'}" onclick="drTogglePup('${p.id}')">${selected?'On':'Off'}</button>`
-          : `<button class="shop-btn shop-buy" onclick="buyItem('${p.id}')" ${canBuy?'':'disabled'}>${p.unlock.toLocaleString()} XP</button>`
-        }
-      </div>
-    </div>`;
-  }).join('');
-  html += `</div>`;
-
-  // ── Settings ──
-  html += `<div class="dr-sec"><div class="dr-sec-title">Settings</div>
-    <div class="shop-row">
-      <div class="shop-icon">◎</div>
-      <div class="shop-info"><div class="shop-name">Sound Effects</div><div class="shop-desc">Clicks, flags, explosions</div></div>
-      <div class="shop-action"><button class="shop-toggle ${profile.soundsOn?'on':'off'}" onclick="toggleSounds()">${profile.soundsOn?'On':'Off'}</button></div>
-    </div>
-    <div class="shop-row">
-      <div class="shop-icon">◈</div>
-      <div class="shop-info"><div class="shop-name">Colorblind Mode</div><div class="shop-desc">High-contrast number colors</div></div>
-      <div class="shop-action"><button class="shop-toggle ${profile.colorblind?'on':'off'}" onclick="toggleColorblind()">${profile.colorblind?'On':'Off'}</button></div>
-    </div>
+  let html = `<div class="dr-tabs">
+    <button class="dr-tab${drTab==='store'?' act':''}" onclick="switchDrTab('store')">${STORE_IC}<span>Store</span></button>
+    <button class="dr-tab${drTab==='settings'?' act':''}" onclick="switchDrTab('settings')">${SETT_IC}<span>Settings</span></button>
+    <button class="dr-tab${drTab==='records'?' act':''}" onclick="switchDrTab('records')">${REC_IC}<span>Records</span></button>
   </div>`;
 
-  // ── Records ──
-  html += `<div class="dr-sec"><div class="dr-sec-title">Records</div>
-    <div class="dr-lb-tabs">
-      <button class="dr-lb-tab${drLbTab==='regular'?' act':''}" onclick="switchDrLbTab('regular')">Regular</button>
-      <button class="dr-lb-tab${drLbTab==='challenge'?' act':''}" onclick="switchDrLbTab('challenge')">Challenge</button>
-    </div>
-    <div id="dr-lb-content">${buildLbHtml(drLbTab)}</div>
-  </div>`;
+  if (drTab === 'store') {
+    html += `<div class="dr-store-lbl">Themes</div>`;
+    html += Object.values(THEMES).map(t => {
+      const owned    = isUnlocked(t.id);
+      const equipped = profile.theme === t.id;
+      const canBuy   = !owned && profile.xp >= t.unlock;
+      return `<div class="shop-row${equipped?' equipped':''}">
+        <div class="shop-swatch" style="background:${t.swatch}"></div>
+        <div class="shop-info">
+          <div class="shop-name">${t.name}</div>
+          <div class="shop-desc">${t.desc}${t.unlock===0?' · Free':''}</div>
+        </div>
+        <div class="shop-action">
+          ${equipped
+            ? `<span class="shop-equipped-lbl">Active</span>`
+            : owned
+              ? `<button class="shop-btn shop-equip" onclick="applyTheme('${t.id}');renderDrawer()">Use</button>`
+              : `<button class="shop-btn shop-buy" onclick="buyItem('${t.id}')" ${canBuy?'':'disabled'}>${t.unlock.toLocaleString()} XP</button>`
+          }
+        </div>
+      </div>`;
+    }).join('');
+
+    html += `<div class="dr-store-lbl" style="margin-top:20px">Power-Ups</div>`;
+    html += Object.values(POWERUPS).map(p => {
+      const owned    = isUnlocked(p.id);
+      const selected = owned && profile.selectedPups.includes(p.id);
+      const canBuy   = !owned && profile.xp >= p.unlock;
+      return `<div class="shop-row${selected?' equipped':''}">
+        <div class="shop-icon">${p.icon}</div>
+        <div class="shop-info">
+          <div class="shop-name">${p.name}</div>
+          <div class="shop-desc">${p.desc}</div>
+        </div>
+        <div class="shop-action">
+          ${owned
+            ? `<button class="shop-toggle ${selected?'on':'off'}" onclick="drTogglePup('${p.id}')">${selected?'On':'Off'}</button>`
+            : `<button class="shop-btn shop-buy" onclick="buyItem('${p.id}')" ${canBuy?'':'disabled'}>${p.unlock.toLocaleString()} XP</button>`
+          }
+        </div>
+      </div>`;
+    }).join('');
+
+  } else if (drTab === 'settings') {
+    html += `<div class="dr-tab-content">
+      <div class="shop-row">
+        <div class="shop-icon">◎</div>
+        <div class="shop-info"><div class="shop-name">Sound Effects</div><div class="shop-desc">Clicks, flags, explosions</div></div>
+        <div class="shop-action"><button class="shop-toggle ${profile.soundsOn?'on':'off'}" onclick="toggleSounds()">${profile.soundsOn?'On':'Off'}</button></div>
+      </div>
+      <div class="shop-row">
+        <div class="shop-icon">◈</div>
+        <div class="shop-info"><div class="shop-name">Colorblind Mode</div><div class="shop-desc">High-contrast number palette</div></div>
+        <div class="shop-action"><button class="shop-toggle ${profile.colorblind?'on':'off'}" onclick="toggleColorblind()">${profile.colorblind?'On':'Off'}</button></div>
+      </div>
+    </div>`;
+
+  } else if (drTab === 'records') {
+    html += `<div class="dr-tab-content">
+      <div class="dr-lb-tabs">
+        <button class="dr-lb-tab${drLbTab==='regular'?' act':''}" onclick="switchDrLbTab('regular')">Regular</button>
+        <button class="dr-lb-tab${drLbTab==='challenge'?' act':''}" onclick="switchDrLbTab('challenge')">Challenge</button>
+      </div>
+      <div id="dr-lb-content">${buildLbHtml(drLbTab)}</div>
+    </div>`;
+  }
 
   body.innerHTML = html;
 }
@@ -2373,6 +2522,10 @@ function drTogglePup(id) {
   saveProfile();
   buildPupSelector('regular');
   buildPupSelector('challenge');
+  renderDrawer();
+}
+function switchDrTab(tab) {
+  drTab = tab;
   renderDrawer();
 }
 function switchDrLbTab(tab) {
