@@ -598,6 +598,11 @@ button{transition:transform .08s ease;}
 .bench-chip-off .bench-av{border-color:rgba(255,215,0,.45);color:#FFD700;}
 .bench-chip-off .bench-nm{color:#FFD700;}
 .bench-empty{font-size:10px;color:#3D5845;font-weight:700;padding:4px 0;}
+.bench-chip-placeholder .bench-av{border-style:dashed;border-color:rgba(255,255,255,.18);color:rgba(255,255,255,.3);}
+.bench-chip-placeholder .bench-nm{color:rgba(255,255,255,.35);}
+.bench-chip-placeholder .bench-pos{color:rgba(255,255,255,.2);}
+.pitch-tok-blank .tok-av{border-style:dashed!important;border-color:rgba(255,255,255,.22)!important;background:rgba(255,255,255,.03)!important;color:rgba(255,255,255,.3);font-size:11px;}
+.pitch-tok-blank{opacity:.5;}
 /* Post-game summary modal */
 .pgm-score-big{font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:52px;letter-spacing:6px;line-height:1;margin:4px 0;}
 .pgm-section-title{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.3px;color:#3D5845;margin-top:12px;margin-bottom:5px;}
@@ -1130,6 +1135,8 @@ let TEAMS=[
     {name:'Diego Rivera',  pos:'GK', num:1, ovr:81,tier:'gold',  init:'DR',flag:'🇲🇽',pac:55,sho:35,pas:62,dri:40,def:88,phy:82,goals:0, assists:0, potm:2,cs:7},
     {name:'Marco Santos',  pos:'CM', num:8, ovr:76,tier:'gold',  init:'MS',flag:'🇺🇸',pac:76,sho:70,pas:82,dri:79,def:68,phy:74,goals:4, assists:6, potm:1,cs:0},
     {name:'Alex Torres',   pos:'LB', num:3, ovr:69,tier:'silver',init:'AT',flag:'🇺🇸',pac:82,sho:45,pas:71,dri:74,def:78,phy:72,goals:1, assists:3, potm:0,cs:0},
+    {name:'Player 12',     pos:'CM', num:12,ovr:65,tier:'silver',init:'12',flag:'',    pac:65,sho:60,pas:65,dri:62,def:60,phy:65,goals:0, assists:0, potm:0,cs:0,isPlaceholder:true},
+    {name:'Player 13',     pos:'CB', num:13,ovr:63,tier:'silver',init:'13',flag:'',    pac:60,sho:38,pas:58,dri:52,def:68,phy:70,goals:0, assists:0, potm:0,cs:0,isPlaceholder:true},
   ]},
   {id:'u16',name:'GSA Elite U16',initial:'E',formation:'4-2-3-1',season:'Spring 2025',ovr:82,players:[
     {name:'Miguel Herrera',pos:'ST', num:9, ovr:87,tier:'elite', init:'MH',flag:'🇲🇽',pac:86,sho:90,pas:74,dri:85,def:42,phy:80,goals:18,assists:6, potm:5,cs:0},
@@ -1138,6 +1145,8 @@ let TEAMS=[
     {name:'Luca Ferrari',  pos:'GK', num:1, ovr:83,tier:'gold',  init:'LF',flag:'🇮🇹',pac:58,sho:38,pas:65,dri:45,def:90,phy:84,goals:0, assists:0, potm:3,cs:10},
     {name:'Nathan Webb',   pos:'RB', num:2, ovr:77,tier:'gold',  init:'NW',flag:'🇬🇧',pac:84,sho:50,pas:73,dri:76,def:80,phy:75,goals:3, assists:7, potm:1,cs:0},
     {name:'Kai Chen',      pos:'LW', num:11,ovr:79,tier:'gold',  init:'KC',flag:'🇨🇳',pac:88,sho:74,pas:76,dri:84,def:44,phy:62,goals:7, assists:10,potm:2,cs:0},
+    {name:'Player 12',     pos:'CM', num:12,ovr:66,tier:'silver',init:'12',flag:'',    pac:66,sho:62,pas:66,dri:64,def:62,phy:66,goals:0, assists:0, potm:0,cs:0,isPlaceholder:true},
+    {name:'Player 13',     pos:'RB', num:13,ovr:64,tier:'silver',init:'13',flag:'',    pac:72,sho:44,pas:62,dri:66,def:70,phy:68,goals:0, assists:0, potm:0,cs:0,isPlaceholder:true},
   ]},
   {id:'u12',name:'GSA Academy U12',initial:'A',formation:'4-4-2',season:'Spring 2025',ovr:73,players:[
     {name:'Ethan Ramos',  pos:'ST', num:9, ovr:75,tier:'gold',  init:'ER',flag:'🇺🇸',pac:82,sho:76,pas:65,dri:78,def:38,phy:70,goals:8,assists:3,potm:2,cs:0},
@@ -1146,6 +1155,8 @@ let TEAMS=[
     {name:'Mateo Flores', pos:'LB', num:3, ovr:68,tier:'silver',init:'MF',flag:'🇲🇽',pac:78,sho:40,pas:65,dri:68,def:72,phy:65,goals:1,assists:2,potm:0,cs:0},
     {name:'Isaac Brown',  pos:'CB', num:5, ovr:71,tier:'silver',init:'IB',flag:'🇺🇸',pac:62,sho:38,pas:60,dri:55,def:76,phy:78,goals:1,assists:0,potm:0,cs:0},
     {name:'Tyler Nguyen', pos:'RW', num:7, ovr:74,tier:'gold',  init:'TN',flag:'🇺🇸',pac:86,sho:70,pas:68,dri:80,def:40,phy:60,goals:5,assists:6,potm:2,cs:0},
+    {name:'Player 12',    pos:'LW', num:12,ovr:62,tier:'silver',init:'12',flag:'',    pac:72,sho:58,pas:62,dri:68,def:38,phy:60,goals:0,assists:0,potm:0,cs:0,isPlaceholder:true},
+    {name:'Player 13',    pos:'CM', num:13,ovr:60,tier:'silver',init:'13',flag:'',    pac:60,sho:55,pas:65,dri:62,def:58,phy:64,goals:0,assists:0,potm:0,cs:0,isPlaceholder:true},
   ]},
 ];
 const PITCH_PLAYERS=[
@@ -1326,10 +1337,16 @@ function renderCards(){
 /* ── Pitch tokens ─── */
 function renderPitchTokens(){
   const o=document.getElementById('pitchOverlay');
-  o.innerHTML=PITCH_PLAYERS.map((p,i)=>`
-    <div class="pitch-tok pitch-tok-${p.tier}" style="left:${p.cx}%;top:${p.cy}%" data-pi="${i}">
+  o.innerHTML=PITCH_PLAYERS.map((p,i)=>{
+    if(p.isBlank){
+      return `<div class="pitch-tok pitch-tok-blank" style="left:${p.cx}%;top:${p.cy}%" data-pi="${i}">
+        <div class="tok-av">+</div><div class="tok-name" style="font-size:5.5px;opacity:.45">Add</div>
+      </div>`;
+    }
+    return `<div class="pitch-tok pitch-tok-${p.tier}" style="left:${p.cx}%;top:${p.cy}%" data-pi="${i}">
       <div class="tok-toprow"><span class="tok-ovr">${p.ovr}</span><span class="tok-pos">${p.pos}</span></div><div class="tok-av">${p.init}</div><div class="tok-name">${p.name.split(' ').slice(-1)[0]}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   o.querySelectorAll('.pitch-tok').forEach(tok=>makeDraggable(tok,+tok.dataset.pi));
 }
 function makeDraggable(tok,pi){
@@ -2370,7 +2387,7 @@ function deactivateGameMode(){
 }
 function renderBench(){
   const chips=document.getElementById('benchChips');
-  const onPitchNames=new Set(PITCH_PLAYERS.map(x=>x.name));
+  const onPitchNames=new Set(PITCH_PLAYERS.filter(x=>!x.isBlank).map(x=>x.name));
   const subbedOff=new Set(Object.keys(_mtSubMinutes));
   let players=[];
   if(_mtEvent){
@@ -2380,12 +2397,13 @@ function renderBench(){
     const t=TEAMS[0];
     players=(t?t.players:[]).filter(p=>!onPitchNames.has(p.name));
   }
-  if(!players.length){chips.innerHTML='<div class="bench-empty">No bench players</div>';return;}
+  if(!players.length){chips.innerHTML='<div class="bench-empty">No bench players — add some from the Roster tab</div>';return;}
   chips.innerHTML=players.map(p=>{
     const isOnPitch=_mtEvent&&onPitchNames.has(p.name)&&!subbedOff.has(p.name);
     const isSubbedOff=subbedOff.has(p.name);
     let cls='bench-chip';
-    if(isSubbedOff) cls+=' bench-chip-off';
+    if(p.isPlaceholder) cls+=' bench-chip-placeholder';
+    else if(isSubbedOff) cls+=' bench-chip-off';
     else if(isOnPitch) cls+=' bench-chip-on';
     const lastName=p.name.split(' ').slice(-1)[0];
     return `<div class="${cls}" data-bpname="${p.name}"><div class="bench-av">${p.init}</div><div class="bench-nm">${lastName}</div><div class="bench-pos">${p.pos}</div></div>`;
