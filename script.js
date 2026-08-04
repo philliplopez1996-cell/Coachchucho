@@ -138,6 +138,32 @@
     render();
   }
 
+  // Calendly's widget.js loads from an external <script> tag and can take a
+  // moment (or get blocked by an ad blocker / privacy extension — common for
+  // Calendly specifically). Poll briefly for it instead of checking once and
+  // silently giving up, and show a real message with a direct link if it
+  // never shows up, instead of leaving the container blank.
+  function loadCalendlyWidget(container, url, prefill, attempt) {
+    attempt = attempt || 0;
+    if (window.Calendly) {
+      container.innerHTML = '';
+      window.Calendly.initInlineWidget({ url: url, parentElement: container, prefill: prefill || {} });
+      return;
+    }
+    if (attempt < 20) {
+      if (attempt === 0) container.innerHTML = '<div class="step2-hint">Loading calendar…</div>';
+      setTimeout(() => loadCalendlyWidget(container, url, prefill, attempt + 1), 250);
+      return;
+    }
+    container.innerHTML = `
+      <div class="step2-hint" style="margin-bottom: 0;">
+        The calendar couldn't load (this can happen with an ad blocker or privacy extension enabled).
+        You can book directly here instead:<br><br>
+        <a href="${CALENDLY_URL}" target="_blank" rel="noopener" class="cta-btn" style="display:inline-block;">Open scheduling page</a>
+      </div>
+    `;
+  }
+
   // Sidebar "Calendar" — schedule preview with a book-this-slot shortcut
   function openSchedule() {
     closeMenu();
@@ -149,12 +175,7 @@
       // then a plain button to start the real booking flow (intake form first).
       bookBtnWrap.style.display = 'flex';
       container.innerHTML = '';
-      if (window.Calendly) {
-        window.Calendly.initInlineWidget({
-          url: CALENDLY_URL + '?background_color=121212&text_color=e7e9ec&primary_color=c6ff3d',
-          parentElement: container
-        });
-      }
+      loadCalendlyWidget(container, CALENDLY_URL + '?background_color=121212&text_color=e7e9ec&primary_color=c6ff3d');
     } else {
       bookBtnWrap.style.display = 'none';
       createCalendarWidget(container, function(dateLabel, timeLabel) {
@@ -192,13 +213,7 @@
     }
     fallback.style.display = 'none';
     container.style.display = 'block';
-    if (window.Calendly) {
-      window.Calendly.initInlineWidget({
-        url: CALENDLY_URL + '?background_color=121212&text_color=e7e9ec&primary_color=c6ff3d',
-        parentElement: container,
-        prefill: { name: name, email: email }
-      });
-    }
+    loadCalendlyWidget(container, CALENDLY_URL + '?background_color=121212&text_color=e7e9ec&primary_color=c6ff3d', { name: name, email: email });
   }
 
   // Swap in a confirmation message once the parent actually picks a slot via Calendly
