@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Programs & Pricing | Coach Chucho Elite Training</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://assets.calendly.com/assets/external/widget.js"></script>
+</head>
+<body>
+
+<!-- PARALLAX GLOW ORBS -->
+<div class="glow-orb orb-1" aria-hidden="true"></div>
+<div class="glow-orb orb-2" aria-hidden="true"></div>
+
+<!-- HAMBURGER -->
+<button class="hamburger" id="menuBtn" onclick="toggleMenu()">
+  <span></span><span></span><span></span>
+</button>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <a class="nav-item" href="index.html">
+    <span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span> Home
+  </a>
+  <a class="nav-item" href="javascript:void(0)" onclick="openSchedule()">
+    <span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span> Calendar
+  </a>
+  <a class="nav-item active" href="programs.html">
+    <span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2H2v10l9.29 9.29a2 2 0 0 0 2.83 0l6.17-6.17a2 2 0 0 0 0-2.83L12 2z"/><circle cx="7" cy="7" r="1.5"/></svg></span> Programs &amp; Pricing
+  </a>
+  <a class="nav-item" href="about.html">
+    <span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/><circle cx="5" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="19" cy="5" r="1"/><circle cx="19" cy="19" r="1"/><circle cx="5" cy="5" r="1"/><circle cx="5" cy="19" r="1"/></svg></span> About Me
+  </a>
+  <a class="nav-item" href="faq.html">
+    <span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></span> FAQ
+  </a>
+  <a class="nav-item" href="javascript:void(0)" onclick="alert('Roster Radar is launching soon! Parents will be able to log in with the email and password provided by Coach to view their player\'s card.')">
+    <span class="icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="8" cy="10" r="2"/><path d="M2 17c0-2.2 2.5-3 6-3s6 0.8 6 3"/><line x1="14" y1="9" x2="20" y2="9"/><line x1="14" y1="13" x2="20" y2="13"/></svg></span> Roster Radar <span class="nav-badge">Soon</span>
+  </a>
+</div>
+<div class="overlay" id="overlay" onclick="closeMenu()"></div>
+
+<!-- MAIN PAGE -->
+<div class="page">
+
+  <!-- PAGE HEADER -->
+  <section class="page-hero">
+    <h1 class="page-title">Programs &amp; Pricing</h1>
+    <p class="page-subtitle">Every new player starts with a required evaluation session, then chooses the training format that fits their goals and budget.</p>
+  </section>
+
+  <!-- PROGRAMS -->
+  <section class="pricing-home reveal">
+
+    <div class="eval-banner">
+      <div>
+        <h3>Evaluation Session</h3>
+        <p>Required for every new player before booking 1-on-1 or Small Group sessions. We'll assess current skill level and build a personalized development plan. One-time fee — not charged again after your first evaluation.</p>
+      </div>
+      <div class="eval-price">
+        <div class="price-total">$30</div>
+        <div class="price-per">first-time only</div>
+        <button class="price-btn" onclick="openModal('Evaluation Session — $30')">Book Evaluation</button>
+      </div>
+    </div>
+
+    <div class="program-group">
+      <h2 class="section-title">1-on-1 Private Training</h2>
+      <p class="program-desc">Full attention, one player at a time. Sessions are tailored to your child's goals and paced to their development.</p>
+      <div class="pricing-grid">
+        <div class="price-card">
+          <div class="price-icon"><svg class="price-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2L4.5 13.5H11L10 22L20 9.5H13.5L13 2Z" stroke="#A3E635" stroke-width="1.8" stroke-linejoin="round" fill="none"/></svg></div>
+          <h3>Single session</h3>
+          <div class="price-total">$50</div>
+          <div class="price-per">per 75-minute session</div>
+          <ul class="price-features">
+            <li>✓ 15-minute increments</li>
+            <li>✓ Flexible scheduling</li>
+            <li>✓ Personal attention</li>
+          </ul>
+          <button class="price-btn" onclick="openModal('1-on-1 Single Session — $50/75min')">Book now</button>
+        </div>
+        <div class="price-card featured">
+          <div class="price-badge">Popular</div>
+          <div class="price-icon"><svg class="price-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L3 6V12C3 16.5 7 20.7 12 22C17 20.7 21 16.5 21 12V6L12 2Z" stroke="#EFFFD6" stroke-width="1.8" stroke-linejoin="round" fill="none"/></svg></div>
+          <h3>5-session plan</h3>
+          <div class="price-total">$225</div>
+          <div class="price-per">$45 per session</div>
+          <ul class="price-features">
+            <li>✓ Save $25 total</li>
+            <li>✓ Consistent progress</li>
+            <li>✓ Personalized plan</li>
+          </ul>
+          <button class="price-btn" onclick="openModal('1-on-1 5-Session Plan — $225')">Get started</button>
+        </div>
+        <div class="price-card">
+          <div class="price-icon"><svg class="price-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><polygon points="12,2 15.1,8.5 22,9.5 17,14.4 18.2,21.3 12,18 5.8,21.3 7,14.4 2,9.5 8.9,8.5" stroke="#C6FF3D" stroke-width="1.8" stroke-linejoin="round" fill="none"/></svg></div>
+          <h3>10-session plan</h3>
+          <div class="price-total">$420</div>
+          <div class="price-per">$42 per session</div>
+          <ul class="price-features">
+            <li>✓ Save $80 total</li>
+            <li>✓ Best value</li>
+            <li>✓ Long-term gains</li>
+          </ul>
+          <button class="price-btn" onclick="openModal('1-on-1 10-Session Plan — $420')">Reserve yours</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="program-group">
+      <h2 class="section-title">Small Group Training</h2>
+      <p class="program-desc">Bring 2–4 players together — friends, teammates, or siblings — and split the cost. A more budget-friendly way to get quality coaching.</p>
+      <div class="pricing-grid">
+        <div class="price-card">
+          <div class="price-icon"><svg class="price-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="#A3E635" stroke-width="1.8" stroke-linejoin="round" fill="none"/><circle cx="9" cy="7" r="4" stroke="#A3E635" stroke-width="1.8"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="#A3E635" stroke-width="1.8" stroke-linejoin="round" fill="none"/></svg></div>
+          <h3>Single session</h3>
+          <div class="price-total">$80</div>
+          <div class="price-per">per group, split among 2–4</div>
+          <ul class="price-features">
+            <li>✓ 2–4 players per group</li>
+            <li>✓ Cost shared among the group</li>
+            <li>✓ Competitive, social training</li>
+          </ul>
+          <button class="price-btn" onclick="openModal('Small Group Single Session — $80')">Book now</button>
+        </div>
+        <div class="price-card featured">
+          <div class="price-badge">Popular</div>
+          <div class="price-icon"><svg class="price-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="#EFFFD6" stroke-width="1.8" stroke-linejoin="round" fill="none"/><circle cx="9" cy="7" r="4" stroke="#EFFFD6" stroke-width="1.8"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="#EFFFD6" stroke-width="1.8" stroke-linejoin="round" fill="none"/></svg></div>
+          <h3>5-session plan</h3>
+          <div class="price-total">$360</div>
+          <div class="price-per">$72 per session</div>
+          <ul class="price-features">
+            <li>✓ Save $40 total</li>
+            <li>✓ Consistent group progress</li>
+            <li>✓ Personalized plan</li>
+          </ul>
+          <button class="price-btn" onclick="openModal('Small Group 5-Session Plan — $360')">Get started</button>
+        </div>
+        <div class="price-card">
+          <div class="price-icon"><svg class="price-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="#C6FF3D" stroke-width="1.8" stroke-linejoin="round" fill="none"/><circle cx="9" cy="7" r="4" stroke="#C6FF3D" stroke-width="1.8"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="#C6FF3D" stroke-width="1.8" stroke-linejoin="round" fill="none"/></svg></div>
+          <h3>10-session plan</h3>
+          <div class="price-total">$670</div>
+          <div class="price-per">$67 per session</div>
+          <ul class="price-features">
+            <li>✓ Save $130 total</li>
+            <li>✓ Best value</li>
+            <li>✓ Long-term group gains</li>
+          </ul>
+          <button class="price-btn" onclick="openModal('Small Group 10-Session Plan — $670')">Reserve yours</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="camp-banner">
+      <div>
+        <h3>Summer Camp <span class="coming-soon-badge">Coming soon</span></h3>
+        <p>Multi-day group camps packed with skill-building drills, scrimmages, and competitions. Details on dates and pricing will be announced soon — be the first to know.</p>
+      </div>
+      <button class="camp-notify-btn" onclick="openModal('Camp Program — Notify Me')">Notify me</button>
+    </div>
+
+    <div style="text-align: center; margin-top: 32px; padding: 20px; background: rgba(198,255,61,0.08); border: 1px solid rgba(198,255,61,0.2); border-radius: 12px;">
+      <p style="font-size: 15px; color: var(--gold); font-weight: 600;">50% deposit required to complete booking</p>
+    </div>
+  </section>
+</div>
+
+<!-- SCHEDULE PREVIEW MODAL -->
+<div class="modal" id="scheduleModal">
+  <div class="modal-box">
+    <div class="modal-title">Coach's Schedule</div>
+    <p class="step2-hint">Browse open times below, then start a booking whenever you're ready. Available 7:30 AM – 4:30 PM, every day, with a 30-minute break between sessions.</p>
+    <div id="calScheduleContainer" style="min-height: 480px;"></div>
+    <div class="modal-actions" id="scheduleBookBtnWrap" style="display:none;">
+      <button type="button" class="send-btn" onclick="closeSchedule(); openModal('New Booking Request');">Book a session</button>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="cancel-btn" onclick="closeSchedule()" style="width: 100%;">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOOKING MODAL -->
+<div class="modal" id="bookingModal">
+  <div class="modal-box">
+    <div id="bookingStep1">
+      <div class="modal-title">Book Now</div>
+      <div class="modal-plan" id="planLabel"></div>
+      <form id="bookingForm" onsubmit="submitBooking(event)">
+        <div class="form-row">
+          <div class="form-grp">
+            <label>Kid's name</label>
+            <input type="text" id="kidsName" placeholder="Alex" required>
+          </div>
+          <div class="form-grp">
+            <label>Kid's age</label>
+            <input type="number" id="kidsAge" placeholder="10" min="1" max="20" required>
+          </div>
+        </div>
+        <div class="form-grp">
+          <label>Position(s) played</label>
+          <input type="text" id="positions" placeholder="e.g., Forward, Midfielder" required>
+        </div>
+        <div class="form-row">
+          <div class="form-grp">
+            <label>Parent's name</label>
+            <input type="text" id="parentName" placeholder="John Doe" required>
+          </div>
+          <div class="form-grp">
+            <label>Parent's phone</label>
+            <input type="tel" id="phone" placeholder="(555) 123-4567" required>
+          </div>
+        </div>
+        <div class="form-grp">
+          <label>Parent's email</label>
+          <input type="email" id="email" placeholder="you@email.com" required>
+        </div>
+        <div class="form-grp">
+          <label>Additional notes</label>
+          <textarea id="notes" placeholder="Any injuries, goals, or special requests..." style="width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.08); border: 1px solid rgba(198,255,61,0.2); border-radius: 8px; font-family: 'Manrope', sans-serif; color: #E7E9EC; font-size: 14px; resize: vertical; min-height: 80px;"></textarea>
+        </div>
+        <div style="background: rgba(198,255,61,0.1); border: 1px solid rgba(198,255,61,0.3); border-radius: 8px; padding: 12px; margin-bottom: 18px; font-size: 13px; color: var(--gold); text-align: center;">
+          <strong>50% deposit required</strong> to complete this booking
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="send-btn">Next: pick a time</button>
+          <button type="button" class="cancel-btn" onclick="closeModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="bookingStep2" style="display:none">
+      <div class="modal-title">Pick a date &amp; time</div>
+      <p class="step2-hint">Available 7:30 AM – 4:30 PM, every day. Sessions are automatically spaced 30 minutes apart.</p>
+      <div id="calendlyContainer" style="min-height: 480px;"></div>
+      <div id="calendlyFallback" style="display:none;">
+        <div id="calFallbackContainer"></div>
+      </div>
+      <div id="calendlyConfirmed" class="booking-confirmed" style="display:none;"></div>
+      <div class="modal-actions">
+        <button type="button" class="cancel-btn" onclick="closeModal()" style="width: 100%;">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
