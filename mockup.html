@@ -1105,6 +1105,7 @@ button{transition:transform .08s ease;}
         <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.4px;color:#3D5845;margin-bottom:10px;">Attributes</div>
         <div id="pmShAttrs"></div>
       </div>
+      <div id="pmShStats" style="margin:0 16px 8px;background:rgba(0,0,0,.3);border-radius:14px;padding:12px 14px;border:1px solid rgba(255,255,255,.05);"></div>
       <div style="padding:0 16px 8px;">
         <button class="pitch-compare-btn" id="pitchCompareBtn">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
@@ -2079,8 +2080,8 @@ function renderPlayerModal(){
   const fld=(l,v,iv,t='text')=>editMode?`<div class="pm-field-row"><div class="pm-field-label">${l}</div><input class="pm-field-input" type="${t}" value="${iv}"></div>`:`<div class="pm-field-row"><div class="pm-field-label">${l}</div><div class="pm-field-val">${v}</div></div>`;
   const pTeam=TEAMS.find(t=>t.players.some(x=>x===p));
   document.getElementById('pmInfo').innerHTML=fld('Full Name',p.name,p.name)+fld('Position',p.pos,p.pos)+fld('Jersey #',`#${p.num}`,p.num,'number')+`<div class="pm-field-row"><div class="pm-field-label">Overall</div><div class="pm-field-val" style="color:#FFD700">${p.ovr}</div></div>`+(p.foot?`<div class="pm-field-row"><div class="pm-field-label">Foot</div><div class="pm-field-val">${p.foot}</div></div>`:'')+`<div class="pm-field-row"><div class="pm-field-label">Team</div><div class="pm-field-val">${pTeam?pTeam.name:'—'}</div></div>`+(p.weight?`<div class="pm-field-row"><div class="pm-field-label">Weight</div><div class="pm-field-val">${p.weight} lbs</div></div>`:'');
-  const tile=(v,l)=>`<div class="pm-stat-tile"><div class="pm-stat-val">${v}</div><div class="pm-stat-lbl">${l}</div></div>`;
-  document.getElementById('pmStats').innerHTML=tile(p.goals||0,'Goals')+tile(p.assists||0,'Assists')+tile(p.potm||0,'POTM')+tile(p.cs||0,'Clean Sheets');
+  const tile=(v,l,s='')=>`<div class="pm-stat-tile"${s}><div class="pm-stat-val">${v}</div><div class="pm-stat-lbl">${l}</div></div>`;
+  document.getElementById('pmStats').innerHTML=tile(p.goals||0,'Goals')+tile(p.assists||0,'Assists')+tile(p.potm||0,'Player of Match')+tile(p.cs||0,'Clean Sheets')+tile(`${p.minutesPlayed||0}<span style="font-size:13px;margin-left:2px;opacity:.6">m</span>`,'Minutes Played',' style="grid-column:1/-1"');
   // Dev log
   const dlSec=document.getElementById('pmDevLog');
   const dlList=document.getElementById('pmDevLogList');
@@ -2217,6 +2218,14 @@ function renderPitchSheet(){
       <div class="pm-attr-bar-track"><div class="pm-attr-bar" style="width:${p[k]||0}%"></div></div>
       ${pitchSheetEdit?`<input class="pm-attr-input" type="number" min="0" max="99" value="${p[k]||0}">`:`<div class="pm-attr-val">${p[k]||0}</div>`}
     </div>`).join('');
+  const tp=TEAMS.flatMap(t=>t.players).find(x=>x.name===p.name)||p;
+  const pst=(v,l)=>`<div class="pm-stat-tile"><div class="pm-stat-val">${v}</div><div class="pm-stat-lbl">${l}</div></div>`;
+  document.getElementById('pmShStats').innerHTML=`
+    <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.4px;color:#3D5845;margin-bottom:8px;">Career Stats</div>
+    <div class="pm-stat-grid">
+      ${pst(tp.goals||0,'Goals')}${pst(tp.assists||0,'Assists')}${pst(tp.potm||0,'POTM')}${pst(tp.cs||0,'Clean Sheets')}
+      <div class="pm-stat-tile" style="grid-column:1/-1"><div class="pm-stat-val">${tp.minutesPlayed||0}<span style="font-size:13px;margin-left:2px;opacity:.6">m</span></div><div class="pm-stat-lbl">Minutes Played</div></div>
+    </div>`;
   const eb=document.getElementById('pmShEdit');
   eb.textContent=pitchSheetEdit?'Save':'Edit';
   eb.classList.toggle('save-mode',pitchSheetEdit);
@@ -2354,7 +2363,7 @@ document.getElementById('pitchCompareBtn').addEventListener('click',()=>{
 
 /* ── In-Pitch Game Mode ─── */
 let _mtEvent=null,_mtInterval=null,_mtSeconds=0,_mtHomeGoals=0,_mtAwayGoals=0,_mtLog=[];
-let _mtScorerCounts={},_mtAssistCounts={},_mtPOTM=null,_mtSubMinutes={};
+let _mtScorerCounts={},_mtAssistCounts={},_mtPOTM=null,_mtSubMinutes={},_mtPlayerTime={},_mtPlayerOnAt={};
 const _svgGoal=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#00E564" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/></svg>`;
 const _svgSub=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2.5" stroke-linecap="round"><path d="M7 4v16l-4-4M17 20V4l4 4"/></svg>`;
 const _svgPOTM=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#FF8C42" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
@@ -2418,6 +2427,8 @@ function renderBench(){
 function openMatchTimer(ev){
   _mtEvent=ev;_mtSeconds=0;_mtHomeGoals=0;_mtAwayGoals=0;_mtLog=[];
   _mtScorerCounts={};_mtAssistCounts={};_mtPOTM=null;_mtSubMinutes={};
+  _mtPlayerTime={};_mtPlayerOnAt={};
+  PITCH_PLAYERS.filter(p=>!p.isBlank).forEach(p=>{_mtPlayerOnAt[p.name]=0;});
   const t=TEAMS.find(x=>x.id===ev.teamId)||TEAMS[0];
   document.getElementById('pghClock').textContent='00:00';
   document.getElementById('pghScore').textContent='0 – 0';
@@ -2448,11 +2459,15 @@ function showPostGameSummary(){
   const ev=_mtEvent;
   if(!ev){deactivateGameMode();_mtEvent=null;return;}
   const t=TEAMS.find(x=>x.id===ev.teamId);
+  Object.keys(_mtPlayerOnAt).forEach(name=>{
+    _mtPlayerTime[name]=(_mtPlayerTime[name]||0)+(_mtSeconds-(_mtPlayerOnAt[name]||0));
+  });
   if(t){
     Object.entries(_mtScorerCounts).forEach(([name,goals])=>{const p=t.players.find(x=>x.name===name);if(p)p.goals=(p.goals||0)+goals;});
     Object.entries(_mtAssistCounts).forEach(([name,asts])=>{const p=t.players.find(x=>x.name===name);if(p)p.assists=(p.assists||0)+asts;});
     if(_mtPOTM){const p=t.players.find(x=>x.name===_mtPOTM);if(p)p.potm=(p.potm||0)+1;}
     if(_mtAwayGoals===0){t.players.filter(p=>p.pos==='GK').forEach(p=>{p.cs=(p.cs||0)+1;});}
+    Object.entries(_mtPlayerTime).forEach(([name,secs])=>{const p=t.players.find(x=>x.name===name);if(p)p.minutesPlayed=(p.minutesPlayed||0)+Math.round(secs/60);});
   }
   const idx=EVENTS.findIndex(e=>e.id===ev.id);
   const evData={...ev,done:true,homeScore:_mtHomeGoals,awayScore:_mtAwayGoals,
@@ -2573,6 +2588,8 @@ document.getElementById('pgaSubBtn').addEventListener('click',()=>{
     const offName=row.dataset.suboff;
     const offMin=Math.floor(_mtSeconds/60);
     _mtSubMinutes[offName]=offMin;
+    _mtPlayerTime[offName]=(_mtPlayerTime[offName]||0)+(_mtSeconds-(_mtPlayerOnAt[offName]||0));
+    delete _mtPlayerOnAt[offName];
     picker.remove();
     const picker2=document.createElement('div');
     picker2.className='mt-goal-picker';
@@ -2581,6 +2598,7 @@ document.getElementById('pgaSubBtn').addEventListener('click',()=>{
     screen.appendChild(picker2);
     picker2.querySelector('#subCancelOn').addEventListener('click',()=>picker2.remove());
     picker2.querySelectorAll('[data-subon]').forEach(r=>r.addEventListener('click',()=>{
+      _mtPlayerOnAt[r.dataset.subon]=_mtSeconds;
       _mtAddLog(_svgSub,`${offName} (${offMin}') → ${r.dataset.subon}`);
       renderBench();
       picker2.remove();
