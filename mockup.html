@@ -601,19 +601,25 @@ button{transition:transform .08s ease;}
 .pgm-section-title{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.3px;color:#3D5845;margin-top:12px;margin-bottom:5px;}
 .pgm-stat-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;color:#DFF0E3;font-weight:700;}
 .pgm-stat-row:last-child{border-bottom:none;}
-/* ── Game-mode layout: pitch always fully visible ── */
-#tab-pitch.game-mode{overflow:hidden!important;padding:7px 12px 8px!important;gap:5px!important;}
-#tab-pitch.game-mode .pitch-board{flex:1;min-height:0;}
-#tab-pitch.game-mode .pitch-board svg{height:100%;}
-#tab-pitch.game-mode .pitch-game-hud{padding:7px 10px;flex-shrink:0;}
+/* ── Persistent mode toggle bar ── */
+.pitch-mode-bar{display:flex;align-items:center;justify-content:space-between;padding:2px 0 4px;flex-shrink:0;}
+.pmp-wrap{display:flex;background:rgba(255,255,255,.07);border-radius:20px;padding:2px;gap:2px;}
+.pmp-btn{padding:5px 13px;border-radius:18px;font-size:10px;font-weight:800;letter-spacing:.3px;cursor:pointer;transition:background .15s,color .15s;color:rgba(255,255,255,.38);background:transparent;border:none;display:flex;align-items:center;}
+.pmp-btn.pmp-active{background:#00E564;color:#071A0A;}
+/* ── Game-mode layout: pitch fixed height, no scroll ── */
+#tab-pitch.game-mode{overflow:hidden!important;padding:7px 12px 8px!important;gap:4px!important;}
+#tab-pitch.game-mode .pitch-board{height:236px!important;flex-shrink:0;}
+#tab-pitch.game-mode .pitch-board svg{height:100%;width:100%;}
+#tab-pitch.game-mode .pitch-game-hud{padding:6px 10px;flex-shrink:0;}
 #tab-pitch.game-mode .pitch-form-bar{flex-shrink:0;}
-#tab-pitch.game-mode .lp-btn{padding:6px 4px;font-size:10px;}
+#tab-pitch.game-mode .lp-btn{padding:5px 4px;font-size:10px;}
 #tab-pitch.game-mode .pitch-game-actions{flex-shrink:0;}
-#tab-pitch.game-mode .pitch-match-log{max-height:56px;flex-shrink:0;}
-#tab-pitch.game-mode .pitch-bench-section{flex-shrink:0;padding:6px 8px;}
+#tab-pitch.game-mode .pitch-match-log{max-height:50px;flex-shrink:0;overflow-y:auto;}
+#tab-pitch.game-mode .pitch-match-log::-webkit-scrollbar{display:none;}
+#tab-pitch.game-mode .pitch-bench-section{flex-shrink:0;padding:4px 0;}
 #tab-pitch.game-mode .bench-chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;}
 #tab-pitch.game-mode .bench-chips::-webkit-scrollbar{display:none;}
-#tab-pitch.game-mode .bench-title{margin-bottom:5px;}
+#tab-pitch.game-mode .bench-title{margin-bottom:4px;font-size:10px;}
 </style>
 
 <div class="pg-header">
@@ -733,8 +739,8 @@ button{transition:transform .08s ease;}
 
       <!-- PITCH -->
       <div class="tab-pane" id="tab-pitch">
-        <!-- Normal mode header -->
-        <div class="pitch-head sec-head" id="pitchNormalHead"><div class="sec-title">Pitch</div><div style="display:flex;align-items:center;gap:8px;"><div class="pitch-team-nm" id="pitchTeamNm">GSA United U14</div><button class="pitch-start-btn" id="pitchStartMatchBtn"><svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>Match</button></div></div>
+        <!-- Persistent mode toggle bar (always visible) -->
+        <div class="pitch-mode-bar" id="pitchModeBar"><div class="pitch-team-nm" id="pitchTeamNm">GSA United U14</div><div class="pmp-wrap"><button class="pmp-btn pmp-active" id="pmpRegularBtn">Regular</button><button class="pmp-btn" id="pmpMatchBtn"><svg viewBox="0 0 24 24" width="9" height="9" style="margin-right:3px;vertical-align:middle;fill:currentColor;"><polygon points="5 3 19 12 5 21 5 3"/></svg>Match</button></div></div>
         <!-- Game mode HUD -->
         <div class="pitch-game-hud" id="pitchGameHud" style="display:none;">
           <div class="pgh-left">
@@ -2293,8 +2299,8 @@ function openMovePlayer(p){
 function closeMovePlayer(){document.getElementById('movePlayerModal').classList.remove('open');}
 document.getElementById('mvCloseBtn').addEventListener('click',closeMovePlayer);
 
-/* ── Pitch: Start Match button ─── */
-document.getElementById('pitchStartMatchBtn').addEventListener('click',()=>{
+/* ── Pitch: Mode toggle buttons ─── */
+function _openMatchPicker(){
   const today=new Date().toISOString().split('T')[0];
   const upcoming=EVENTS.filter(e=>e.type==='game'&&!e.done&&e.date>=today);
   const picker=document.createElement('div');
@@ -2308,6 +2314,16 @@ document.getElementById('pitchStartMatchBtn').addEventListener('click',()=>{
     picker.remove();
     openMatchTimer({id:'_s'+Date.now(),type:'game',title:'Free Match · '+t.name,date:new Date().toISOString().split('T')[0],teamId:t.id,done:false,_isSynth:true});
   }));
+}
+document.getElementById('pmpMatchBtn').addEventListener('click',()=>{
+  if(_mtEvent)return;
+  _openMatchPicker();
+});
+document.getElementById('pmpRegularBtn').addEventListener('click',()=>{
+  if(!_mtEvent)return;
+  clearInterval(_mtInterval);_mtInterval=null;
+  _mtEvent=null;
+  deactivateGameMode();
 });
 
 /* ── Pitch: Compare on Radar button ─── */
@@ -2330,18 +2346,18 @@ const _svgAssist=`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" st
 
 function activateGameMode(){
   document.getElementById('tab-pitch').classList.add('game-mode');
-  document.getElementById('pitchNormalHead').style.display='none';
   document.getElementById('pitchGameHud').style.display='flex';
   document.getElementById('saveFormBtn').style.display='none';
   document.getElementById('pitchFormationLbl').style.display='none';
   document.getElementById('pitchDragHint').style.display='none';
   document.getElementById('pitchGameActions').style.display='flex';
   document.getElementById('pitchMatchLog').style.display='block';
+  document.getElementById('pmpRegularBtn').classList.remove('pmp-active');
+  document.getElementById('pmpMatchBtn').classList.add('pmp-active');
   renderBench();
 }
 function deactivateGameMode(){
   document.getElementById('tab-pitch').classList.remove('game-mode');
-  document.getElementById('pitchNormalHead').style.display='flex';
   document.getElementById('pitchGameHud').style.display='none';
   document.getElementById('pitchFormBar').style.display='flex';
   document.getElementById('saveFormBtn').style.display='';
@@ -2349,6 +2365,8 @@ function deactivateGameMode(){
   document.getElementById('pitchDragHint').style.display='flex';
   document.getElementById('pitchGameActions').style.display='none';
   document.getElementById('pitchMatchLog').style.display='none';
+  document.getElementById('pmpRegularBtn').classList.add('pmp-active');
+  document.getElementById('pmpMatchBtn').classList.remove('pmp-active');
   renderBench();
 }
 function renderBench(){
