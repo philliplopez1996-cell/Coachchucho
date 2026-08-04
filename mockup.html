@@ -186,11 +186,13 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;background-im
 .pitch-tok-gold{background:linear-gradient(160deg,#3a2400 0%,#6b4600 50%,#3a2400 100%);border:1px solid rgba(255,215,0,.5);box-shadow:0 2px 8px rgba(0,0,0,.7),0 0 6px rgba(255,215,0,.2)}
 .pitch-tok-elite{background:linear-gradient(160deg,#060d1e 0%,#0d2040 50%,#060d1e 100%);border:1px solid rgba(70,130,255,.55);box-shadow:0 2px 8px rgba(0,0,0,.7),0 0 8px rgba(40,90,255,.25)}
 .pitch-tok-silver{background:linear-gradient(160deg,#1a1f2e 0%,#28304a 50%,#1a1f2e 100%);border:1px solid rgba(160,160,200,.35);box-shadow:0 2px 8px rgba(0,0,0,.7)}
+.tok-toprow{display:flex;justify-content:space-between;align-items:baseline;width:100%;padding:0 1px;}
 .tok-ovr{font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:10px;line-height:1;color:#FFD700;text-shadow:0 0 5px rgba(255,215,0,.8)}
 .pitch-tok-elite .tok-ovr{color:#5AABFF;text-shadow:0 0 5px rgba(90,170,255,.8)}
 .pitch-tok-silver .tok-ovr{color:#B8B8CC;text-shadow:none}
 .tok-av{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-family:'Impact',Arial,sans-serif;font-size:6px;color:rgba(255,255,255,.75);margin:1px 0}
 .tok-pos{font-size:5.5px;font-weight:800;text-transform:uppercase;color:rgba(255,255,255,.5)}
+.tok-name{font-size:5px;font-weight:700;color:rgba(255,255,255,.65);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:30px;text-align:center;line-height:1;}
 /* Pitch start match button */
 .pitch-start-btn{display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:9px;background:rgba(0,229,100,.13);color:#00E564;font-size:10px;font-weight:800;cursor:pointer;text-transform:uppercase;letter-spacing:.4px;border:1px solid rgba(0,229,100,.38);flex-shrink:0;}
 .pitch-start-btn svg{width:11px;height:11px;fill:currentColor;flex-shrink:0;}
@@ -606,20 +608,13 @@ button{transition:transform .08s ease;}
 .pmp-wrap{display:flex;background:rgba(255,255,255,.07);border-radius:20px;padding:2px;gap:2px;}
 .pmp-btn{padding:5px 13px;border-radius:18px;font-size:10px;font-weight:800;letter-spacing:.3px;cursor:pointer;transition:background .15s,color .15s;color:rgba(255,255,255,.38);background:transparent;border:none;display:flex;align-items:center;}
 .pmp-btn.pmp-active{background:#00E564;color:#071A0A;}
-/* ── Game-mode layout: pitch fixed height, no scroll ── */
-#tab-pitch.game-mode{overflow:hidden!important;padding:7px 12px 8px!important;gap:4px!important;}
-#tab-pitch.game-mode .pitch-board{height:236px!important;flex-shrink:0;}
-#tab-pitch.game-mode .pitch-board svg{height:100%;width:100%;}
-#tab-pitch.game-mode .pitch-game-hud{padding:6px 10px;flex-shrink:0;}
-#tab-pitch.game-mode .pitch-form-bar{flex-shrink:0;}
-#tab-pitch.game-mode .lp-btn{padding:5px 4px;font-size:10px;}
-#tab-pitch.game-mode .pitch-game-actions{flex-shrink:0;}
-#tab-pitch.game-mode .pitch-match-log{max-height:50px;flex-shrink:0;overflow-y:auto;}
+/* ── Game-mode layout: scrollable so pitch is never squeezed ── */
+#tab-pitch.game-mode{padding:7px 12px 8px!important;gap:6px!important;}
+#tab-pitch.game-mode .pitch-game-hud{padding:6px 10px;}
+#tab-pitch.game-mode .pitch-match-log{max-height:72px;overflow-y:auto;}
 #tab-pitch.game-mode .pitch-match-log::-webkit-scrollbar{display:none;}
-#tab-pitch.game-mode .pitch-bench-section{flex-shrink:0;padding:4px 0;}
 #tab-pitch.game-mode .bench-chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;}
 #tab-pitch.game-mode .bench-chips::-webkit-scrollbar{display:none;}
-#tab-pitch.game-mode .bench-title{margin-bottom:4px;font-size:10px;}
 </style>
 
 <div class="pg-header">
@@ -1337,7 +1332,7 @@ function renderPitchTokens(){
   const o=document.getElementById('pitchOverlay');
   o.innerHTML=PITCH_PLAYERS.map((p,i)=>`
     <div class="pitch-tok pitch-tok-${p.tier}" style="left:${p.cx}%;top:${p.cy}%" data-pi="${i}">
-      <div class="tok-ovr">${p.ovr}</div><div class="tok-av">${p.init}</div><div class="tok-pos">${p.pos}</div>
+      <div class="tok-toprow"><span class="tok-ovr">${p.ovr}</span><span class="tok-pos">${p.pos}</span></div><div class="tok-av">${p.init}</div><div class="tok-name">${p.name.split(' ').slice(-1)[0]}</div>
     </div>`).join('');
   o.querySelectorAll('.pitch-tok').forEach(tok=>makeDraggable(tok,+tok.dataset.pi));
 }
