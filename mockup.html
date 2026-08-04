@@ -1515,7 +1515,7 @@ function showDayEvents(d,y,m){
   const title=document.getElementById('calEventsTitle');
   const list=document.getElementById('calEventsList');
   const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-  const dayEvs=EVENTS.filter(e=>e.date===dateStr).sort((a,b)=>a.time.localeCompare(b.time));
+  const dayEvs=EVENTS.filter(e=>e.date===dateStr).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
   const dayLabel=new Date(dateStr+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
   title.innerHTML=`${dayLabel} <span id="dayBackBtn" style="font-size:11px;color:#00E564;cursor:pointer;font-weight:700;margin-left:6px;">← All</span>`;
   document.getElementById('dayBackBtn').addEventListener('click',()=>{
@@ -1556,6 +1556,7 @@ function fmtDate(dateStr){
   return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
 }
 function fmtTime(t){
+  if(!t)return '';
   const[h,m]=t.split(':');const hh=parseInt(h);
   return(hh>12?hh-12:hh||12)+':'+(m||'00')+' '+(hh>=12?'PM':'AM');
 }
@@ -2448,6 +2449,7 @@ function showPostGameSummary(){
   const astRows=Object.entries(_mtAssistCounts).map(([n,a])=>`<div class="pgm-stat-row"><span style="display:flex;align-items:center;gap:5px;">${_svgAssist} ${n}</span><span style="color:#00E564">${a} assist${a>1?'s':''}</span></div>`).join('');
   const subRows=Object.entries(_mtSubMinutes).map(([n,m])=>`<div class="pgm-stat-row"><span style="display:flex;align-items:center;gap:5px;">${_svgSub} ${n}</span><span style="color:#6B9A78">${m}'</span></div>`).join('');
   const totalMin=Math.floor(_mtSeconds/60);
+  const timelineRows=_mtLog.map(e=>`<div class="pml-entry"><div class="pml-min">${e.min}</div><div class="pml-icon">${e.icon}</div><div class="pml-text">${e.text}</div></div>`).join('');
   document.getElementById('pgmBody').innerHTML=`
     <div style="background:${resColor}18;border:1px solid ${resColor}40;border-radius:14px;padding:16px;text-align:center;margin-bottom:4px;">
       <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:${resColor};opacity:.7;">${teamName}</div>
@@ -2459,7 +2461,8 @@ function showPostGameSummary(){
     ${astRows?`<div class="pgm-section-title">Assists</div>${astRows}`:''}
     ${_mtPOTM?`<div class="pgm-section-title">Player of the Match</div><div class="pgm-stat-row"><span style="display:flex;align-items:center;gap:5px;">${_svgPOTM} ${_mtPOTM}</span><span style="color:#FF8C42;font-weight:900;">POTM</span></div>`:''}
     ${subRows?`<div class="pgm-section-title">Substitutions</div>${subRows}`:''}
-    <div style="margin-top:14px;padding:10px 0;text-align:center;font-size:11px;color:#3D5845;font-weight:700;border-top:1px solid rgba(255,255,255,.05);">✓ Stats saved to player cards</div>
+    ${timelineRows?`<div class="pgm-section-title">Match Timeline</div><div style="display:flex;flex-direction:column;gap:4px;margin-top:4px;">${timelineRows}</div>`:''}
+    <div style="margin-top:14px;padding:10px 0;text-align:center;font-size:11px;color:#3D5845;font-weight:700;border-top:1px solid rgba(255,255,255,.05);">Stats saved to player cards</div>
   `;
   document.getElementById('pgmTitle').textContent='Full Time';
   document.getElementById('postGameModal').classList.add('open');
@@ -2477,7 +2480,7 @@ function showMatchReport(ev){
   const goalRows=Object.entries(scorers).map(([n,g])=>`<div class="pgm-stat-row"><span style="display:flex;align-items:center;gap:5px;">${_svgGoal} ${n}</span><span style="color:#FFD700">${g} goal${g>1?'s':''}</span></div>`).join('');
   const astRows=Object.entries(assisters).map(([n,a])=>`<div class="pgm-stat-row"><span style="display:flex;align-items:center;gap:5px;">${_svgAssist} ${n}</span><span style="color:#00E564">${a} assist${a>1?'s':''}</span></div>`).join('');
   const subRows=Object.entries(subs).map(([n,m])=>`<div class="pgm-stat-row"><span style="display:flex;align-items:center;gap:5px;">${_svgSub} ${n}</span><span style="color:#6B9A78">${m}'</span></div>`).join('');
-  const logRows=log.length?log.slice().reverse().map(e=>`<div class="pml-entry"><div class="pml-min">${e.min}</div><div class="pml-icon">${e.icon}</div><div class="pml-text">${e.text}</div></div>`).join(''):'';
+  const logRows=log.length?log.map(e=>`<div class="pml-entry"><div class="pml-min">${e.min}</div><div class="pml-icon">${e.icon}</div><div class="pml-text">${e.text}</div></div>`).join(''):'';
   document.getElementById('pgmBody').innerHTML=`
     <div style="text-align:center;margin-bottom:8px;">
       <div style="font-size:9px;font-weight:800;color:#3D5845;text-transform:uppercase;letter-spacing:1.5px;">${fmtDate(ev.date)}</div>
@@ -2499,8 +2502,10 @@ function showMatchReport(ev){
 
 document.getElementById('pgmClose').addEventListener('click',()=>{
   document.getElementById('postGameModal').classList.remove('open');
-  _mtEvent=null;
-  deactivateGameMode();
+  if(_mtEvent){
+    _mtEvent=null;
+    deactivateGameMode();
+  }
 });
 document.getElementById('pgaGoalBtn').addEventListener('click',()=>{
   const ev=_mtEvent;
