@@ -608,11 +608,7 @@ button{transition:transform .08s ease;}
 .pmp-wrap{display:flex;background:rgba(255,255,255,.07);border-radius:20px;padding:2px;gap:2px;}
 .pmp-btn{padding:5px 13px;border-radius:18px;font-size:10px;font-weight:800;letter-spacing:.3px;cursor:pointer;transition:background .15s,color .15s;color:rgba(255,255,255,.38);background:transparent;border:none;display:flex;align-items:center;}
 .pmp-btn.pmp-active{background:#00E564;color:#071A0A;}
-/* ── Game-mode layout: scrollable so pitch is never squeezed ── */
-#tab-pitch.game-mode{padding:7px 12px 8px!important;gap:6px!important;}
-#tab-pitch.game-mode .pitch-game-hud{padding:6px 10px;}
-#tab-pitch.game-mode .pitch-match-log{max-height:72px;overflow-y:auto;}
-#tab-pitch.game-mode .pitch-match-log::-webkit-scrollbar{display:none;}
+/* ── Game-mode: bench chips scroll horizontally, everything else identical to regular mode ── */
 #tab-pitch.game-mode .bench-chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;}
 #tab-pitch.game-mode .bench-chips::-webkit-scrollbar{display:none;}
 </style>
