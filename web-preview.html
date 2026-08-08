@@ -577,6 +577,14 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
   .match-layout{grid-template-columns:1fr}
   .pgh-clock{font-size:24px}
   .pgh-score{font-size:22px}
+  .attr-breakdown{padding:10px}
+  .attr-row{gap:5px;margin-bottom:8px}
+  .atr-side{gap:4px}
+  .atr-val{font-size:13px;width:20px}
+  .atr-center{width:34px}
+  .atr-name{font-size:7.5px;letter-spacing:0}
+  .bar-track{height:6px}
+  .career-compare{grid-template-columns:repeat(2,1fr)}
 }
 </style>
 
@@ -1399,7 +1407,7 @@ function buildRadarSvg(p){
   s+='</svg>';return s;
 }
 
-function openPlayerModal(p){
+function openPlayerModal(p, subIndex=null){
   const modal=document.getElementById('playerModal');
   const body=document.getElementById('pmBody');
   const tierLabel={gold:'Gold',elite:'Elite',silver:'Silver'}[p.tier]||p.tier;
@@ -1432,8 +1440,15 @@ function openPlayerModal(p){
     <div style="padding:14px 18px;display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
       ${[['Goals',p.goals||0],['Assists',p.assists||0],['POTM ★',p.potm||0],['Clean Sheets',p.cs||0]].map(([l,v])=>`<div style="background:rgba(0,0,0,.3);border-radius:10px;padding:10px;border:1px solid rgba(255,255,255,.06);text-align:center"><div style="font-size:20px;font-family:'Impact',Arial,sans-serif;color:#DFF0E3">${v}</div><div style="font-size:9px;font-weight:800;color:#3D5845;text-transform:uppercase;letter-spacing:.8px;margin-top:2px">${l}</div></div>`).join('')}
     </div>
-    <div style="height:20px"></div>
+    <div style="height:${subIndex!==null?4:20}px"></div>
   `;
+  if(subIndex!==null){
+    const subBar=document.createElement('div');
+    subBar.style.cssText='padding:0 18px 18px';
+    subBar.innerHTML='<button class="pga-btn pga-sub" style="width:100%;font-size:12px">⟳ Sub In</button>';
+    subBar.querySelector('button').addEventListener('click',()=>{closePlayerModal();openSubPicker(subIndex);});
+    body.appendChild(subBar);
+  }
   modal.classList.add('open');
 }
 
@@ -1684,8 +1699,9 @@ function renderMatchBench(){
   </div>`).join('')||'<div style="color:#3D5845;font-size:11px;font-weight:700;padding:10px">No bench players</div>';
   b.querySelectorAll('.bench-chip-m').forEach(el=>{
     el.addEventListener('click',()=>{
-      match.subOff=null;
-      openSubPicker(+el.dataset.bi);
+      const bi=+el.dataset.bi;
+      const p=match.bench[bi];
+      if(p)openPlayerModal(p,bi);
     });
   });
 }
@@ -1825,6 +1841,7 @@ function showPostGame(){
     if(pmpR)pmpR.classList.add('pmp-active');
     if(pmpM)pmpM.classList.remove('pmp-active');
     renderPitchTokens();renderRegularBench();
+    initMatch();
   });
   document.getElementById('postgameOverlay').classList.add('open');
   _potmPick=null;
