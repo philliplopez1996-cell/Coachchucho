@@ -1,0 +1,16 @@
+# SQLite databases
+*.db
+*.sqlite
+server/data/
+
+# Node
+node_modules/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+
+# Test artifacts
+test-results/
