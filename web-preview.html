@@ -577,6 +577,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
   .match-layout{grid-template-columns:1fr}
   .pgh-clock{font-size:24px}
   .pgh-score{font-size:22px}
+  .radar-layout{grid-template-columns:1fr}
   .attr-breakdown{padding:10px}
   .attr-row{gap:5px;margin-bottom:8px}
   .atr-side{gap:4px}
@@ -1085,6 +1086,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
     <div class="addp-body">
       <div class="ap-field"><div class="ap-label">Team Name</div><input class="ap-input" id="tmName" type="text" placeholder="e.g. GSA United" maxlength="40"></div>
       <div class="ap-field"><div class="ap-label">Age Group</div><div class="tm-age-grid" id="tmAgeGrid"></div></div>
+      <div class="ap-field"><div class="ap-label">Game Format</div><div class="tm-age-grid" id="tmFormatGrid"></div></div>
       <div class="ap-field"><div class="ap-label">Formation</div><div class="tm-form-grid" id="tmFormGrid"></div></div>
       <div class="ap-field"><div class="ap-label">Team Color</div><div class="color-swatch-grid" id="tmColorGrid"></div></div>
       <button class="tm-create-btn" id="tmSaveBtn">
@@ -1280,7 +1282,7 @@ function showTeamsList(){
       <div class="team-initial" style="background:${col}18;border-color:${col}55;color:${col}">${t.initial}</div>
       <div class="team-body">
         <div class="team-name">${t.name}</div>
-        <div class="team-sub">${t.players.length} player${t.players.length!==1?'s':''} · ${t.formation} · ${t.season}</div>
+        <div class="team-sub">${t.players.length} player${t.players.length!==1?'s':''} · ${t.format||'11v11'} · ${t.formation} · ${t.season}</div>
         <div class="team-record">
           <span class="rec-stat rec-w">${rec.w}W</span>
           <span class="rec-stat rec-l">${rec.l}L</span>
@@ -1619,6 +1621,7 @@ function switchFormSlot(slot){
 function saveFormation(){
   SAVED_FORMATIONS[activeSlot]=PITCH_PLAYERS.map(p=>({cx:p.cx,cy:p.cy}));
   const lbl={defensive:'Defensive',balanced:'Balanced',attacking:'Attacking'}[activeSlot]||activeSlot;
+  saveToStorage();
   showToast(lbl+' formation saved!');
 }
 
@@ -1730,6 +1733,7 @@ function recordGoal(player){
   const entry={type:'goal',player:player.name,min};
   match.log.push(entry);
   addMatchLogEntry('⚽',`<strong>${player.name}</strong> scored!`,min);
+  saveToStorage();
   closeGoalPicker();
   showToast('GOAL! '+player.name+' — '+min+'\'');
 }
@@ -1840,7 +1844,7 @@ function showPostGame(){
     const pmpM=document.getElementById('pmpMatchBtn');
     if(pmpR)pmpR.classList.add('pmp-active');
     if(pmpM)pmpM.classList.remove('pmp-active');
-    renderPitchTokens();renderRegularBench();
+    saveToStorage();renderPitchTokens();renderRegularBench();
     initMatch();
   });
   document.getElementById('postgameOverlay').classList.add('open');
@@ -2047,8 +2051,9 @@ function closeAddPlayer(){document.getElementById('addPlayerOverlay').classList.
 /* ══════════════════════════════════════════════
    TEAM FOLDER MODAL
 ══════════════════════════════════════════════ */
-let _tmAge='U14',_tmForm='4-3-3',_tmColor='#00E564';
+let _tmAge='U14',_tmForm='4-3-3',_tmColor='#00E564',_tmFormat='11v11';
 const AGE_GROUPS=['U8','U9','U10','U11','U12','U13','U14','U15','U16','U17','U18','U19'];
+const GAME_FORMATS=['7v7','9v9','11v11'];
 const FORM_OPTIONS=['4-3-3','4-2-3-1','4-4-2','3-5-2','4-5-1','4-1-4-1'];
 const TEAM_COLORS=['#00E564','#FF6B35','#4B9FFF','#FF4FB8','#FFD700','#A78BFA','#34D399','#F87171','#FB923C','#38BDF8'];
 let _teamNextId=100;
@@ -2057,6 +2062,9 @@ function _renderTmPills(){
   const ag=document.getElementById('tmAgeGrid');
   if(ag){ag.innerHTML=AGE_GROUPS.map(a=>`<button class="tm-pill${_tmAge===a?' sel':''}" data-ag="${a}">${a}</button>`).join('');
     ag.querySelectorAll('.tm-pill').forEach(b=>b.addEventListener('click',()=>{_tmAge=b.dataset.ag;_renderTmPills();}));}
+  const ffg=document.getElementById('tmFormatGrid');
+  if(ffg){ffg.innerHTML=GAME_FORMATS.map(f=>`<button class="tm-pill${_tmFormat===f?' sel':''}" data-fmt="${f}">${f}</button>`).join('');
+    ffg.querySelectorAll('.tm-pill').forEach(b=>b.addEventListener('click',()=>{_tmFormat=b.dataset.fmt;_renderTmPills();}));}
   const fg=document.getElementById('tmFormGrid');
   if(fg){fg.innerHTML=FORM_OPTIONS.map(f=>`<button class="tm-pill${_tmForm===f?' sel':''}" data-fm="${f}">${f}</button>`).join('');
     fg.querySelectorAll('.tm-pill').forEach(b=>b.addEventListener('click',()=>{_tmForm=b.dataset.fm;_renderTmPills();}));}
@@ -2067,7 +2075,7 @@ function _renderTmPills(){
 
 function openTeamModal(){
   const inp=document.getElementById('tmName');if(inp)inp.value='';
-  _tmAge='U14';_tmForm='4-3-3';_tmColor='#00E564';
+  _tmAge='U14';_tmForm='4-3-3';_tmColor='#00E564';_tmFormat='11v11';
   _renderTmPills();
   document.getElementById('teamModalOverlay').classList.add('open');
   setTimeout(()=>{const inp=document.getElementById('tmName');if(inp)inp.focus();},140);
@@ -2086,9 +2094,36 @@ function showToast(msg){
 }
 
 /* ══════════════════════════════════════════════
+   LOCAL STORAGE — persist data across sessions
+══════════════════════════════════════════════ */
+function saveToStorage(){
+  try{
+    localStorage.setItem('cc_teams',JSON.stringify(TEAMS));
+    localStorage.setItem('cc_pitch',JSON.stringify(PITCH_PLAYERS));
+    localStorage.setItem('cc_bench',JSON.stringify(BENCH_PLAYERS));
+    localStorage.setItem('cc_nextId',String(_teamNextId));
+  }catch(e){}
+}
+
+function loadFromStorage(){
+  try{
+    const t=localStorage.getItem('cc_teams');
+    if(t){const d=JSON.parse(t);TEAMS.length=0;d.forEach(x=>TEAMS.push(x));}
+    const p=localStorage.getItem('cc_pitch');
+    if(p){const d=JSON.parse(p);PITCH_PLAYERS.length=0;d.forEach(x=>PITCH_PLAYERS.push(x));}
+    const b=localStorage.getItem('cc_bench');
+    if(b){const d=JSON.parse(b);BENCH_PLAYERS.length=0;d.forEach(x=>BENCH_PLAYERS.push(x));}
+    const ni=localStorage.getItem('cc_nextId');
+    if(ni)_teamNextId=+ni;
+  }catch(e){}
+}
+
+/* ══════════════════════════════════════════════
    BOOT
 ══════════════════════════════════════════════ */
 (function boot(){
+  loadFromStorage();
+
   /* Nav wiring */
   document.querySelectorAll('.nav-item[data-view]').forEach(btn=>{
     btn.addEventListener('click',()=>switchView(btn.dataset.view));
@@ -2172,8 +2207,8 @@ function showToast(msg){
   if(tmSave)tmSave.addEventListener('click',()=>{
     const name=document.getElementById('tmName').value.trim();
     if(!name){showToast('Enter a team name');return;}
-    TEAMS.push({id:'team_'+(_teamNextId++),name,initial:name[0].toUpperCase(),color:_tmColor,formation:_tmForm,season:_tmAge,ovr:0,players:[]});
-    showTeamsList();renderTeamChips();closeTeamModal();showToast('Team "'+name+'" created!');
+    TEAMS.push({id:'team_'+(_teamNextId++),name,initial:name[0].toUpperCase(),color:_tmColor,formation:_tmForm,season:_tmAge,format:_tmFormat,ovr:0,players:[]});
+    saveToStorage();showTeamsList();renderTeamChips();closeTeamModal();showToast('Team "'+name+'" created!');
   });
 
   /* Add player */
@@ -2217,7 +2252,7 @@ function showToast(msg){
     const init=name.split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase()||name.slice(0,2).toUpperCase();
     const p={name,pos,num,ovr,tier,init,flag,pac,sho,pas,dri,def,phy,goals:0,assists:0,potm:0,cs:0};
     activeTeam.players.push(p);
-    renderCards();closeAddPlayer();showToast(name+' added to roster!');
+    saveToStorage();renderCards();closeAddPlayer();showToast(name+' added to roster!');
   });
 
   /* Radar slot pickers */
