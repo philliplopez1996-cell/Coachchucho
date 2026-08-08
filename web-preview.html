@@ -181,18 +181,18 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .leg-dot{width:10px;height:10px;border-radius:50%}
 .attr-breakdown{background:var(--surface);border-radius:14px;border:1px solid var(--border2);padding:16px;margin-bottom:16px}
 .abd-title{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--dim);margin-bottom:12px}
-.attr-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.atr-side{flex:1;display:flex;align-items:center;gap:6px}
+.attr-row{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+.atr-side{flex:1;display:flex;align-items:center;gap:7px}
 .atr-left{flex-direction:row-reverse}
 .atr-right{flex-direction:row}
-.atr-val{font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:16px;color:var(--dim);width:26px;text-align:center;flex-shrink:0}
+.atr-val{font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:17px;color:var(--dim);width:28px;text-align:center;flex-shrink:0}
 .atr-val.wa{color:var(--green)}
 .atr-val.wb{color:var(--orange)}
-.bar-track{flex:1;height:6px;background:rgba(255,255,255,.06);border-radius:999px;overflow:hidden}
+.bar-track{flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:999px;overflow:hidden}
 .bar{height:100%;border-radius:999px;transition:width .4s}
 .bar-a{background:var(--green);margin-left:auto}
 .bar-b{background:var(--orange)}
-.atr-center{width:36px;text-align:center;flex-shrink:0}
+.atr-center{width:52px;text-align:center;flex-shrink:0}
 .atr-name{font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
 .radar-verdict{background:rgba(0,229,100,.06);border:1px solid rgba(0,229,100,.18);border-radius:10px;padding:12px 16px;margin-bottom:16px}
 .vrd-lbl{font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:4px}
@@ -264,7 +264,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .pgh-clock{font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:28px;letter-spacing:-0.5px;color:var(--green);text-shadow:0 0 14px rgba(0,229,100,.55);line-height:1}
 .pgh-score{font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:26px;letter-spacing:4px;color:#DFF0E3;text-align:center;line-height:1}
 .pgh-score-lbl{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);text-align:center;margin-top:2px}
-.pgh-end-btn{padding:6px 14px;border-radius:8px;background:rgba(255,68,68,.12);border:1px solid rgba(255,68,68,.35);color:#FF6060;font-size:10px;font-weight:800;cursor:pointer;letter-spacing:.3px}
+.pgh-start-btn{padding:6px 14px;border-radius:8px;background:rgba(0,229,100,.12);border:1px solid rgba(0,229,100,.35);color:var(--green);font-size:10px;font-weight:800;cursor:pointer;letter-spacing:.3px;min-width:80px}
+.pgh-end-btn{padding:6px 14px;border-radius:8px;background:rgba(255,68,68,.12);border:1px solid rgba(255,68,68,.35);color:#FF6060;font-size:10px;font-weight:800;cursor:pointer;letter-spacing:.3px;min-width:80px}
 .pitch-game-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .pga-btn{padding:10px 8px;border-radius:10px;font-size:10px;font-weight:900;letter-spacing:.3px;cursor:pointer;border:none;display:flex;align-items:center;justify-content:center;gap:6px}
 .pga-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;flex-shrink:0}
@@ -790,15 +791,20 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
           <div class="match-main">
             <div class="pitch-game-hud">
               <div class="pgh-left">
-                <div class="pgh-live-dot" id="liveDot"></div>
-                <div class="pgh-live-lbl">LIVE</div>
+                <div id="liveIndicator" style="display:none;flex-direction:row;align-items:center;gap:5px">
+                  <div class="pgh-live-dot"></div>
+                  <div class="pgh-live-lbl">LIVE</div>
+                </div>
                 <div class="pgh-clock" id="matchClock">00:00</div>
               </div>
               <div>
                 <div class="pgh-score" id="matchScore">0 – 0</div>
                 <div class="pgh-score-lbl" id="matchScoreLbl">GSA vs OPP</div>
               </div>
-              <button class="pgh-end-btn" id="endMatchBtn">End Match</button>
+              <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end">
+                <button class="pgh-start-btn" id="matchStartBtn">▶ Start</button>
+                <button class="pgh-end-btn" id="endMatchBtn">■ End</button>
+              </div>
             </div>
             <div class="pitch-game-actions">
               <button class="pga-btn pga-goal" id="goalBtn">
@@ -1614,18 +1620,34 @@ function renderRegularBench(){
 /* ══════════════════════════════════════════════
    PITCH: MATCH MODE
 ══════════════════════════════════════════════ */
-function startMatch(){
-  match.running=true;
+function initMatch(){
+  if(match.timerInterval){clearInterval(match.timerInterval);match.timerInterval=null;}
+  match.running=false;
   match.seconds=0;match.homeScore=0;match.awayScore=0;
   match.log=[];match.subOff=null;match.subsDone=[];
   match.starters=[...PITCH_PLAYERS];
   match.bench=[...BENCH_PLAYERS];
   document.getElementById('matchClock').textContent='00:00';
   document.getElementById('matchScore').textContent='0 – 0';
-  document.getElementById('matchLog').innerHTML='<div class="pml-empty">Match just started — events will appear here</div>';
-  match.timerInterval=setInterval(tickClock,1000);
+  document.getElementById('matchLog').innerHTML='<div class="pml-empty">Press ▶ Start to begin the match</div>';
+  document.getElementById('matchStartBtn').textContent='▶ Start';
+  document.getElementById('liveIndicator').style.display='none';
   renderMatchBench();
   renderMatchPitchTokens();
+}
+
+function toggleMatchTimer(){
+  if(match.running){
+    clearInterval(match.timerInterval);match.timerInterval=null;
+    match.running=false;
+    document.getElementById('matchStartBtn').textContent='▶ Resume';
+    document.getElementById('liveIndicator').style.display='none';
+  } else {
+    match.running=true;
+    match.timerInterval=setInterval(tickClock,1000);
+    document.getElementById('matchStartBtn').textContent='⏸ Pause';
+    document.getElementById('liveIndicator').style.display='flex';
+  }
 }
 
 function tickClock(){
@@ -1795,7 +1817,14 @@ function showPostGame(){
       if(p){p.potm=(p.potm||0)+1;showToast('★ '+p.name+' is Player of the Match!');}
     }
     closePostgame();
-    document.getElementById('pmpMatchBtn').click();
+    /* Return to Regular mode */
+    document.getElementById('matchMode').style.display='none';
+    document.getElementById('regularMode').style.display='';
+    const pmpR=document.getElementById('pmpRegBtn');
+    const pmpM=document.getElementById('pmpMatchBtn');
+    if(pmpR)pmpR.classList.add('pmp-active');
+    if(pmpM)pmpM.classList.remove('pmp-active');
+    renderPitchTokens();renderRegularBench();
   });
   document.getElementById('postgameOverlay').classList.add('open');
   _potmPick=null;
@@ -2213,10 +2242,13 @@ function showToast(msg){
     document.getElementById('regularMode').style.display='none';
     document.getElementById('matchMode').style.display='';
     pmpMatch.classList.add('pmp-active');pmpReg.classList.remove('pmp-active');
-    if(!match.running)startMatch();
+    /* Only reset if no match in progress */
+    if(!match.running && match.seconds===0)initMatch();
   });
 
   /* Match buttons */
+  const matchStartBtn=document.getElementById('matchStartBtn');
+  if(matchStartBtn)matchStartBtn.addEventListener('click',toggleMatchTimer);
   const goalBtn=document.getElementById('goalBtn');
   if(goalBtn)goalBtn.addEventListener('click',openGoalPicker);
   const subBtn=document.getElementById('subBtn');
