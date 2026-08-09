@@ -1326,7 +1326,7 @@ function showTeamsList(){
         clearTimeout(btn._armTimer);
         const idx=TEAMS.findIndex(x=>x.id===btn.dataset.tid);
         if(idx>-1)TEAMS.splice(idx,1);
-        showTeamsList();renderTeamChips();
+        saveToStorage();showTeamsList();renderTeamChips();
       } else {
         btn.dataset.armed='1';
         btn.style.cssText='background:rgba(255,96,96,.3)!important;color:#FF6060!important;border-color:rgba(255,96,96,.5)!important';
@@ -1456,11 +1456,44 @@ function openPlayerModal(p, subIndex=null){
   `;
   if(subIndex!==null){
     const subBar=document.createElement('div');
-    subBar.style.cssText='padding:0 18px 18px';
+    subBar.style.cssText='padding:0 18px 8px';
     subBar.innerHTML='<button class="pga-btn pga-sub" style="width:100%;font-size:12px">⟳ Sub In</button>';
     subBar.querySelector('button').addEventListener('click',()=>{closePlayerModal();openSubPicker(subIndex);});
     body.appendChild(subBar);
   }
+  /* Delete player button */
+  const delBar=document.createElement('div');
+  delBar.style.cssText='padding:0 18px 22px';
+  const delBtn=document.createElement('button');
+  delBtn.style.cssText='width:100%;padding:11px;border-radius:10px;background:rgba(255,96,96,.08);border:1px solid rgba(255,96,96,.25);color:#FF6060;font-size:12px;font-weight:800;cursor:pointer;letter-spacing:.4px';
+  delBtn.textContent='Remove Player';
+  delBtn.addEventListener('click',()=>{
+    if(delBtn.dataset.armed==='1'){
+      clearTimeout(delBtn._armTimer);
+      const ownerTeam=TEAMS.find(t=>t.players.some(x=>x===p||x.name===p.name));
+      if(ownerTeam){
+        const pi=ownerTeam.players.findIndex(x=>x===p||x.name===p.name);
+        if(pi>-1)ownerTeam.players.splice(pi,1);
+      }
+      saveToStorage();
+      closePlayerModal();
+      if(activeTeam)renderCards();
+      showToast(p.name+' removed from roster');
+    } else {
+      delBtn.dataset.armed='1';
+      delBtn.textContent='Tap again to confirm';
+      delBtn.style.background='rgba(255,96,96,.22)';
+      delBtn.style.borderColor='rgba(255,96,96,.55)';
+      delBtn._armTimer=setTimeout(()=>{
+        delBtn.dataset.armed='';
+        delBtn.textContent='Remove Player';
+        delBtn.style.background='rgba(255,96,96,.08)';
+        delBtn.style.borderColor='rgba(255,96,96,.25)';
+      },2500);
+    }
+  });
+  delBar.appendChild(delBtn);
+  body.appendChild(delBar);
   modal.classList.add('open');
 }
 
