@@ -631,24 +631,29 @@ html{height:-webkit-fill-available}
 .auth-note{text-align:center;font-size:10px;color:var(--dim);margin-top:14px}
 </style>
 
-<!-- AUTH SCREEN — shown before sign-in, hidden after -->
+<!-- AUTH SCREEN -->
 <div class="auth-screen" id="authScreen" style="display:none">
   <div class="auth-card">
     <div class="auth-logo">Coach<em>Chucho</em></div>
-    <div class="auth-sub">Sign in to access your coaching data</div>
-    <div class="auth-tabs">
-      <button class="auth-tab active" id="authTabLogin">Log In</button>
-      <button class="auth-tab" id="authTabSignup">Sign Up</button>
+    <div class="auth-tabs" style="margin-bottom:18px">
+      <button class="auth-tab active" id="authTabCoach">Coach Login</button>
+      <button class="auth-tab" id="authTabParent">Parent Access</button>
     </div>
-    <input class="auth-input" id="authEmail" type="email" placeholder="Email address" autocomplete="email">
-    <input class="auth-input" id="authPassword" type="password" placeholder="Password" autocomplete="current-password">
-    <div id="authNameWrap" style="display:none">
-      <input class="auth-input" id="authName" type="text" placeholder="Your name (e.g. Coach Martinez)" autocomplete="name">
+    <!-- Coach login panel -->
+    <div id="authCoachPanel">
+      <input class="auth-input" id="authEmail" type="email" placeholder="Email address" autocomplete="email">
+      <input class="auth-input" id="authPassword" type="password" placeholder="Password" autocomplete="current-password">
+      <button class="auth-btn" id="authSubmit">Log In</button>
+      <div class="auth-err" id="authError"></div>
+      <div class="auth-note" style="margin-top:12px">Set your email &amp; password in your Coach Profile to enable login.</div>
     </div>
-    <button class="auth-btn" id="authSubmit">Log In</button>
-    <div class="auth-err" id="authError"></div>
-    <button class="auth-forgot" id="authForgot">Forgot password?</button>
-    <div class="auth-note">Your data stays private — only you can see it</div>
+    <!-- Parent access panel -->
+    <div id="authParentPanel" style="display:none">
+      <div class="auth-sub" style="margin-bottom:14px">Enter the email address you gave the coach to view your child's player card.</div>
+      <input class="auth-input" id="authParentEmail" type="email" placeholder="Your email address" autocomplete="email">
+      <button class="auth-btn" id="authParentSubmit">Find My Child's Card</button>
+      <div class="auth-err" id="authParentError"></div>
+    </div>
   </div>
 </div>
 
@@ -1007,7 +1012,13 @@ html{height:-webkit-fill-available}
   </div>
   <div class="panel-body">
     <div class="profile-hero">
-      <div class="profile-av" id="profileAvEl">C</div>
+      <div style="position:relative;display:inline-block;margin:0 auto 10px">
+        <div class="profile-av" id="profileAvEl">C</div>
+        <label style="position:absolute;bottom:0;right:0;width:22px;height:22px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid var(--bg)" title="Change photo">
+          <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#040a06" stroke-width="2.5" stroke-linecap="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          <input type="file" accept="image/*" id="coachPhotoInput" style="display:none">
+        </label>
+      </div>
       <div class="profile-name" id="profileNameEl">Coach</div>
       <div class="profile-role" id="profileRoleEl">Head Coach · My Club</div>
     </div>
@@ -1016,13 +1027,18 @@ html{height:-webkit-fill-available}
         <div class="prof-edit-row"><div class="prof-edit-lbl">Your Name</div><input class="prof-edit-input" id="profNameInput" type="text" placeholder="e.g. Coach Chucho"></div>
         <div class="prof-edit-row"><div class="prof-edit-lbl">Title / Role</div><input class="prof-edit-input" id="profRoleInput" type="text" placeholder="e.g. Head Coach"></div>
         <div class="prof-edit-row"><div class="prof-edit-lbl">Club / Academy</div><input class="prof-edit-input" id="profClubInput" type="text" placeholder="e.g. GSA Soccer"></div>
+        <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin:14px 0 8px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06)">Account Access</div>
+        <div class="prof-edit-row"><div class="prof-edit-lbl">Email</div><input class="prof-edit-input" id="profEmailInput" type="email" placeholder="your@email.com" autocomplete="email"></div>
+        <div class="prof-edit-row"><div class="prof-edit-lbl">Password</div><input class="prof-edit-input" id="profPassInput" type="password" placeholder="Set a password" autocomplete="new-password"></div>
+        <div class="prof-edit-row"><div class="prof-edit-lbl">Phone</div><input class="prof-edit-input" id="profPhoneInput" type="tel" placeholder="e.g. 555-123-4567"></div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.5">Email and password let you log in to your account. Leave password blank to keep the current one.</div>
         <button class="prof-edit-save" id="profSaveBtn">Save Profile</button>
       </div>
     </div>
     <div class="profile-stat-grid" id="profileStats"></div>
     <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:10px;margin-top:4px">Teams Managed</div>
     <div id="profileTeams"></div>
-    <div id="profileSignOutWrap" style="display:none;padding-top:16px;border-top:1px solid rgba(255,255,255,.06);margin-top:16px">
+    <div id="profileSignOutWrap" style="padding-top:16px;border-top:1px solid rgba(255,255,255,.06);margin-top:16px">
       <div id="profileEmailLbl" style="font-size:10px;color:var(--muted);margin-bottom:8px;text-align:center"></div>
       <button id="profileSignOutBtn" style="width:100%;padding:11px;border-radius:10px;background:rgba(255,96,96,.08);border:1px solid rgba(255,96,96,.25);color:#FF6060;font-size:12px;font-weight:800;cursor:pointer">Sign Out</button>
     </div>
@@ -1118,6 +1134,13 @@ html{height:-webkit-fill-available}
       <button class="addp-close" id="addpClose">✕</button>
     </div>
     <div class="addp-body">
+      <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:14px">
+        <div id="apPhotoPreview" style="width:72px;height:72px;border-radius:50%;background:rgba(0,229,100,.12);border:2px solid rgba(0,229,100,.3);display:flex;align-items:center;justify-content:center;font-family:'Impact',Arial,sans-serif;font-size:24px;color:var(--green);margin-bottom:8px;background-size:cover;background-position:center">?</div>
+        <label style="font-size:11px;font-weight:700;color:var(--green);cursor:pointer;padding:6px 14px;border:1px solid rgba(0,229,100,.3);border-radius:20px">
+          Upload Photo
+          <input type="file" accept="image/*" id="apPhotoInput" style="display:none">
+        </label>
+      </div>
       <div class="ap-field"><div class="ap-label">Full Name</div><input class="ap-input" id="apName" placeholder="e.g. Luis Ramirez" type="text"></div>
       <div class="ap-2col">
         <div class="ap-field"><div class="ap-label">Position</div>
@@ -1150,6 +1173,9 @@ html{height:-webkit-fill-available}
           <button class="foot-pill" data-foot="Both">Both</button>
         </div>
       </div>
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin:14px 0 8px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06)">Parent / Guardian Contact</div>
+      <div class="ap-field"><div class="ap-label">Parent Email</div><input class="ap-input" id="apParentEmail" type="email" placeholder="parent@email.com"></div>
+      <div class="ap-field"><div class="ap-label">Parent Phone</div><input class="ap-input" id="apParentPhone" type="tel" placeholder="555-123-4567"></div>
       <button class="ap-submit-btn" id="apSubmit">Add to Roster</button>
     </div>
   </div>
@@ -1212,26 +1238,13 @@ html{height:-webkit-fill-available}
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
 /* ══════════════════════════════════════════════
-   FIREBASE CONFIG
-   Fill in your values from:
-   console.firebase.google.com → Project Settings
-   → Your apps → Web → SDK setup & configuration
+   LOCAL AUTH HELPERS
 ══════════════════════════════════════════════ */
-const FIREBASE_CONFIG={
-  apiKey:'REPLACE_WITH_YOUR_API_KEY',
-  authDomain:'REPLACE_WITH_YOUR_AUTH_DOMAIN',
-  projectId:'REPLACE_WITH_YOUR_PROJECT_ID',
-  storageBucket:'REPLACE_WITH_YOUR_STORAGE_BUCKET',
-  messagingSenderId:'REPLACE_WITH_YOUR_MESSAGING_SENDER_ID',
-  appId:'REPLACE_WITH_YOUR_APP_ID'
-};
-const _fbReady=FIREBASE_CONFIG.apiKey!=='REPLACE_WITH_YOUR_API_KEY';
-let _currentUid=null;
-function _sk(k){return _currentUid?`cc_${_currentUid}_${k}`:`cc_${k}`;}
+function _sk(k){return 'cc_'+k;}
+function _getAuth(){try{const a=localStorage.getItem('cc_auth');return a?JSON.parse(a):null;}catch(e){return null;}}
+function _saveAuth(obj){try{localStorage.setItem('cc_auth',JSON.stringify(obj));}catch(e){}}
 
 /* ══════════════════════════════════════════════
    DATA
@@ -1319,7 +1332,7 @@ const SAVED_FORMATIONS={defensive:null,balanced:null,attacking:null};
 let activeSlot='balanced';
 
 let EVENTS=[];
-let COACH={name:'Coach',role:'Head Coach',club:'My Club',initials:'C'};
+let COACH={name:'Coach',role:'Head Coach',club:'My Club',initials:'C',photo:'',phone:''};
 let _evNextId=100;
 
 const FAQS=[
@@ -1520,7 +1533,8 @@ function renderCards(){
     ].join('');
     return `<div class="pc pc-${p.tier}" data-pname="${p.name}">
       <div class="pc-top"><div class="pc-ovr-grp"><div class="pc-ovr">${p.ovr}</div><div class="pc-pos">${p.pos}</div></div><div>${p.flag||''}</div><div class="pc-num">#${p.num}</div></div>
-      <div class="pc-photo-wrap"><div class="pc-avatar">${p.init}</div></div>
+      <div class="pc-photo-wrap"><div class="pc-avatar" style="${p.photo?'background:url('+p.photo+') center/cover;color:transparent':''}">
+${p.photo?'':p.init}</div></div>
       <div class="pc-season-stats">${badges}</div>
       <div class="pc-name">${p.name}</div>
       <div class="pc-stats">
@@ -1569,9 +1583,10 @@ function openPlayerModal(p, subIndex=null){
   const tierLabel={gold:'Gold',elite:'Elite',silver:'Silver'}[p.tier]||p.tier;
   const tierBg={gold:'linear-gradient(160deg,#3a2a00,#1a1000)',elite:'linear-gradient(160deg,#001d2e,#001020)',silver:'linear-gradient(160deg,#1a1a1a,#0d0d0d)'}[p.tier]||'';
   const tierAccent={gold:'#FFD700',elite:'#5AABFF',silver:'#B0B0B0'}[p.tier]||'#00E564';
+  const avatarStyle=p.photo?`background:url(${p.photo}) center/cover;color:transparent`:`background:${tierAccent}22;color:${tierAccent}`;
   body.innerHTML=`
     <div style="background:${tierBg};padding:20px 18px 14px;text-align:center;border-bottom:1px solid rgba(255,255,255,.08)">
-      <div style="width:72px;height:72px;border-radius:50%;background:${tierAccent}22;border:3px solid ${tierAccent}66;display:flex;align-items:center;justify-content:center;font-family:'Impact',Arial,sans-serif;font-size:26px;color:${tierAccent};margin:0 auto 10px">${p.init}</div>
+      <div style="width:72px;height:72px;border-radius:50%;${avatarStyle};border:3px solid ${tierAccent}66;display:flex;align-items:center;justify-content:center;font-family:'Impact',Arial,sans-serif;font-size:26px;margin:0 auto 10px">${p.photo?'':p.init}</div>
       <div style="font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:22px;letter-spacing:.5px;color:#DFF0E3">${p.name}</div>
       <div style="font-size:11px;color:#6B9A78;margin-top:3px">${p.pos} · #${p.num} · ${tierLabel}${p.flag?' · '+p.flag:''}</div>
       <div style="font-size:32px;font-family:'Impact',Arial,sans-serif;color:${tierAccent};margin-top:6px">${p.ovr}</div>
@@ -1596,6 +1611,11 @@ function openPlayerModal(p, subIndex=null){
     <div style="padding:14px 18px;display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
       ${[['Goals',p.goals||0],['Assists',p.assists||0],['POTM ★',p.potm||0],['Clean Sheets',p.cs||0]].map(([l,v])=>`<div style="background:rgba(0,0,0,.3);border-radius:10px;padding:10px;border:1px solid rgba(255,255,255,.06);text-align:center"><div style="font-size:20px;font-family:'Impact',Arial,sans-serif;color:#DFF0E3">${v}</div><div style="font-size:9px;font-weight:800;color:#3D5845;text-transform:uppercase;letter-spacing:.8px;margin-top:2px">${l}</div></div>`).join('')}
     </div>
+    ${(p.parentEmail||p.parentPhone)?`<div style="padding:12px 18px;border-top:1px solid rgba(255,255,255,.06)">
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:#3D5845;margin-bottom:8px">Parent / Guardian</div>
+      ${p.parentEmail?`<div style="font-size:12px;color:#6B9A78;margin-bottom:4px">✉ ${p.parentEmail}</div>`:''}
+      ${p.parentPhone?`<div style="font-size:12px;color:#6B9A78">✆ ${p.parentPhone}</div>`:''}
+    </div>`:''}
     <div style="height:${subIndex!==null?4:20}px"></div>
   `;
   if(subIndex!==null){
@@ -1646,10 +1666,18 @@ function openPlayerModal(p, subIndex=null){
 
 function openEditPlayer(p){
   _editingPlayer=p;
+  _apPhoto='';
   document.getElementById('apName').value=p.name;
   document.getElementById('apPos').value=p.pos;
   document.getElementById('apNum').value=p.num;
   document.getElementById('apFlag').value=p.flag||'';
+  document.getElementById('apParentEmail').value=p.parentEmail||'';
+  document.getElementById('apParentPhone').value=p.parentPhone||'';
+  const prev=document.getElementById('apPhotoPreview');
+  if(prev){
+    if(p.photo){prev.style.backgroundImage='url('+p.photo+')';prev.textContent='';}
+    else{prev.style.backgroundImage='';prev.textContent=p.init||'?';}
+  }
   ['Pac','Sho','Pas','Dri','Def','Phy'].forEach(k=>{
     const sl=document.getElementById('ap'+k);
     const vl=document.getElementById('ap'+k+'Val');
@@ -2285,9 +2313,28 @@ function closeEventModal(){
 function _coachInitials(name){
   return name.trim().split(/\s+/).map(w=>w[0]||'').join('').slice(0,2).toUpperCase()||name.slice(0,2).toUpperCase()||'C';
 }
+function _resizeImg(file,maxPx,cb){
+  const r=new FileReader();
+  r.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const s=Math.min(maxPx/img.width,maxPx/img.height,1);
+      const c=document.createElement('canvas');
+      c.width=img.width*s;c.height=img.height*s;
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      cb(c.toDataURL('image/jpeg',0.82));
+    };
+    img.src=e.target.result;
+  };
+  r.readAsDataURL(file);
+}
 function applyCoachUI(){
   const init=COACH.initials||_coachInitials(COACH.name);
-  ['sbAvEl','mobileAvEl','profileAvEl'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=init;});
+  ['sbAvEl','mobileAvEl','profileAvEl'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    if(COACH.photo){el.style.cssText+='background-image:url('+COACH.photo+');background-size:cover;background-position:center;color:transparent;';el.textContent='';}
+    else{el.style.backgroundImage='';el.style.color='';el.textContent=init;}
+  });
   ['sbNameEl','mobileNameEl','profileNameEl'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=COACH.name;});
   const role=COACH.role+(COACH.club?' · '+COACH.club:'');
   ['sbRoleEl','mobileRoleEl','profileRoleEl'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=role;});
@@ -2322,6 +2369,10 @@ function renderProfilePanel(){
         document.getElementById('profNameInput').value=COACH.name;
         document.getElementById('profRoleInput').value=COACH.role;
         document.getElementById('profClubInput').value=COACH.club||'';
+        const storedAuth=_getAuth();
+        document.getElementById('profEmailInput').value=storedAuth?.email||'';
+        document.getElementById('profPassInput').value='';
+        document.getElementById('profPhoneInput').value=storedAuth?.phone||COACH.phone||'';
       }
       editForm.style.display=open?'none':'';
       editBtn.textContent=open?'Edit':'Cancel';
@@ -2336,10 +2387,24 @@ function renderProfilePanel(){
       COACH.role=document.getElementById('profRoleInput').value.trim()||'Head Coach';
       COACH.club=document.getElementById('profClubInput').value.trim();
       COACH.initials=_coachInitials(name);
+      COACH.phone=document.getElementById('profPhoneInput').value.trim();
+      /* Save account credentials */
+      const newEmail=document.getElementById('profEmailInput').value.trim();
+      const newPass=document.getElementById('profPassInput').value;
+      if(newEmail){
+        const existing=_getAuth()||{};
+        const updated={email:newEmail,password:newPass||existing.password||'',phone:COACH.phone};
+        if(!updated.password){showToast('Enter a password too');return;}
+        _saveAuth(updated);
+        /* Mark session as active since coach just set credentials */
+        sessionStorage.setItem('cc_ok','1');
+        const elbl=document.getElementById('profileEmailLbl');
+        if(elbl)elbl.textContent=newEmail;
+      }
       saveToStorage();applyCoachUI();
       if(editForm)editForm.style.display='none';
       if(editBtn)editBtn.textContent='Edit';
-      showToast('Profile updated!');
+      showToast('Profile saved!');
     };
   }
 }
@@ -2367,19 +2432,28 @@ function renderFaqPanel(){
    ADD PLAYER MODAL
 ══════════════════════════════════════════════ */
 let _apFoot='Right';
+let _apPhoto='';
 function openAddPlayer(){
   if(!activeTeam){showToast('Select a team first');return;}
+  _editingPlayer=null;
+  _apPhoto='';
   document.getElementById('apName').value='';
   document.getElementById('apPos').value='ST';
   document.getElementById('apNum').value='';
   document.getElementById('apFlag').value='';
   document.getElementById('apWeight').value='';
+  document.getElementById('apParentEmail').value='';
+  document.getElementById('apParentPhone').value='';
+  const prev=document.getElementById('apPhotoPreview');
+  if(prev){prev.style.backgroundImage='';prev.textContent='?';}
   ['Pac','Sho','Pas','Dri','Def','Phy'].forEach(k=>{
     const sl=document.getElementById('ap'+k);const vl=document.getElementById('ap'+k+'Val');
     if(sl){sl.value=k==='Def'?50:70;if(vl)vl.textContent=sl.value;}
   });
   _apFoot='Right';
   document.querySelectorAll('#apFootPills .foot-pill').forEach(b=>b.classList.toggle('sel',b.dataset.foot==='Right'));
+  document.querySelector('.addp-title').textContent='Add Player';
+  document.getElementById('apSubmit').textContent='Add to Roster';
   document.getElementById('addPlayerOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('apName').focus(),140);
 }
@@ -2484,23 +2558,6 @@ function loadFromStorage(){
   }catch(e){}
 }
 
-/* ══════════════════════════════════════════════
-   AUTH HELPERS + FIREBASE INIT
-══════════════════════════════════════════════ */
-function _authErrMsg(code){
-  const m={
-    'auth/user-not-found':'No account with that email',
-    'auth/wrong-password':'Incorrect password',
-    'auth/email-already-in-use':'Account exists — try logging in',
-    'auth/weak-password':'Password needs at least 6 characters',
-    'auth/invalid-email':'Invalid email address',
-    'auth/too-many-requests':'Too many attempts — try again later',
-    'auth/invalid-credential':'Incorrect email or password',
-    'auth/network-request-failed':'Network error — check your connection',
-  };
-  return m[code]||'Something went wrong — try again';
-}
-
 function bootApp(){
   loadFromStorage();
   const ptn=document.getElementById('pitchTeamNm');
@@ -2511,42 +2568,26 @@ function bootApp(){
   switchView('roster');
   renderPitchTokens();
   renderRegularBench();
+  /* Show coach email in profile panel */
+  const auth=_getAuth();
+  const elbl=document.getElementById('profileEmailLbl');
+  if(elbl&&auth)elbl.textContent=auth.email||'';
 }
 
-function initFirebase(){
-  if(!_fbReady){
+function initAuth(){
+  const auth=_getAuth();
+  if(!auth||!auth.email){
+    /* No account set up yet — go straight in */
     document.getElementById('authScreen').style.display='none';
     bootApp();
-    return;
-  }
-  try{
-    firebase.initializeApp(FIREBASE_CONFIG);
-    firebase.auth().onAuthStateChanged(user=>{
-      if(user){
-        _currentUid=user.uid;
-        document.getElementById('authScreen').style.display='none';
-        /* Reset in-memory data before loading the signed-in coach's data */
-        TEAMS.length=0;PITCH_PLAYERS.length=0;BENCH_PLAYERS.length=0;EVENTS.length=0;
-        Object.assign(COACH,{name:'Coach',role:'Head Coach',club:'My Club',initials:'C'});
-        bootApp();
-        /* Show signed-in email in profile panel */
-        const _elbl=document.getElementById('profileEmailLbl');
-        if(_elbl)_elbl.textContent=user.email||'';
-        /* Pre-fill name from Firebase profile if coach hasn't set one yet */
-        if((COACH.name==='Coach')&&user.displayName){
-          COACH.name=user.displayName;
-          COACH.initials=_coachInitials(user.displayName);
-          saveToStorage();applyCoachUI();
-        }
-      } else {
-        _currentUid=null;
-        document.getElementById('authScreen').style.display='flex';
-      }
-    });
-  }catch(e){
-    console.error('Firebase init error:',e);
-    document.getElementById('authScreen').style.display='none';
-    bootApp();
+  } else {
+    /* Credentials exist — check session */
+    if(sessionStorage.getItem('cc_ok')==='1'){
+      document.getElementById('authScreen').style.display='none';
+      bootApp();
+    } else {
+      document.getElementById('authScreen').style.display='flex';
+    }
   }
 }
 
@@ -2681,18 +2722,22 @@ function initFirebase(){
     const flag=document.getElementById('apFlag').value.trim();
     const tier=ovr>=85?'elite':ovr>=75?'gold':'silver';
     const init=name.split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase()||name.slice(0,2).toUpperCase();
+    const parentEmail=document.getElementById('apParentEmail').value.trim();
+    const parentPhone=document.getElementById('apParentPhone').value.trim();
+    const photo=_apPhoto||(_editingPlayer?_editingPlayer.photo:'')||'';
     if(_editingPlayer){
       const ownerTeam=TEAMS.find(t=>t.players.some(x=>x===_editingPlayer||x.name===_editingPlayer.name));
       if(ownerTeam){
         const pi=ownerTeam.players.findIndex(x=>x===_editingPlayer||x.name===_editingPlayer.name);
-        if(pi>-1)Object.assign(ownerTeam.players[pi],{name,pos,num,ovr,tier,init,flag,pac,sho,pas,dri,def,phy});
+        if(pi>-1)Object.assign(ownerTeam.players[pi],{name,pos,num,ovr,tier,init,flag,pac,sho,pas,dri,def,phy,parentEmail,parentPhone,photo});
       }
       saveToStorage();renderCards();closeAddPlayer();showToast(name+' updated!');
     } else {
-      const p={name,pos,num,ovr,tier,init,flag,pac,sho,pas,dri,def,phy,goals:0,assists:0,potm:0,cs:0};
+      const p={name,pos,num,ovr,tier,init,flag,pac,sho,pas,dri,def,phy,goals:0,assists:0,potm:0,cs:0,parentEmail,parentPhone,photo};
       activeTeam.players.push(p);
       saveToStorage();renderCards();closeAddPlayer();showToast(name+' added to roster!');
     }
+    _apPhoto='';
   });
 
   /* Radar slot pickers */
@@ -2829,64 +2874,90 @@ function initFirebase(){
     }
   });
 
-  /* Auth form wiring */
-  let _authMode='login';
-  function _setAuthMode(mode){
-    _authMode=mode;
-    document.getElementById('authTabLogin').classList.toggle('active',mode==='login');
-    document.getElementById('authTabSignup').classList.toggle('active',mode==='signup');
-    document.getElementById('authSubmit').textContent=mode==='login'?'Log In':'Create Account';
-    document.getElementById('authForgot').style.display=mode==='login'?'':'none';
-    document.getElementById('authNameWrap').style.display=mode==='signup'?'':'none';
-    document.getElementById('authError').textContent='';
+  /* Auth screen — coach/parent tab toggle */
+  function _switchAuthTab(tab){
+    document.getElementById('authTabCoach').classList.toggle('active',tab==='coach');
+    document.getElementById('authTabParent').classList.toggle('active',tab==='parent');
+    document.getElementById('authCoachPanel').style.display=tab==='coach'?'':'none';
+    document.getElementById('authParentPanel').style.display=tab==='parent'?'':'none';
   }
-  document.getElementById('authTabLogin').addEventListener('click',()=>_setAuthMode('login'));
-  document.getElementById('authTabSignup').addEventListener('click',()=>_setAuthMode('signup'));
+  document.getElementById('authTabCoach').addEventListener('click',()=>_switchAuthTab('coach'));
+  document.getElementById('authTabParent').addEventListener('click',()=>_switchAuthTab('parent'));
+
+  /* Coach login submit */
   document.getElementById('authSubmit').addEventListener('click',()=>{
-    if(!_fbReady){document.getElementById('authError').textContent='Firebase not configured yet';return;}
     const email=document.getElementById('authEmail').value.trim();
     const pass=document.getElementById('authPassword').value;
-    const name=document.getElementById('authName').value.trim();
     const errEl=document.getElementById('authError');
-    const submitBtn=document.getElementById('authSubmit');
-    errEl.textContent='';errEl.style.color='';
-    submitBtn.disabled=true;
-    submitBtn.textContent='...';
-    if(_authMode==='login'){
-      firebase.auth().signInWithEmailAndPassword(email,pass)
-        .catch(e=>{errEl.textContent=_authErrMsg(e.code);submitBtn.disabled=false;submitBtn.textContent='Log In';});
-    } else {
-      firebase.auth().createUserWithEmailAndPassword(email,pass)
-        .then(cred=>{if(name)return cred.user.updateProfile({displayName:name});})
-        .catch(e=>{errEl.textContent=_authErrMsg(e.code);submitBtn.disabled=false;submitBtn.textContent='Create Account';});
+    errEl.textContent='';
+    const stored=_getAuth();
+    if(!stored||!stored.email){errEl.textContent='No account set up yet — go to Coach Profile to create one';return;}
+    if(email.toLowerCase()!==stored.email.toLowerCase()){errEl.textContent='Incorrect email';return;}
+    if(pass!==stored.password){errEl.textContent='Incorrect password';return;}
+    sessionStorage.setItem('cc_ok','1');
+    document.getElementById('authScreen').style.display='none';
+    bootApp();
+  });
+  /* Allow Enter key on password field */
+  document.getElementById('authPassword').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('authSubmit').click();});
+
+  /* Parent access submit */
+  document.getElementById('authParentSubmit').addEventListener('click',()=>{
+    const email=document.getElementById('authParentEmail').value.trim().toLowerCase();
+    const errEl=document.getElementById('authParentError');
+    errEl.textContent='';
+    if(!email){errEl.textContent='Enter your email address';return;}
+    /* Load teams from storage to search */
+    const raw=localStorage.getItem(_sk('teams'));
+    const teams=raw?JSON.parse(raw):[];
+    let found=null;
+    teams.forEach(t=>t.players.forEach(p=>{if((p.parentEmail||'').toLowerCase()===email)found=p;}));
+    if(!found){errEl.textContent='No player found with that parent email';return;}
+    /* Show parent view — a read-only player modal overlay */
+    document.getElementById('authScreen').style.display='none';
+    loadFromStorage();
+    let realP=null;
+    TEAMS.forEach(t=>t.players.forEach(p=>{if((p.parentEmail||'').toLowerCase()===email)realP=p;}));
+    if(realP){
+      bootApp();
+      setTimeout(()=>openPlayerModal(realP),200);
     }
   });
-  document.getElementById('authForgot').addEventListener('click',()=>{
-    const email=document.getElementById('authEmail').value.trim();
-    const errEl=document.getElementById('authError');
-    errEl.style.color='';
-    if(!email){errEl.textContent='Enter your email first';return;}
-    firebase.auth().sendPasswordResetEmail(email)
-      .then(()=>{errEl.style.color='var(--green)';errEl.textContent='Reset email sent!';})
-      .catch(e=>{errEl.style.color='';errEl.textContent=_authErrMsg(e.code);});
-  });
+  document.getElementById('authParentEmail').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('authParentSubmit').click();});
 
-  /* Profile sign-out wiring */
-  const soWrap=document.getElementById('profileSignOutWrap');
+  /* Profile sign-out */
   const soBtn=document.getElementById('profileSignOutBtn');
-  if(soWrap&&soBtn){
-    if(_fbReady)soWrap.style.display='';
+  if(soBtn){
     soBtn.addEventListener('click',()=>{
-      if(_fbReady&&firebase.auth().currentUser){
-        firebase.auth().signOut().then(()=>{
-          closeMenuPanel('profile');
-          TEAMS.length=0;PITCH_PLAYERS.length=0;BENCH_PLAYERS.length=0;EVENTS.length=0;
-          Object.assign(COACH,{name:'Coach',role:'Head Coach',club:'My Club',initials:'C'});
-        });
+      sessionStorage.removeItem('cc_ok');
+      closeMenuPanel('profile');
+      const auth=_getAuth();
+      if(auth&&auth.email){
+        document.getElementById('authScreen').style.display='flex';
       }
     });
   }
 
-  initFirebase();
+  /* Coach photo upload */
+  const coachPhotoInput=document.getElementById('coachPhotoInput');
+  if(coachPhotoInput)coachPhotoInput.addEventListener('change',e=>{
+    const f=e.target.files[0];if(!f)return;
+    _resizeImg(f,200,dataUrl=>{COACH.photo=dataUrl;saveToStorage();applyCoachUI();showToast('Photo updated');});
+    e.target.value='';
+  });
+
+  /* Player photo upload */
+  const apPhotoInput=document.getElementById('apPhotoInput');
+  if(apPhotoInput)apPhotoInput.addEventListener('change',e=>{
+    const f=e.target.files[0];if(!f)return;
+    _resizeImg(f,200,dataUrl=>{
+      _apPhoto=dataUrl;
+      const prev=document.getElementById('apPhotoPreview');
+      if(prev){prev.style.backgroundImage='url('+dataUrl+')';prev.textContent='';}
+    });
+    e.target.value='';
+  });
+
+  initAuth();
 })();
 </script>
