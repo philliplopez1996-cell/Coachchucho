@@ -12,9 +12,10 @@
   --sidebar-w:220px;--sidebar-w-col:60px;--topbar:52px;--modal-z:200;
 }
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden}
+html{height:-webkit-fill-available}
 
 /* ── Shell ── */
-.shell{display:grid;grid-template-columns:var(--sidebar-w) 1fr;grid-template-rows:var(--topbar) 1fr;height:100vh;transition:grid-template-columns .22s ease}
+.shell{display:grid;grid-template-columns:var(--sidebar-w) 1fr;grid-template-rows:var(--topbar) 1fr;height:100vh;height:100svh;min-height:-webkit-fill-available;transition:grid-template-columns .22s ease}
 .shell.collapsed{grid-template-columns:var(--sidebar-w-col) 1fr}
 
 /* ── Sidebar ── */
@@ -90,7 +91,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-
 .view::-webkit-scrollbar-thumb{background:var(--dim);border-radius:999px}
 
 /* ── Bottom nav (mobile only) ── */
-.bottom-nav{display:none;height:64px;padding:4px 8px 12px;border-top:1px solid var(--border);background:rgba(6,13,8,.98);backdrop-filter:blur(10px);flex-shrink:0;gap:2px;grid-column:1/-1}
+.bottom-nav{display:none;height:auto;min-height:64px;padding:4px 8px max(12px,env(safe-area-inset-bottom));border-top:1px solid var(--border);background:rgba(6,13,8,.98);backdrop-filter:blur(10px);flex-shrink:0;gap:2px;grid-column:1/-1}
 .bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;cursor:pointer;padding:6px 2px;border-radius:12px;color:var(--dim);transition:all .15s}
 .bnav-btn.active{color:var(--green);background:rgba(0,229,100,.06)}
 .bnav-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
@@ -1225,6 +1226,7 @@ const match={
 };
 
 let _pickerSlot='A';
+let _editingPlayer=null;
 const MONTH_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const _calNow=new Date();
 let calYear=_calNow.getFullYear(), calMonth=_calNow.getMonth();
@@ -1494,7 +1496,29 @@ function openPlayerModal(p, subIndex=null){
   });
   delBar.appendChild(delBtn);
   body.appendChild(delBar);
+  /* Wire Edit button */
+  const pmEditBtn=document.getElementById('pmEditBtn');
+  if(pmEditBtn)pmEditBtn.onclick=()=>{closePlayerModal();openEditPlayer(p);};
   modal.classList.add('open');
+}
+
+function openEditPlayer(p){
+  _editingPlayer=p;
+  document.getElementById('apName').value=p.name;
+  document.getElementById('apPos').value=p.pos;
+  document.getElementById('apNum').value=p.num;
+  document.getElementById('apFlag').value=p.flag||'';
+  ['Pac','Sho','Pas','Dri','Def','Phy'].forEach(k=>{
+    const sl=document.getElementById('ap'+k);
+    const vl=document.getElementById('ap'+k+'Val');
+    const val=p[k.toLowerCase()]||70;
+    if(sl){sl.value=val;if(vl)vl.textContent=val;}
+  });
+  _apFoot=p.foot||'Right';
+  document.querySelectorAll('#apFootPills .foot-pill').forEach(b=>b.classList.toggle('sel',b.dataset.foot===_apFoot));
+  document.querySelector('.addp-title').textContent='Edit Player';
+  document.getElementById('apSubmit').textContent='Save Changes';
+  document.getElementById('addPlayerOverlay').classList.add('open');
 }
 
 function closePlayerModal(){
@@ -2095,7 +2119,14 @@ function openAddPlayer(){
   document.getElementById('addPlayerOverlay').classList.add('open');
   setTimeout(()=>document.getElementById('apName').focus(),140);
 }
-function closeAddPlayer(){document.getElementById('addPlayerOverlay').classList.remove('open');}
+function closeAddPlayer(){
+  document.getElementById('addPlayerOverlay').classList.remove('open');
+  if(_editingPlayer){
+    _editingPlayer=null;
+    document.querySelector('.addp-title').textContent='Add Player';
+    document.getElementById('apSubmit').textContent='Add to Roster';
+  }
+}
 
 /* ══════════════════════════════════════════════
    TEAM FOLDER MODAL
@@ -2284,7 +2315,7 @@ function loadFromStorage(){
   /* Add player submit */
   const apSubmit=document.getElementById('apSubmit');
   if(apSubmit)apSubmit.addEventListener('click',()=>{
-    if(!activeTeam){closeAddPlayer();showToast('Select a team first');return;}
+    if(!activeTeam&&!_editingPlayer){closeAddPlayer();showToast('Select a team first');return;}
     const name=document.getElementById('apName').value.trim();
     if(!name){showToast('Enter player name');return;}
     const pac=+document.getElementById('apPac').value;
@@ -2299,9 +2330,18 @@ function loadFromStorage(){
     const flag=document.getElementById('apFlag').value.trim();
     const tier=ovr>=85?'elite':ovr>=75?'gold':'silver';
     const init=name.split(' ').map(w=>w[0]||'').join('').slice(0,2).toUpperCase()||name.slice(0,2).toUpperCase();
-    const p={name,pos,num,ovr,tier,init,flag,pac,sho,pas,dri,def,phy,goals:0,assists:0,potm:0,cs:0};
-    activeTeam.players.push(p);
-    saveToStorage();renderCards();closeAddPlayer();showToast(name+' added to roster!');
+    if(_editingPlayer){
+      const ownerTeam=TEAMS.find(t=>t.players.some(x=>x===_editingPlayer||x.name===_editingPlayer.name));
+      if(ownerTeam){
+        const pi=ownerTeam.players.findIndex(x=>x===_editingPlayer||x.name===_editingPlayer.name);
+        if(pi>-1)Object.assign(ownerTeam.players[pi],{name,pos,num,ovr,tier,init,flag,pac,sho,pas,dri,def,phy});
+      }
+      saveToStorage();renderCards();closeAddPlayer();showToast(name+' updated!');
+    } else {
+      const p={name,pos,num,ovr,tier,init,flag,pac,sho,pas,dri,def,phy,goals:0,assists:0,potm:0,cs:0};
+      activeTeam.players.push(p);
+      saveToStorage();renderCards();closeAddPlayer();showToast(name+' added to roster!');
+    }
   });
 
   /* Radar slot pickers */
