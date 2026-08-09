@@ -301,7 +301,7 @@ html{height:-webkit-fill-available}
 .panel-body::-webkit-scrollbar{width:3px}
 .panel-body::-webkit-scrollbar-thumb{background:var(--dim);border-radius:999px}
 .panel-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .24s;z-index:140}
-.panel-backdrop.open{opacity:1;pointer-events:all}
+.panel-backdrop.show,.panel-backdrop.open{opacity:1;pointer-events:all}
 
 /* ── Menu panel ── */
 .menu-panel{position:fixed;top:0;left:0;bottom:0;width:280px;background:linear-gradient(160deg,#081209 0%,#060d08 100%);border-right:1px solid var(--border);transform:translateX(-100%);transition:transform .28s cubic-bezier(.4,0,.2,1);z-index:150;display:flex;flex-direction:column}
@@ -348,8 +348,23 @@ html{height:-webkit-fill-available}
 .cal-ev-badge{font-size:10px;font-weight:800;padding:3px 8px;border-radius:999px}
 .badge-win{background:rgba(0,229,100,.12);color:var(--green);border:1px solid rgba(0,229,100,.3)}
 .badge-loss{background:rgba(255,80,80,.1);color:var(--red);border:1px solid rgba(255,80,80,.25)}
-.badge-upcoming{background:rgba(255,215,0,.08);color:var(--gold);border:1px solid rgba(255,215,0,.25)}
+.badge-draw{background:rgba(255,215,0,.08);color:var(--gold);border:1px solid rgba(255,215,0,.25)}
+.badge-upcoming{background:rgba(90,170,255,.08);color:var(--blue);border:1px solid rgba(90,170,255,.25)}
 .badge-practice{background:rgba(107,154,120,.1);color:var(--muted);border:1px solid rgba(107,154,120,.25)}
+
+/* ── Event modal ── */
+.ev-type-row{display:flex;gap:6px;margin-bottom:14px}
+.ev-type-btn{flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:none;color:var(--muted);font-size:12px;font-weight:800;cursor:pointer;transition:all .15s}
+.ev-type-btn.sel{background:rgba(0,229,100,.12);border-color:rgba(0,229,100,.4);color:var(--green)}
+.ev-type-btn.sel-game{background:rgba(90,170,255,.1);border-color:rgba(90,170,255,.35);color:var(--blue)}
+
+/* ── Profile edit ── */
+.prof-edit-form{background:var(--surface);border-radius:12px;border:1px solid var(--border2);padding:14px;margin-top:12px}
+.prof-edit-row{margin-bottom:10px}
+.prof-edit-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);margin-bottom:4px}
+.prof-edit-input{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;font-size:13px;color:var(--text);outline:none;font-family:inherit}
+.prof-edit-input:focus{border-color:rgba(0,229,100,.4)}
+.prof-edit-save{width:100%;padding:10px;border-radius:9px;background:rgba(0,229,100,.12);border:1px solid rgba(0,229,100,.35);color:var(--green);font-size:12px;font-weight:800;cursor:pointer;margin-top:4px}
 
 /* ── Coach Profile Panel ── */
 .profile-hero{text-align:center;padding:20px 0 16px;border-bottom:1px solid var(--border)}
@@ -608,10 +623,10 @@ html{height:-webkit-fill-available}
       </button>
     </div>
     <div class="sb-coach" id="sbCoach">
-      <div class="sb-av">C</div>
+      <div class="sb-av" id="sbAvEl">C</div>
       <div class="sb-coach-info">
-        <div class="sb-info-name">Coach Chucho</div>
-        <div class="sb-info-role">Head Coach · GSA Soccer</div>
+        <div class="sb-info-name" id="sbNameEl">Coach</div>
+        <div class="sb-info-role" id="sbRoleEl">Head Coach · My Club</div>
       </div>
     </div>
     <div class="sb-nav">
@@ -893,10 +908,10 @@ html{height:-webkit-fill-available}
     <button class="menu-close" id="menuClose">✕</button>
   </div>
   <div class="menu-coach">
-    <div class="menu-av">C</div>
+    <div class="menu-av" id="mobileAvEl">C</div>
     <div class="menu-coach-info">
-      <div class="menu-coach-name">Coach Chucho</div>
-      <div class="menu-coach-role">Head Coach · GSA Soccer</div>
+      <div class="menu-coach-name" id="mobileNameEl">Coach</div>
+      <div class="menu-coach-role" id="mobileRoleEl">Head Coach · My Club</div>
     </div>
   </div>
   <div class="menu-items">
@@ -948,15 +963,24 @@ html{height:-webkit-fill-available}
       <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
     <div class="panel-title">Coach Profile</div>
+    <button class="pm-edit-btn" id="profileEditBtn" style="margin-left:auto">Edit</button>
   </div>
   <div class="panel-body">
     <div class="profile-hero">
-      <div class="profile-av">C</div>
-      <div class="profile-name">Coach Chucho</div>
-      <div class="profile-role">Head Coach · GSA Soccer Academy</div>
+      <div class="profile-av" id="profileAvEl">C</div>
+      <div class="profile-name" id="profileNameEl">Coach</div>
+      <div class="profile-role" id="profileRoleEl">Head Coach · My Club</div>
+    </div>
+    <div id="profileEditForm" style="display:none">
+      <div class="prof-edit-form">
+        <div class="prof-edit-row"><div class="prof-edit-lbl">Your Name</div><input class="prof-edit-input" id="profNameInput" type="text" placeholder="e.g. Coach Chucho"></div>
+        <div class="prof-edit-row"><div class="prof-edit-lbl">Title / Role</div><input class="prof-edit-input" id="profRoleInput" type="text" placeholder="e.g. Head Coach"></div>
+        <div class="prof-edit-row"><div class="prof-edit-lbl">Club / Academy</div><input class="prof-edit-input" id="profClubInput" type="text" placeholder="e.g. GSA Soccer"></div>
+        <button class="prof-edit-save" id="profSaveBtn">Save Profile</button>
+      </div>
     </div>
     <div class="profile-stat-grid" id="profileStats"></div>
-    <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:10px">Teams Managed</div>
+    <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:10px;margin-top:4px">Teams Managed</div>
     <div id="profileTeams"></div>
   </div>
 </div>
@@ -1108,6 +1132,39 @@ html{height:-webkit-fill-available}
   </div>
 </div>
 
+<!-- EVENT MODAL -->
+<div class="addp-overlay" id="eventModalOverlay">
+  <div class="addp-sheet">
+    <div class="addp-topbar">
+      <div class="addp-title" id="evModalTitle">New Event</div>
+      <button class="addp-close" id="evModalClose">✕</button>
+    </div>
+    <div class="addp-body">
+      <div class="ap-field"><div class="ap-label">Event Type</div>
+        <div class="ev-type-row">
+          <button class="ev-type-btn sel" data-evtype="practice" id="evTypePractice">Practice</button>
+          <button class="ev-type-btn" data-evtype="game" id="evTypeGame">Game</button>
+        </div>
+      </div>
+      <div class="ap-field"><div class="ap-label">Title / Opponent</div><input class="ap-input" id="evTitle" type="text" placeholder="e.g. Team Practice or vs FC Wolves"></div>
+      <div class="ap-2col">
+        <div class="ap-field"><div class="ap-label">Date</div><input class="ap-input" id="evDate" type="date"></div>
+        <div class="ap-field"><div class="ap-label">Time</div><input class="ap-input" id="evTime" type="time" value="10:00"></div>
+      </div>
+      <div class="ap-field"><div class="ap-label">Location</div><input class="ap-input" id="evLocation" type="text" placeholder="e.g. GSA Training Ground"></div>
+      <div class="ap-field"><div class="ap-label">Team</div>
+        <select class="ap-input" id="evTeam"></select>
+      </div>
+      <div id="evScoreRow" class="ap-2col" style="display:none">
+        <div class="ap-field"><div class="ap-label">Our Score</div><input class="ap-input" id="evHome" type="number" min="0" max="99" placeholder="0"></div>
+        <div class="ap-field"><div class="ap-label">Opp Score</div><input class="ap-input" id="evAway" type="number" min="0" max="99" placeholder="0"></div>
+      </div>
+      <button class="ap-submit-btn" id="evSaveBtn">Save Event</button>
+      <button id="evDeleteBtn" style="display:none;width:100%;margin-top:8px;padding:11px;border-radius:10px;background:rgba(255,96,96,.08);border:1px solid rgba(255,96,96,.25);color:#FF6060;font-size:12px;font-weight:800;cursor:pointer">Delete Event</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -1116,58 +1173,14 @@ html{height:-webkit-fill-available}
    DATA
 ══════════════════════════════════════════════ */
 let TEAMS=[
-  {id:'u14',name:'GSA United U14',initial:'G',color:'#00E564',formation:'4-3-3',season:'Spring 2025',ovr:79,players:[
-    {name:'Carlos Mendez',pos:'ST', num:9, ovr:84,tier:'gold',  init:'CM',flag:'🇲🇽',pac:88,sho:85,pas:72,dri:83,def:45,phy:76,goals:12,assists:4, potm:3,cs:0},
-    {name:'Jordan Lee',   pos:'CAM',num:10,ovr:80,tier:'gold',  init:'JL',flag:'🇺🇸',pac:79,sho:77,pas:86,dri:84,def:48,phy:62,goals:6, assists:9, potm:4,cs:0},
-    {name:'Rafael Santos',pos:'CDM',num:6, ovr:88,tier:'elite', init:'RS',flag:'🇧🇷',pac:74,sho:58,pas:78,dri:72,def:87,phy:90,goals:2, assists:5, potm:5,cs:0},
-    {name:'Diego Rivera', pos:'GK', num:1, ovr:81,tier:'gold',  init:'DR',flag:'🇲🇽',pac:55,sho:35,pas:62,dri:40,def:88,phy:82,goals:0, assists:0, potm:2,cs:7},
-    {name:'Marco Santos', pos:'CM', num:8, ovr:76,tier:'gold',  init:'MS',flag:'🇺🇸',pac:76,sho:70,pas:82,dri:79,def:68,phy:74,goals:4, assists:6, potm:1,cs:0},
-    {name:'Alex Torres',  pos:'LB', num:3, ovr:69,tier:'silver',init:'AT',flag:'🇺🇸',pac:82,sho:45,pas:71,dri:74,def:78,phy:72,goals:1, assists:3, potm:0,cs:0},
-    {name:'Player 12',    pos:'CM', num:12,ovr:65,tier:'silver',init:'12',flag:'',   pac:65,sho:60,pas:65,dri:62,def:60,phy:65,goals:0, assists:0, potm:0,cs:0,isPlaceholder:true},
-    {name:'Player 13',    pos:'CB', num:13,ovr:63,tier:'silver',init:'13',flag:'',   pac:60,sho:38,pas:58,dri:52,def:68,phy:70,goals:0, assists:0, potm:0,cs:0,isPlaceholder:true},
-  ]},
-  {id:'u16',name:'GSA Elite U16',initial:'E',color:'#4B9FFF',formation:'4-2-3-1',season:'Spring 2025',ovr:82,players:[
-    {name:'Miguel Herrera',pos:'ST', num:9, ovr:87,tier:'elite', init:'MH',flag:'🇲🇽',pac:86,sho:90,pas:74,dri:85,def:42,phy:80,goals:18,assists:6, potm:5,cs:0},
-    {name:'David Park',   pos:'CAM',num:10,ovr:84,tier:'gold',  init:'DP',flag:'🇰🇷',pac:80,sho:79,pas:88,dri:86,def:50,phy:65,goals:9, assists:14,potm:6,cs:0},
-    {name:'Omar Diaz',    pos:'CDM',num:6, ovr:80,tier:'gold',  init:'OD',flag:'🇨🇴',pac:72,sho:55,pas:80,dri:70,def:85,phy:88,goals:1, assists:4, potm:2,cs:0},
-    {name:'Luca Ferrari', pos:'GK', num:1, ovr:83,tier:'gold',  init:'LF',flag:'🇮🇹',pac:58,sho:38,pas:65,dri:45,def:90,phy:84,goals:0, assists:0, potm:3,cs:10},
-    {name:'Nathan Webb',  pos:'RB', num:2, ovr:77,tier:'gold',  init:'NW',flag:'🇬🇧',pac:84,sho:50,pas:73,dri:76,def:80,phy:75,goals:3, assists:7, potm:1,cs:0},
-    {name:'Kai Chen',     pos:'LW', num:11,ovr:79,tier:'gold',  init:'KC',flag:'🇨🇳',pac:88,sho:74,pas:76,dri:84,def:44,phy:62,goals:7, assists:10,potm:2,cs:0},
-    {name:'Player 12',    pos:'CM', num:12,ovr:66,tier:'silver',init:'12',flag:'',   pac:66,sho:62,pas:66,dri:64,def:62,phy:66,goals:0, assists:0, potm:0,cs:0,isPlaceholder:true},
-    {name:'Player 13',    pos:'RB', num:13,ovr:64,tier:'silver',init:'13',flag:'',   pac:72,sho:44,pas:62,dri:66,def:70,phy:68,goals:0, assists:0, potm:0,cs:0,isPlaceholder:true},
-  ]},
-  {id:'u12',name:'GSA Academy U12',initial:'A',color:'#FF8C42',formation:'4-4-2',season:'Spring 2025',ovr:73,players:[
-    {name:'Ethan Ramos',  pos:'ST', num:9, ovr:75,tier:'gold',  init:'ER',flag:'🇺🇸',pac:82,sho:76,pas:65,dri:78,def:38,phy:70,goals:8,assists:3,potm:2,cs:0},
-    {name:'Jake Wilson',  pos:'CM', num:8, ovr:72,tier:'gold',  init:'JW',flag:'🇺🇸',pac:73,sho:65,pas:78,dri:74,def:60,phy:68,goals:3,assists:7,potm:1,cs:0},
-    {name:'Sam Cruz',     pos:'GK', num:1, ovr:70,tier:'silver',init:'SC',flag:'🇺🇸',pac:50,sho:30,pas:56,dri:35,def:80,phy:74,goals:0,assists:0,potm:0,cs:4},
-    {name:'Mateo Flores', pos:'LB', num:3, ovr:68,tier:'silver',init:'MF',flag:'🇲🇽',pac:78,sho:40,pas:65,dri:68,def:72,phy:65,goals:1,assists:2,potm:0,cs:0},
-    {name:'Isaac Brown',  pos:'CB', num:5, ovr:71,tier:'silver',init:'IB',flag:'🇺🇸',pac:62,sho:38,pas:60,dri:55,def:76,phy:78,goals:1,assists:0,potm:0,cs:0},
-    {name:'Tyler Nguyen', pos:'RW', num:7, ovr:74,tier:'gold',  init:'TN',flag:'🇺🇸',pac:86,sho:70,pas:68,dri:80,def:40,phy:60,goals:5,assists:6,potm:2,cs:0},
-    {name:'Player 12',    pos:'LW', num:12,ovr:62,tier:'silver',init:'12',flag:'',   pac:72,sho:58,pas:62,dri:68,def:38,phy:60,goals:0,assists:0,potm:0,cs:0,isPlaceholder:true},
-    {name:'Player 13',    pos:'CM', num:13,ovr:60,tier:'silver',init:'13',flag:'',   pac:60,sho:55,pas:65,dri:62,def:58,phy:64,goals:0,assists:0,potm:0,cs:0,isPlaceholder:true},
-  ]},
+  {id:'u14',name:'GSA United U14',initial:'G',color:'#00E564',formation:'4-3-3',season:'Spring 2025',ovr:0,players:[]},
+  {id:'u16',name:'GSA Elite U16',initial:'E',color:'#4B9FFF',formation:'4-2-3-1',season:'Spring 2025',ovr:0,players:[]},
+  {id:'u12',name:'GSA Academy U12',initial:'A',color:'#FF8C42',formation:'4-4-2',season:'Spring 2025',ovr:0,players:[]},
 ];
 
-const PITCH_PLAYERS=[
-  {name:'Diego Rivera', pos:'GK', num:1, ovr:81,tier:'gold',  init:'DR',flag:'🇲🇽',pac:55,sho:35,pas:62,dri:40,def:88,phy:82,goals:0,assists:0,potm:2,cs:7, cx:50,  cy:91},
-  {name:'Alex Torres',  pos:'LB', num:3, ovr:69,tier:'silver',init:'AT',flag:'🇺🇸',pac:82,sho:45,pas:71,dri:74,def:78,phy:72,goals:1,assists:3,potm:0,cs:0, cx:14.7,cy:78},
-  {name:'Ben Cruz',     pos:'CB', num:5, ovr:74,tier:'gold',  init:'BC',flag:'🇺🇸',pac:68,sho:42,pas:65,dri:60,def:80,phy:83,goals:2,assists:1,potm:0,cs:0, cx:33.8,cy:75},
-  {name:'Kevin Jones',  pos:'CB', num:4, ovr:72,tier:'gold',  init:'KJ',flag:'🇺🇸',pac:66,sho:40,pas:63,dri:58,def:78,phy:80,goals:1,assists:0,potm:0,cs:0, cx:66.2,cy:75},
-  {name:'Paul Garcia',  pos:'RB', num:2, ovr:71,tier:'gold',  init:'PG',flag:'🇺🇸',pac:80,sho:44,pas:69,dri:72,def:76,phy:70,goals:2,assists:4,potm:1,cs:0, cx:85.3,cy:78},
-  {name:'Rafael Santos',pos:'CDM',num:6, ovr:88,tier:'elite', init:'RS',flag:'🇧🇷',pac:74,sho:58,pas:78,dri:72,def:87,phy:90,goals:2,assists:5,potm:5,cs:8, cx:22.1,cy:58},
-  {name:'Marco Santos', pos:'CM', num:8, ovr:76,tier:'gold',  init:'MS',flag:'🇺🇸',pac:76,sho:70,pas:82,dri:79,def:68,phy:74,goals:4,assists:6,potm:1,cs:0, cx:50,  cy:54},
-  {name:'Luis Kim',     pos:'CM', num:7, ovr:73,tier:'gold',  init:'LK',flag:'🇺🇸',pac:77,sho:65,pas:75,dri:76,def:62,phy:70,goals:3,assists:5,potm:1,cs:0, cx:77.9,cy:58},
-  {name:'Jordan Lee',   pos:'LW', num:11,ovr:80,tier:'gold',  init:'JL',flag:'🇺🇸',pac:79,sho:77,pas:86,dri:84,def:48,phy:62,goals:6,assists:9,potm:4,cs:1, cx:14.7,cy:28},
-  {name:'Carlos Mendez',pos:'ST', num:9, ovr:84,tier:'gold',  init:'CM',flag:'🇲🇽',pac:88,sho:85,pas:72,dri:83,def:45,phy:76,goals:12,assists:4,potm:3,cs:0,cx:50,  cy:22},
-  {name:'Erik Wilson',  pos:'RW', num:10,ovr:77,tier:'gold',  init:'EW',flag:'🇺🇸',pac:83,sho:72,pas:74,dri:80,def:50,phy:65,goals:5,assists:7,potm:2,cs:0, cx:85.3,cy:28},
-];
+const PITCH_PLAYERS=[];
 
-const BENCH_PLAYERS=[
-  {name:'Player 12',pos:'CM',num:12,ovr:65,tier:'silver',init:'12',flag:''},
-  {name:'Player 13',pos:'CB',num:13,ovr:63,tier:'silver',init:'13',flag:''},
-  {name:'Tyler Nguyen',pos:'RW',num:7,ovr:74,tier:'gold',init:'TN',flag:'🇺🇸',pac:86,sho:70,pas:68,dri:80,def:40,phy:60,goals:5,assists:6,potm:2,cs:0},
-  {name:'Ethan Ramos',pos:'ST',num:9,ovr:75,tier:'gold',init:'ER',flag:'🇺🇸',pac:82,sho:76,pas:65,dri:78,def:38,phy:70,goals:8,assists:3,potm:2,cs:0},
-];
+const BENCH_PLAYERS=[];
 
 const FORM_POSITIONS={
   defensive:[
@@ -1189,15 +1202,9 @@ const FORM_POSITIONS={
 const SAVED_FORMATIONS={defensive:null,balanced:null,attacking:null};
 let activeSlot='balanced';
 
-let EVENTS=[
-  {id:'e1',type:'game',title:'vs FC Wolves',date:'2025-07-08',time:'18:00',location:'Riverside Park',teamId:'u14',done:true,homeScore:3,awayScore:1},
-  {id:'e2',type:'practice',title:'Team Practice',date:'2025-07-12',time:'10:00',location:'GSA Training Ground',teamId:'u14',done:false},
-  {id:'e3',type:'game',title:'vs Rio Grande FC',date:'2025-07-15',time:'18:30',location:'Home Field',teamId:'u14',done:true,homeScore:2,awayScore:0},
-  {id:'e4',type:'practice',title:'Team Practice',date:'2025-07-19',time:'10:00',location:'GSA Training Ground',teamId:'u14',done:false},
-  {id:'e5',type:'game',title:'vs Aztec FC',date:'2025-07-22',time:'19:00',location:'Aztec Stadium',teamId:'u14',done:true,homeScore:1,awayScore:2},
-  {id:'e6',type:'practice',title:'Team Practice',date:'2025-07-26',time:'10:00',location:'GSA Training Ground',teamId:'u14',done:false},
-  {id:'e7',type:'game',title:'vs Northside United',date:'2025-07-29',time:'18:00',location:'Home Field',teamId:'u14',done:false},
-];
+let EVENTS=[];
+let COACH={name:'Coach',role:'Head Coach',club:'My Club',initials:'C'};
+let _evNextId=100;
 
 const FAQS=[
   {q:'How do I add a new player to my roster?',a:'Go to the Roster tab and click the + Add Player button. Fill in the player\'s name, position, jersey number, and attributes. The overall rating is calculated automatically from their six attribute scores.'},
@@ -1213,7 +1220,7 @@ const FAQS=[
 ══════════════════════════════════════════════ */
 let activeTeam=null;
 let rosterSort='ovr';
-let radarA=TEAMS[0].players[0], radarB=TEAMS[0].players[1];
+let radarA=null, radarB=null;
 const DEF_POS=['CB','LB','RB','LWB','RWB','SW'];
 const MID_POS=['CM','CDM','CAM','LM','RM','DM'];
 const FWD_POS=['ST','CF','LW','RW','SS'];
@@ -1346,6 +1353,20 @@ function showTeamPlayers(team){
   document.getElementById('rosterSearch').value='';
   document.querySelectorAll('#rosterPills .pill').forEach((p,i)=>p.classList.toggle('on',i===0));
   renderCards();
+  /* Sync pitch, bench & radar with selected team */
+  const pos=SAVED_FORMATIONS[activeSlot]||FORM_POSITIONS[activeSlot];
+  PITCH_PLAYERS.length=0;
+  BENCH_PLAYERS.length=0;
+  team.players.forEach((p,i)=>{
+    const slot=pos[i];
+    if(i<11&&slot){PITCH_PLAYERS.push({...p,cx:slot.cx,cy:slot.cy});}
+    else{BENCH_PLAYERS.push(p);}
+  });
+  radarA=team.players[0]||null;
+  radarB=team.players[1]||null;
+  const ptn=document.getElementById('pitchTeamNm');
+  if(ptn)ptn.textContent=team.name;
+  renderPitchTokens();renderRegularBench();
 }
 
 /* ══════════════════════════════════════════════
@@ -1530,12 +1551,19 @@ function closePlayerModal(){
 ══════════════════════════════════════════════ */
 function renderRadarSlots(){
   const ra=radarA,rb=radarB;
-  if(!ra||!rb)return;
-  document.getElementById('rdrSlotA').innerHTML=`<div class="rdr-av">${ra.init}</div><div class="rdr-info"><div class="rdr-n">${ra.name}</div><div class="rdr-m">${ra.pos} · #${ra.num}</div></div><div class="rdr-ovr-a">${ra.ovr}</div>`;
-  document.getElementById('rdrSlotB').innerHTML=`<div class="rdr-av">${rb.init}</div><div class="rdr-info"><div class="rdr-n">${rb.name}</div><div class="rdr-m">${rb.pos} · #${rb.num}</div></div><div class="rdr-ovr-b">${rb.ovr}</div>`;
-  document.getElementById('rdrLegA').textContent=ra.name.split(' ').pop()||ra.name;
-  document.getElementById('rdrLegB').textContent=rb.name.split(' ').pop()||rb.name;
-  buildRadar();renderAttrBreakdown();
+  const emptySlot='<div class="rdr-slot-empty">Tap to select player</div>';
+  const slotHtml=(p,cls)=>p?`<div class="rdr-av">${p.init}</div><div class="rdr-info"><div class="rdr-n">${p.name}</div><div class="rdr-m">${p.pos} · #${p.num}</div></div><div class="${cls}">${p.ovr}</div>`:emptySlot;
+  document.getElementById('rdrSlotA').innerHTML=slotHtml(ra,'rdr-ovr-a');
+  document.getElementById('rdrSlotB').innerHTML=slotHtml(rb,'rdr-ovr-b');
+  document.getElementById('rdrLegA').textContent=ra?(ra.name.split(' ').pop()||ra.name):'Player A';
+  document.getElementById('rdrLegB').textContent=rb?(rb.name.split(' ').pop()||rb.name):'Player B';
+  if(ra&&rb){buildRadar();renderAttrBreakdown();}
+  else{
+    document.getElementById('radar-svg-wrap').innerHTML='<div style="text-align:center;padding:32px 0;color:#3D5845;font-size:13px;font-weight:700">Select a team folder to load players,<br>then tap the slots above to compare</div>';
+    document.getElementById('attrBreakdown').innerHTML='';
+    document.getElementById('careerStats').innerHTML='';
+    document.getElementById('radarVerdict').style.display='none';
+  }
 }
 
 function buildRadar(){
@@ -1909,11 +1937,31 @@ function showPostGame(){
       const p=match.starters[_potmPick];
       if(p){p.potm=(p.potm||0)+1;showToast('★ '+p.name+' is Player of the Match!');}
     }
+    /* Save match result to calendar */
+    const now=new Date();
+    const dateStr=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+    const timeStr=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+    const potmName=(_potmPick!=null&&match.starters[_potmPick])?match.starters[_potmPick].name:null;
+    const goalLog=match.log.filter(e=>e.type==='goal');
+    EVENTS.push({
+      id:'ev_'+(++_evNextId),
+      type:'game',
+      title:activeTeam?'vs Opponent · '+activeTeam.name:'Match',
+      date:dateStr,
+      time:timeStr,
+      location:'',
+      teamId:activeTeam?activeTeam.id:'',
+      done:true,
+      homeScore:match.homeScore,
+      awayScore:match.awayScore,
+      potm:potmName,
+      goalLog:goalLog,
+    });
     closePostgame();
     /* Return to Regular mode */
     document.getElementById('matchMode').style.display='none';
     document.getElementById('regularMode').style.display='';
-    const pmpR=document.getElementById('pmpRegBtn');
+    const pmpR=document.getElementById('pmpRegularBtn');
     const pmpM=document.getElementById('pmpMatchBtn');
     if(pmpR)pmpR.classList.add('pmp-active');
     if(pmpM)pmpM.classList.remove('pmp-active');
@@ -1999,6 +2047,33 @@ function buildCal(){
   renderEventsList();
 }
 
+function _evBadge(ev){
+  if(ev.type!=='game')return `<div class="cal-ev-badge badge-practice">Practice</div>`;
+  if(!ev.done)return `<div class="cal-ev-badge badge-upcoming">Upcoming</div>`;
+  const res=ev.homeScore>ev.awayScore?'W':ev.homeScore<ev.awayScore?'L':'D';
+  const cls=res==='W'?'badge-win':res==='L'?'badge-loss':'badge-draw';
+  return `<div class="cal-ev-badge ${cls}">${res} ${ev.homeScore}–${ev.awayScore}</div>`;
+}
+function _evHtml(ev,showDate){
+  const stripe=ev.type==='game'?'stripe-game':'stripe-practice';
+  const meta=showDate?`${fmtDate(ev.date)} · ${fmtTime(ev.time)}${ev.location?' · '+ev.location:''}`:fmtTime(ev.time)+(ev.location?' · '+ev.location:'');
+  return `<div class="cal-event-item" data-eid="${ev.id}" style="cursor:pointer">
+    <div class="cal-ev-stripe ${stripe}"></div>
+    <div class="cal-ev-info">
+      <div class="cal-ev-name">${ev.title}</div>
+      <div class="cal-ev-meta">${meta}</div>
+    </div>
+    ${_evBadge(ev)}
+  </div>`;
+}
+function _wireEvItems(list){
+  list.querySelectorAll('.cal-event-item[data-eid]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const ev=EVENTS.find(x=>x.id===el.dataset.eid);
+      if(ev)openEventModal(ev);
+    });
+  });
+}
 function renderEventsList(){
   const list=document.getElementById('calEventsList');if(!list)return;
   const title=document.getElementById('calEventsTitle');
@@ -2007,23 +2082,9 @@ function renderEventsList(){
     return d.getFullYear()===calYear&&d.getMonth()===calMonth;
   }).sort((a,b)=>a.date.localeCompare(b.date));
   if(title)title.textContent=MONTH_NAMES[calMonth]+' Events ('+eventsThisMonth.length+')';
-  if(!eventsThisMonth.length){list.innerHTML=`<div style="text-align:center;padding:20px 0;color:#3D5845;font-size:12px;font-weight:700">No events this month</div>`;return;}
-  list.innerHTML=eventsThisMonth.map(ev=>{
-    let badge='';
-    if(ev.type==='game'){
-      if(ev.done)badge=`<div class="cal-event-badge ${ev.homeScore>ev.awayScore?'badge-win':ev.homeScore<ev.awayScore?'badge-loss':'badge-draw'}">${ev.homeScore>ev.awayScore?'W':'L'} ${ev.homeScore}–${ev.awayScore}</div>`;
-      else badge=`<div class="cal-event-badge badge-upcoming">Upcoming</div>`;
-    }
-    const stripe=ev.type==='game'?'stripe-game':'stripe-practice';
-    return `<div class="cal-event-item">
-      <div class="cal-event-stripe ${stripe}"></div>
-      <div class="cal-event-info">
-        <div class="cal-event-name">${ev.title}</div>
-        <div class="cal-event-meta">${fmtDate(ev.date)} · ${fmtTime(ev.time)}${ev.location?' · '+ev.location:''}</div>
-      </div>
-      ${badge}
-    </div>`;
-  }).join('');
+  if(!eventsThisMonth.length){list.innerHTML=`<div style="text-align:center;padding:20px 0;color:#3D5845;font-size:12px;font-weight:700">No events this month — tap + Add to create one</div>`;return;}
+  list.innerHTML=eventsThisMonth.map(ev=>_evHtml(ev,true)).join('');
+  _wireEvItems(list);
 }
 
 function showDayEvents(d,y,m){
@@ -2041,35 +2102,85 @@ function showDayEvents(d,y,m){
     document.getElementById('calGrid').querySelectorAll('.cal-day').forEach(c=>c.classList.remove('sel-day'));
     renderEventsList();
   });
-  if(!dayEvs.length){list.innerHTML=`<div style="text-align:center;padding:20px 0;color:#3D5845;font-size:12px;font-weight:700">No events on this day</div>`;return;}
-  list.innerHTML=dayEvs.map(ev=>{
-    let badge='';
-    if(ev.type==='game'){
-      if(ev.done)badge=`<div class="cal-event-badge ${ev.homeScore>ev.awayScore?'badge-win':ev.homeScore<ev.awayScore?'badge-loss':'badge-draw'}">${ev.homeScore>ev.awayScore?'W':'L'} ${ev.homeScore}–${ev.awayScore}</div>`;
-      else badge=`<div class="cal-event-badge badge-upcoming">Upcoming</div>`;
-    }
-    const stripe=ev.type==='game'?'stripe-game':'stripe-practice';
-    return `<div class="cal-event-item">
-      <div class="cal-event-stripe ${stripe}"></div>
-      <div class="cal-event-info"><div class="cal-event-name">${ev.title}</div><div class="cal-event-meta">${fmtTime(ev.time)}${ev.location?' · '+ev.location:''}</div></div>
-      ${badge}
-    </div>`;
-  }).join('');
+  if(!dayEvs.length){list.innerHTML=`<div style="text-align:center;padding:20px 0;color:#3D5845;font-size:12px;font-weight:700">No events on this day — tap + Add to create one</div>`;return;}
+  list.innerHTML=dayEvs.map(ev=>_evHtml(ev,false)).join('');
+  _wireEvItems(list);
 }
 
-function openEventModal(ev, prefillDate){
-  showToast('Calendar event editing coming soon!');
+let _editingEvent=null;
+let _evType='practice';
+
+function openEventModal(ev=null, prefillDate=null){
+  _editingEvent=ev;
+  _evType=ev?ev.type:'practice';
+
+  document.getElementById('evModalTitle').textContent=ev?'Edit Event':'New Event';
+  document.getElementById('evTitle').value=ev?ev.title:'';
+  document.getElementById('evLocation').value=ev?ev.location||'':'';
+
+  /* Date */
+  const today=new Date();
+  const todayStr=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  document.getElementById('evDate').value=ev?ev.date:(prefillDate||todayStr);
+  document.getElementById('evTime').value=ev?ev.time||'10:00':'10:00';
+
+  /* Team select */
+  const sel=document.getElementById('evTeam');
+  sel.innerHTML=TEAMS.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+  if(ev&&ev.teamId)sel.value=ev.teamId;
+
+  /* Type buttons */
+  document.querySelectorAll('.ev-type-btn').forEach(b=>{
+    b.classList.toggle('sel',b.dataset.evtype===_evType);
+    b.classList.toggle('sel-game',b.dataset.evtype==='game'&&_evType==='game');
+  });
+
+  /* Score row for past games */
+  const scoreRow=document.getElementById('evScoreRow');
+  scoreRow.style.display=(_evType==='game')?'':'none';
+  if(ev&&ev.done){
+    document.getElementById('evHome').value=ev.homeScore||0;
+    document.getElementById('evAway').value=ev.awayScore||0;
+  } else {
+    document.getElementById('evHome').value='';
+    document.getElementById('evAway').value='';
+  }
+
+  /* Delete button only for existing events */
+  document.getElementById('evDeleteBtn').style.display=ev?'':'none';
+
+  document.getElementById('eventModalOverlay').classList.add('open');
+}
+
+function closeEventModal(){
+  document.getElementById('eventModalOverlay').classList.remove('open');
+  _editingEvent=null;
+}
+
+/* ══════════════════════════════════════════════
+   COACH DATA HELPERS
+══════════════════════════════════════════════ */
+function _coachInitials(name){
+  return name.trim().split(/\s+/).map(w=>w[0]||'').join('').slice(0,2).toUpperCase()||name.slice(0,2).toUpperCase()||'C';
+}
+function applyCoachUI(){
+  const init=COACH.initials||_coachInitials(COACH.name);
+  ['sbAvEl','mobileAvEl','profileAvEl'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=init;});
+  ['sbNameEl','mobileNameEl','profileNameEl'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=COACH.name;});
+  const role=COACH.role+(COACH.club?' · '+COACH.club:'');
+  ['sbRoleEl','mobileRoleEl','profileRoleEl'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=role;});
 }
 
 /* ══════════════════════════════════════════════
    PROFILE PANEL
 ══════════════════════════════════════════════ */
 function renderProfilePanel(){
+  applyCoachUI();
   const totalPlayers=TEAMS.reduce((s,t)=>s+t.players.length,0);
   const totalGames=EVENTS.filter(e=>e.type==='game'&&e.done).length;
   const wins=TEAMS.reduce((s,t)=>{const r=getTeamRecord(t.id);return s+r.w;},0);
   const sg=document.getElementById('profileStats');
-  if(sg)sg.innerHTML=[['Teams',TEAMS.length],['Players',totalPlayers],['Games',totalGames],['Wins',wins]].map(([l,v])=>`<div class="profile-stat-tile"><div class="profile-stat-val">${v}</div><div class="profile-stat-lbl">${l}</div></div>`).join('');
+  if(sg)sg.innerHTML=[['Teams',TEAMS.length],['Players',totalPlayers],['Games',totalGames],['Wins',wins]].map(([l,v])=>`<div class="profile-stat"><div class="ps-val">${v}</div><div class="ps-lbl">${l}</div></div>`).join('');
   const pt=document.getElementById('profileTeams');
   if(pt)pt.innerHTML=TEAMS.map(t=>{
     const col=t.color||'#00E564';const rec=getTeamRecord(t.id);
@@ -2078,6 +2189,37 @@ function renderProfilePanel(){
       <div style="flex:1"><div style="font-size:12px;font-weight:700;color:#DFF0E3">${t.name}</div><div style="font-size:10px;color:#6B9A78">${t.players.length} players · ${rec.w}W ${rec.l}L ${rec.t}T</div></div>
     </div>`;
   }).join('');
+
+  /* Wire edit button (panel may have been re-rendered) */
+  const editBtn=document.getElementById('profileEditBtn');
+  const editForm=document.getElementById('profileEditForm');
+  if(editBtn&&editForm){
+    editBtn.onclick=()=>{
+      const open=editForm.style.display!=='none';
+      if(!open){
+        document.getElementById('profNameInput').value=COACH.name;
+        document.getElementById('profRoleInput').value=COACH.role;
+        document.getElementById('profClubInput').value=COACH.club||'';
+      }
+      editForm.style.display=open?'none':'';
+      editBtn.textContent=open?'Edit':'Cancel';
+    };
+  }
+  const saveBtn=document.getElementById('profSaveBtn');
+  if(saveBtn){
+    saveBtn.onclick=()=>{
+      const name=document.getElementById('profNameInput').value.trim();
+      if(!name){showToast('Enter your name');return;}
+      COACH.name=name;
+      COACH.role=document.getElementById('profRoleInput').value.trim()||'Head Coach';
+      COACH.club=document.getElementById('profClubInput').value.trim();
+      COACH.initials=_coachInitials(name);
+      saveToStorage();applyCoachUI();
+      if(editForm)editForm.style.display='none';
+      if(editBtn)editBtn.textContent='Edit';
+      showToast('Profile updated!');
+    };
+  }
 }
 
 /* ══════════════════════════════════════════════
@@ -2182,19 +2324,31 @@ function saveToStorage(){
     localStorage.setItem('cc_pitch',JSON.stringify(PITCH_PLAYERS));
     localStorage.setItem('cc_bench',JSON.stringify(BENCH_PLAYERS));
     localStorage.setItem('cc_nextId',String(_teamNextId));
+    localStorage.setItem('cc_events',JSON.stringify(EVENTS));
+    localStorage.setItem('cc_evNextId',String(_evNextId));
+    localStorage.setItem('cc_coach',JSON.stringify(COACH));
   }catch(e){}
 }
 
 function loadFromStorage(){
   try{
     const t=localStorage.getItem('cc_teams');
-    if(t){const d=JSON.parse(t);TEAMS.length=0;d.forEach(x=>TEAMS.push(x));}
+    if(t){const d=JSON.parse(t);TEAMS.length=0;d.forEach(x=>{
+      if(x.players)x.players=x.players.filter(p=>!p.isPlaceholder);
+      TEAMS.push(x);
+    });}
     const p=localStorage.getItem('cc_pitch');
     if(p){const d=JSON.parse(p);PITCH_PLAYERS.length=0;d.forEach(x=>PITCH_PLAYERS.push(x));}
     const b=localStorage.getItem('cc_bench');
     if(b){const d=JSON.parse(b);BENCH_PLAYERS.length=0;d.forEach(x=>BENCH_PLAYERS.push(x));}
     const ni=localStorage.getItem('cc_nextId');
     if(ni)_teamNextId=+ni;
+    const ev=localStorage.getItem('cc_events');
+    if(ev){const d=JSON.parse(ev);EVENTS.length=0;d.forEach(x=>EVENTS.push(x));}
+    const en=localStorage.getItem('cc_evNextId');
+    if(en)_evNextId=+en;
+    const co=localStorage.getItem('cc_coach');
+    if(co)Object.assign(COACH,JSON.parse(co));
   }catch(e){}
 }
 
@@ -2412,7 +2566,74 @@ function loadFromStorage(){
 
   /* Pitch team name sync */
   const ptn=document.getElementById('pitchTeamNm');
-  if(ptn)ptn.textContent=TEAMS[0].name;
+  if(ptn&&TEAMS.length)ptn.textContent=TEAMS[0].name;
+
+  /* Event modal wiring */
+  const evModalClose=document.getElementById('evModalClose');
+  if(evModalClose)evModalClose.addEventListener('click',closeEventModal);
+  const evOverlay=document.getElementById('eventModalOverlay');
+  if(evOverlay)evOverlay.addEventListener('click',e=>{if(e.target===e.currentTarget)closeEventModal();});
+
+  /* Event type toggle */
+  document.querySelectorAll('.ev-type-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      _evType=btn.dataset.evtype;
+      document.querySelectorAll('.ev-type-btn').forEach(b=>{
+        b.classList.toggle('sel',b.dataset.evtype===_evType);
+        b.classList.toggle('sel-game',b.dataset.evtype==='game'&&_evType==='game');
+      });
+      document.getElementById('evScoreRow').style.display=(_evType==='game')?'':'none';
+    });
+  });
+
+  /* Event save */
+  const evSaveBtn=document.getElementById('evSaveBtn');
+  if(evSaveBtn)evSaveBtn.addEventListener('click',()=>{
+    const title=document.getElementById('evTitle').value.trim();
+    if(!title){showToast('Enter event title');return;}
+    const date=document.getElementById('evDate').value;
+    if(!date){showToast('Select a date');return;}
+    const time=document.getElementById('evTime').value||'';
+    const location=document.getElementById('evLocation').value.trim();
+    const teamId=document.getElementById('evTeam').value||'';
+    const isDone=_evType==='game'&&document.getElementById('evHome').value!=='';
+    const homeScore=isDone?parseInt(document.getElementById('evHome').value)||0:0;
+    const awayScore=isDone?parseInt(document.getElementById('evAway').value)||0:0;
+    if(_editingEvent){
+      Object.assign(_editingEvent,{title,date,time,location,teamId,type:_evType,done:isDone,homeScore,awayScore});
+    } else {
+      EVENTS.push({id:'ev_'+(++_evNextId),type:_evType,title,date,time,location,teamId,done:isDone,homeScore,awayScore});
+    }
+    const wasEditing=!!_editingEvent;
+    saveToStorage();
+    closeEventModal();
+    buildCal();
+    showToast(wasEditing?'Event updated!':'Event added!');
+  });
+
+  /* Event delete */
+  const evDeleteBtn=document.getElementById('evDeleteBtn');
+  if(evDeleteBtn)evDeleteBtn.addEventListener('click',()=>{
+    if(!_editingEvent)return;
+    if(evDeleteBtn.dataset.armed==='1'){
+      clearTimeout(evDeleteBtn._armTimer);
+      const idx=EVENTS.findIndex(x=>x.id===_editingEvent.id);
+      if(idx>-1)EVENTS.splice(idx,1);
+      saveToStorage();closeEventModal();buildCal();showToast('Event deleted');
+    } else {
+      evDeleteBtn.dataset.armed='1';
+      evDeleteBtn.textContent='Tap again to confirm';
+      evDeleteBtn.style.background='rgba(255,96,96,.22)';
+      evDeleteBtn._armTimer=setTimeout(()=>{
+        evDeleteBtn.dataset.armed='';
+        evDeleteBtn.textContent='Delete Event';
+        evDeleteBtn.style.background='rgba(255,96,96,.08)';
+      },2500);
+    }
+  });
+
+  /* Apply coach UI from storage */
+  applyCoachUI();
 
   /* Init */
   renderTeamChips();
