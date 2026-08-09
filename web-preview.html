@@ -610,7 +610,47 @@ html{height:-webkit-fill-available}
   .bar-track{height:6px}
   .career-compare{grid-template-columns:repeat(2,1fr)}
 }
+
+/* ── Auth Screen ── */
+.auth-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:2000;padding:20px}
+.auth-card{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px 28px}
+.auth-logo{font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:26px;letter-spacing:2px;text-transform:uppercase;color:var(--green);text-align:center;margin-bottom:5px}
+.auth-logo em{color:var(--dim);font-style:normal}
+.auth-sub{text-align:center;font-size:11px;color:var(--muted);font-weight:600;margin-bottom:22px}
+.auth-tabs{display:flex;gap:0;background:rgba(255,255,255,.04);border-radius:10px;padding:3px;margin-bottom:18px}
+.auth-tab{flex:1;padding:8px;border:none;background:none;color:var(--muted);font-size:12px;font-weight:800;cursor:pointer;border-radius:8px;transition:all .15s}
+.auth-tab.active{background:rgba(0,229,100,.12);color:var(--green)}
+.auth-input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:var(--text);font-size:13px;outline:none;margin-bottom:10px;display:block;-webkit-appearance:none;font-family:inherit}
+.auth-input:focus{border-color:rgba(0,229,100,.4);background:rgba(0,229,100,.04)}
+.auth-btn{width:100%;padding:13px;border-radius:10px;border:none;background:var(--green);color:#040a06;font-size:13px;font-weight:900;cursor:pointer;letter-spacing:.4px;transition:opacity .15s;margin-top:2px}
+.auth-btn:hover{opacity:.88}
+.auth-btn:disabled{opacity:.5;cursor:default}
+.auth-err{font-size:11px;text-align:center;min-height:16px;margin-top:8px;font-weight:700}
+.auth-forgot{background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;margin-top:10px;width:100%;padding:4px;font-weight:700;display:block}
+.auth-forgot:hover{color:var(--text)}
+.auth-note{text-align:center;font-size:10px;color:var(--dim);margin-top:14px}
 </style>
+
+<!-- AUTH SCREEN — shown before sign-in, hidden after -->
+<div class="auth-screen" id="authScreen" style="display:none">
+  <div class="auth-card">
+    <div class="auth-logo">Coach<em>Chucho</em></div>
+    <div class="auth-sub">Sign in to access your coaching data</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="authTabLogin">Log In</button>
+      <button class="auth-tab" id="authTabSignup">Sign Up</button>
+    </div>
+    <input class="auth-input" id="authEmail" type="email" placeholder="Email address" autocomplete="email">
+    <input class="auth-input" id="authPassword" type="password" placeholder="Password" autocomplete="current-password">
+    <div id="authNameWrap" style="display:none">
+      <input class="auth-input" id="authName" type="text" placeholder="Your name (e.g. Coach Martinez)" autocomplete="name">
+    </div>
+    <button class="auth-btn" id="authSubmit">Log In</button>
+    <div class="auth-err" id="authError"></div>
+    <button class="auth-forgot" id="authForgot">Forgot password?</button>
+    <div class="auth-note">Your data stays private — only you can see it</div>
+  </div>
+</div>
 
 <div class="shell" id="shell">
 
@@ -982,6 +1022,10 @@ html{height:-webkit-fill-available}
     <div class="profile-stat-grid" id="profileStats"></div>
     <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:10px;margin-top:4px">Teams Managed</div>
     <div id="profileTeams"></div>
+    <div id="profileSignOutWrap" style="display:none;padding-top:16px;border-top:1px solid rgba(255,255,255,.06);margin-top:16px">
+      <div id="profileEmailLbl" style="font-size:10px;color:var(--muted);margin-bottom:8px;text-align:center"></div>
+      <button id="profileSignOutBtn" style="width:100%;padding:11px;border-radius:10px;background:rgba(255,96,96,.08);border:1px solid rgba(255,96,96,.25);color:#FF6060;font-size:12px;font-weight:800;cursor:pointer">Sign Out</button>
+    </div>
   </div>
 </div>
 
@@ -1168,7 +1212,27 @@ html{height:-webkit-fill-available}
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
+/* ══════════════════════════════════════════════
+   FIREBASE CONFIG
+   Fill in your values from:
+   console.firebase.google.com → Project Settings
+   → Your apps → Web → SDK setup & configuration
+══════════════════════════════════════════════ */
+const FIREBASE_CONFIG={
+  apiKey:'REPLACE_WITH_YOUR_API_KEY',
+  authDomain:'REPLACE_WITH_YOUR_AUTH_DOMAIN',
+  projectId:'REPLACE_WITH_YOUR_PROJECT_ID',
+  storageBucket:'REPLACE_WITH_YOUR_STORAGE_BUCKET',
+  messagingSenderId:'REPLACE_WITH_YOUR_MESSAGING_SENDER_ID',
+  appId:'REPLACE_WITH_YOUR_APP_ID'
+};
+const _fbReady=FIREBASE_CONFIG.apiKey!=='REPLACE_WITH_YOUR_API_KEY';
+let _currentUid=null;
+function _sk(k){return _currentUid?`cc_${_currentUid}_${k}`:`cc_${k}`;}
+
 /* ══════════════════════════════════════════════
    DATA
 ══════════════════════════════════════════════ */
@@ -2334,7 +2398,11 @@ function closeAddPlayer(){
 let _tmAge='U14',_tmForm='4-3-3',_tmColor='#00E564',_tmFormat='11v11';
 const AGE_GROUPS=['U8','U9','U10','U11','U12','U13','U14','U15','U16','U17','U18','U19'];
 const GAME_FORMATS=['7v7','9v9','11v11'];
-const FORM_OPTIONS=['4-3-3','4-2-3-1','4-4-2','3-5-2','4-5-1','4-1-4-1'];
+const FORM_OPTIONS_BY_FORMAT={
+  '7v7':['2-3-1','3-2-1','2-1-3','1-3-2','3-1-2'],
+  '9v9':['3-3-2','3-2-3','4-3-1','2-4-2','4-2-2','3-4-1'],
+  '11v11':['4-3-3','4-2-3-1','4-4-2','3-5-2','4-5-1','4-1-4-1'],
+};
 const TEAM_COLORS=['#00E564','#FF6B35','#4B9FFF','#FF4FB8','#FFD700','#A78BFA','#34D399','#F87171','#FB923C','#38BDF8'];
 let _teamNextId=100;
 
@@ -2344,9 +2412,15 @@ function _renderTmPills(){
     ag.querySelectorAll('.tm-pill').forEach(b=>b.addEventListener('click',()=>{_tmAge=b.dataset.ag;_renderTmPills();}));}
   const ffg=document.getElementById('tmFormatGrid');
   if(ffg){ffg.innerHTML=GAME_FORMATS.map(f=>`<button class="tm-pill${_tmFormat===f?' sel':''}" data-fmt="${f}">${f}</button>`).join('');
-    ffg.querySelectorAll('.tm-pill').forEach(b=>b.addEventListener('click',()=>{_tmFormat=b.dataset.fmt;_renderTmPills();}));}
+    ffg.querySelectorAll('.tm-pill').forEach(b=>b.addEventListener('click',()=>{
+      _tmFormat=b.dataset.fmt;
+      const opts=FORM_OPTIONS_BY_FORMAT[_tmFormat]||FORM_OPTIONS_BY_FORMAT['11v11'];
+      if(!opts.includes(_tmForm))_tmForm=opts[0];
+      _renderTmPills();
+    }));}
+  const _fmtOpts=FORM_OPTIONS_BY_FORMAT[_tmFormat]||FORM_OPTIONS_BY_FORMAT['11v11'];
   const fg=document.getElementById('tmFormGrid');
-  if(fg){fg.innerHTML=FORM_OPTIONS.map(f=>`<button class="tm-pill${_tmForm===f?' sel':''}" data-fm="${f}">${f}</button>`).join('');
+  if(fg){fg.innerHTML=_fmtOpts.map(f=>`<button class="tm-pill${_tmForm===f?' sel':''}" data-fm="${f}">${f}</button>`).join('');
     fg.querySelectorAll('.tm-pill').forEach(b=>b.addEventListener('click',()=>{_tmForm=b.dataset.fm;_renderTmPills();}));}
   const cg=document.getElementById('tmColorGrid');
   if(cg){cg.innerHTML=TEAM_COLORS.map(c=>`<div class="color-swatch${_tmColor===c?' sel':''}" style="background:${c}" data-c="${c}"></div>`).join('');
@@ -2378,43 +2452,108 @@ function showToast(msg){
 ══════════════════════════════════════════════ */
 function saveToStorage(){
   try{
-    localStorage.setItem('cc_teams',JSON.stringify(TEAMS));
-    localStorage.setItem('cc_pitch',JSON.stringify(PITCH_PLAYERS));
-    localStorage.setItem('cc_bench',JSON.stringify(BENCH_PLAYERS));
-    localStorage.setItem('cc_nextId',String(_teamNextId));
-    localStorage.setItem('cc_events',JSON.stringify(EVENTS));
-    localStorage.setItem('cc_evNextId',String(_evNextId));
-    localStorage.setItem('cc_coach',JSON.stringify(COACH));
+    localStorage.setItem(_sk('teams'),JSON.stringify(TEAMS));
+    localStorage.setItem(_sk('pitch'),JSON.stringify(PITCH_PLAYERS));
+    localStorage.setItem(_sk('bench'),JSON.stringify(BENCH_PLAYERS));
+    localStorage.setItem(_sk('nextId'),String(_teamNextId));
+    localStorage.setItem(_sk('events'),JSON.stringify(EVENTS));
+    localStorage.setItem(_sk('evNextId'),String(_evNextId));
+    localStorage.setItem(_sk('coach'),JSON.stringify(COACH));
   }catch(e){}
 }
 
 function loadFromStorage(){
   try{
-    const t=localStorage.getItem('cc_teams');
+    const t=localStorage.getItem(_sk('teams'));
     if(t){const d=JSON.parse(t);TEAMS.length=0;d.forEach(x=>{
       if(x.players)x.players=x.players.filter(p=>!p.isPlaceholder);
       TEAMS.push(x);
     });}
-    const p=localStorage.getItem('cc_pitch');
+    const p=localStorage.getItem(_sk('pitch'));
     if(p){const d=JSON.parse(p);PITCH_PLAYERS.length=0;d.forEach(x=>PITCH_PLAYERS.push(x));}
-    const b=localStorage.getItem('cc_bench');
+    const b=localStorage.getItem(_sk('bench'));
     if(b){const d=JSON.parse(b);BENCH_PLAYERS.length=0;d.forEach(x=>BENCH_PLAYERS.push(x));}
-    const ni=localStorage.getItem('cc_nextId');
+    const ni=localStorage.getItem(_sk('nextId'));
     if(ni)_teamNextId=+ni;
-    const ev=localStorage.getItem('cc_events');
+    const ev=localStorage.getItem(_sk('events'));
     if(ev){const d=JSON.parse(ev);EVENTS.length=0;d.forEach(x=>EVENTS.push(x));}
-    const en=localStorage.getItem('cc_evNextId');
+    const en=localStorage.getItem(_sk('evNextId'));
     if(en)_evNextId=+en;
-    const co=localStorage.getItem('cc_coach');
+    const co=localStorage.getItem(_sk('coach'));
     if(co)Object.assign(COACH,JSON.parse(co));
   }catch(e){}
+}
+
+/* ══════════════════════════════════════════════
+   AUTH HELPERS + FIREBASE INIT
+══════════════════════════════════════════════ */
+function _authErrMsg(code){
+  const m={
+    'auth/user-not-found':'No account with that email',
+    'auth/wrong-password':'Incorrect password',
+    'auth/email-already-in-use':'Account exists — try logging in',
+    'auth/weak-password':'Password needs at least 6 characters',
+    'auth/invalid-email':'Invalid email address',
+    'auth/too-many-requests':'Too many attempts — try again later',
+    'auth/invalid-credential':'Incorrect email or password',
+    'auth/network-request-failed':'Network error — check your connection',
+  };
+  return m[code]||'Something went wrong — try again';
+}
+
+function bootApp(){
+  loadFromStorage();
+  const ptn=document.getElementById('pitchTeamNm');
+  if(ptn&&TEAMS.length)ptn.textContent=TEAMS[0].name;
+  applyCoachUI();
+  renderTeamChips();
+  showTeamsList();
+  switchView('roster');
+  renderPitchTokens();
+  renderRegularBench();
+}
+
+function initFirebase(){
+  if(!_fbReady){
+    document.getElementById('authScreen').style.display='none';
+    bootApp();
+    return;
+  }
+  try{
+    firebase.initializeApp(FIREBASE_CONFIG);
+    firebase.auth().onAuthStateChanged(user=>{
+      if(user){
+        _currentUid=user.uid;
+        document.getElementById('authScreen').style.display='none';
+        /* Reset in-memory data before loading the signed-in coach's data */
+        TEAMS.length=0;PITCH_PLAYERS.length=0;BENCH_PLAYERS.length=0;EVENTS.length=0;
+        Object.assign(COACH,{name:'Coach',role:'Head Coach',club:'My Club',initials:'C'});
+        bootApp();
+        /* Show signed-in email in profile panel */
+        const _elbl=document.getElementById('profileEmailLbl');
+        if(_elbl)_elbl.textContent=user.email||'';
+        /* Pre-fill name from Firebase profile if coach hasn't set one yet */
+        if((COACH.name==='Coach')&&user.displayName){
+          COACH.name=user.displayName;
+          COACH.initials=_coachInitials(user.displayName);
+          saveToStorage();applyCoachUI();
+        }
+      } else {
+        _currentUid=null;
+        document.getElementById('authScreen').style.display='flex';
+      }
+    });
+  }catch(e){
+    console.error('Firebase init error:',e);
+    document.getElementById('authScreen').style.display='none';
+    bootApp();
+  }
 }
 
 /* ══════════════════════════════════════════════
    BOOT
 ══════════════════════════════════════════════ */
 (function boot(){
-  loadFromStorage();
 
   /* Nav wiring */
   document.querySelectorAll('.nav-item[data-view]').forEach(btn=>{
@@ -2690,14 +2829,64 @@ function loadFromStorage(){
     }
   });
 
-  /* Apply coach UI from storage */
-  applyCoachUI();
+  /* Auth form wiring */
+  let _authMode='login';
+  function _setAuthMode(mode){
+    _authMode=mode;
+    document.getElementById('authTabLogin').classList.toggle('active',mode==='login');
+    document.getElementById('authTabSignup').classList.toggle('active',mode==='signup');
+    document.getElementById('authSubmit').textContent=mode==='login'?'Log In':'Create Account';
+    document.getElementById('authForgot').style.display=mode==='login'?'':'none';
+    document.getElementById('authNameWrap').style.display=mode==='signup'?'':'none';
+    document.getElementById('authError').textContent='';
+  }
+  document.getElementById('authTabLogin').addEventListener('click',()=>_setAuthMode('login'));
+  document.getElementById('authTabSignup').addEventListener('click',()=>_setAuthMode('signup'));
+  document.getElementById('authSubmit').addEventListener('click',()=>{
+    if(!_fbReady){document.getElementById('authError').textContent='Firebase not configured yet';return;}
+    const email=document.getElementById('authEmail').value.trim();
+    const pass=document.getElementById('authPassword').value;
+    const name=document.getElementById('authName').value.trim();
+    const errEl=document.getElementById('authError');
+    const submitBtn=document.getElementById('authSubmit');
+    errEl.textContent='';errEl.style.color='';
+    submitBtn.disabled=true;
+    submitBtn.textContent='...';
+    if(_authMode==='login'){
+      firebase.auth().signInWithEmailAndPassword(email,pass)
+        .catch(e=>{errEl.textContent=_authErrMsg(e.code);submitBtn.disabled=false;submitBtn.textContent='Log In';});
+    } else {
+      firebase.auth().createUserWithEmailAndPassword(email,pass)
+        .then(cred=>{if(name)return cred.user.updateProfile({displayName:name});})
+        .catch(e=>{errEl.textContent=_authErrMsg(e.code);submitBtn.disabled=false;submitBtn.textContent='Create Account';});
+    }
+  });
+  document.getElementById('authForgot').addEventListener('click',()=>{
+    const email=document.getElementById('authEmail').value.trim();
+    const errEl=document.getElementById('authError');
+    errEl.style.color='';
+    if(!email){errEl.textContent='Enter your email first';return;}
+    firebase.auth().sendPasswordResetEmail(email)
+      .then(()=>{errEl.style.color='var(--green)';errEl.textContent='Reset email sent!';})
+      .catch(e=>{errEl.style.color='';errEl.textContent=_authErrMsg(e.code);});
+  });
 
-  /* Init */
-  renderTeamChips();
-  showTeamsList();
-  switchView('roster');
-  renderPitchTokens();
-  renderRegularBench();
+  /* Profile sign-out wiring */
+  const soWrap=document.getElementById('profileSignOutWrap');
+  const soBtn=document.getElementById('profileSignOutBtn');
+  if(soWrap&&soBtn){
+    if(_fbReady)soWrap.style.display='';
+    soBtn.addEventListener('click',()=>{
+      if(_fbReady&&firebase.auth().currentUser){
+        firebase.auth().signOut().then(()=>{
+          closeMenuPanel('profile');
+          TEAMS.length=0;PITCH_PLAYERS.length=0;BENCH_PLAYERS.length=0;EVENTS.length=0;
+          Object.assign(COACH,{name:'Coach',role:'Head Coach',club:'My Club',initials:'C'});
+        });
+      }
+    });
+  }
+
+  initFirebase();
 })();
 </script>
