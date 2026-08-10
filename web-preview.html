@@ -1261,6 +1261,15 @@ html{height:-webkit-fill-available}
         <div class="ap-field"><div class="ap-label">Date</div><input class="ap-input" id="evDate" type="date"></div>
         <div class="ap-field"><div class="ap-label">Time</div><input class="ap-input" id="evTime" type="time" value="10:00"></div>
       </div>
+      <!-- Multi-date: hidden when editing an existing event -->
+      <div id="evMultiDateSection" style="display:none;margin-bottom:4px">
+        <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:8px">Also save on these dates</div>
+        <div id="evDateChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;min-height:0"></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="ap-input" id="evExtraPicker" type="date" style="flex:1;margin:0">
+          <button id="evExtraAddBtn" style="padding:9px 14px;border-radius:10px;background:rgba(0,229,100,.08);border:1px solid rgba(0,229,100,.25);color:var(--green);font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;flex-shrink:0">+ Add</button>
+        </div>
+      </div>
       <div class="ap-field"><div class="ap-label">Location</div><input class="ap-input" id="evLocation" type="text" placeholder="e.g. GSA Training Ground"></div>
       <div class="ap-field"><div class="ap-label">Team</div>
         <select class="ap-input" id="evTeam"></select>
@@ -2299,6 +2308,7 @@ function showDayEvents(d,y,m){
 
 let _editingEvent=null;
 let _evType='practice';
+let _extraDates=[];
 
 function openEventModal(ev=null, prefillDate=null){
   _editingEvent=ev;
@@ -2339,12 +2349,37 @@ function openEventModal(ev=null, prefillDate=null){
   /* Delete button only for existing events */
   document.getElementById('evDeleteBtn').style.display=ev?'':'none';
 
+  /* Multi-date section — only for new events */
+  _extraDates=[];
+  document.getElementById('evMultiDateSection').style.display=ev?'none':'';
+  document.getElementById('evExtraPicker').value='';
+  _renderExtraDates();
+
   document.getElementById('eventModalOverlay').classList.add('open');
 }
 
 function closeEventModal(){
   document.getElementById('eventModalOverlay').classList.remove('open');
   _editingEvent=null;
+  _extraDates=[];
+}
+
+function _renderExtraDates(){
+  const container=document.getElementById('evDateChips');
+  if(!container)return;
+  if(!_extraDates.length){container.innerHTML='';return;}
+  container.innerHTML=_extraDates.map((d,i)=>{
+    const label=new Date(d+'T00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    return `<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,229,100,.1);border:1px solid rgba(0,229,100,.25);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:700;color:var(--green)">
+      ${label}
+      <button onclick="_removeExtraDate(${i})" style="background:none;border:none;color:var(--green);cursor:pointer;font-size:13px;line-height:1;padding:0;opacity:.7">×</button>
+    </span>`;
+  }).join('');
+}
+
+function _removeExtraDate(i){
+  _extraDates.splice(i,1);
+  _renderExtraDates();
 }
 
 /* ══════════════════════════════════════════════
@@ -3005,14 +3040,27 @@ function initAuth(){
     const awayScore=isDone?parseInt(document.getElementById('evAway').value)||0:0;
     if(_editingEvent){
       Object.assign(_editingEvent,{title,date,time,location,teamId,type:_evType,done:isDone,homeScore,awayScore});
+      saveToStorage();closeEventModal();buildCal();showToast('Event updated!');
     } else {
-      EVENTS.push({id:'ev_'+(++_evNextId),type:_evType,title,date,time,location,teamId,done:isDone,homeScore,awayScore});
+      const allDates=[date,..._extraDates.filter(d=>d&&d!==date)];
+      allDates.forEach(d=>{
+        EVENTS.push({id:'ev_'+(++_evNextId),type:_evType,title,date:d,time,location,teamId,done:false,homeScore:0,awayScore:0});
+      });
+      saveToStorage();closeEventModal();buildCal();
+      showToast(allDates.length>1?`${allDates.length} events added!`:'Event added!');
     }
-    const wasEditing=!!_editingEvent;
-    saveToStorage();
-    closeEventModal();
-    buildCal();
-    showToast(wasEditing?'Event updated!':'Event added!');
+  });
+
+  /* Multi-date: add extra date chip */
+  const evExtraAddBtn=document.getElementById('evExtraAddBtn');
+  if(evExtraAddBtn)evExtraAddBtn.addEventListener('click',()=>{
+    const val=document.getElementById('evExtraPicker').value;
+    if(!val){showToast('Pick a date first');return;}
+    const primary=document.getElementById('evDate').value;
+    if(val===primary||_extraDates.includes(val)){showToast('Date already added');return;}
+    _extraDates.push(val);
+    _renderExtraDates();
+    document.getElementById('evExtraPicker').value='';
   });
 
   /* Event delete */
