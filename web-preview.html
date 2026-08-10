@@ -688,19 +688,19 @@ html{height:-webkit-fill-available}
         <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M12 3v18M2 12h20"/></svg>
         <span class="nav-item-lbl">Pitch &amp; Formation</span>
       </button>
+      <button class="nav-item" id="sbCalBtn">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span class="nav-item-lbl">Calendar</span>
+      </button>
     </div>
     <div class="sb-extra">
-      <button class="sb-extra-btn" onclick="openMenuPanel('calendar')">
-        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <span>Calendar</span>
-      </button>
-      <button class="sb-extra-btn" onclick="openMenuPanel('profile')">
-        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        <span>Coach Profile</span>
-      </button>
       <button class="sb-extra-btn" onclick="openMenuPanel('faq')">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         <span>FAQ</span>
+      </button>
+      <button class="sb-extra-btn" id="sbExportBtn">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>Export Data</span>
       </button>
     </div>
     <div class="sb-team-selector">
@@ -972,6 +972,10 @@ html{height:-webkit-fill-available}
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       FAQ
     </button>
+    <button class="menu-item" onclick="exportData();closeMobileMenu()">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export Data
+    </button>
   </div>
   <div class="menu-version">CoachChucho Web v2.0</div>
 </div>
@@ -1038,7 +1042,18 @@ html{height:-webkit-fill-available}
     <div class="profile-stat-grid" id="profileStats"></div>
     <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:10px;margin-top:4px">Teams Managed</div>
     <div id="profileTeams"></div>
-    <div id="profileSignOutWrap" style="padding-top:16px;border-top:1px solid rgba(255,255,255,.06);margin-top:16px">
+    <div style="padding-top:16px;border-top:1px solid rgba(255,255,255,.06);margin-top:16px">
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:10px">Data &amp; Sync</div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.6">To use your data on another device, export it here and import the file there.</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button id="exportDataBtn" style="flex:1;padding:10px;border-radius:10px;background:rgba(0,229,100,.08);border:1px solid rgba(0,229,100,.2);color:var(--green);font-size:11px;font-weight:800;cursor:pointer">Export Data</button>
+        <label style="flex:1;padding:10px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--text);font-size:11px;font-weight:800;cursor:pointer;text-align:center;display:block">
+          Import Data
+          <input type="file" id="importDataInput" accept=".json" style="display:none">
+        </label>
+      </div>
+    </div>
+    <div id="profileSignOutWrap" style="padding-top:12px;border-top:1px solid rgba(255,255,255,.06)">
       <div id="profileEmailLbl" style="font-size:10px;color:var(--muted);margin-bottom:8px;text-align:center"></div>
       <button id="profileSignOutBtn" style="width:100%;padding:11px;border-radius:10px;background:rgba(255,96,96,.08);border:1px solid rgba(255,96,96,.25);color:#FF6060;font-size:12px;font-weight:800;cursor:pointer">Sign Out</button>
     </div>
@@ -2558,6 +2573,34 @@ function loadFromStorage(){
   }catch(e){}
 }
 
+function exportData(){
+  const keys=['teams','pitch','bench','nextId','events','evNextId','coach'];
+  const out={_v:1,_d:new Date().toISOString()};
+  keys.forEach(k=>{const v=localStorage.getItem(_sk(k));if(v)out[k]=v;});
+  const auth=localStorage.getItem('cc_auth');if(auth)out._auth=auth;
+  const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='coachchucho-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+  showToast('Data exported!');
+}
+
+function importData(file){
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      const keys=['teams','pitch','bench','nextId','events','evNextId','coach'];
+      keys.forEach(k=>{if(d[k])localStorage.setItem(_sk(k),d[k]);});
+      if(d._auth)localStorage.setItem('cc_auth',d._auth);
+      showToast('Data imported — reloading…');
+      setTimeout(()=>location.reload(),900);
+    }catch(err){showToast('Could not read file — make sure it\'s a CoachChucho export');}
+  };
+  r.readAsText(file);
+}
+
 function bootApp(){
   loadFromStorage();
   const ptn=document.getElementById('pitchTeamNm');
@@ -2956,6 +2999,23 @@ function initAuth(){
       if(prev){prev.style.backgroundImage='url('+dataUrl+')';prev.textContent='';}
     });
     e.target.value='';
+  });
+
+  /* Sidebar calendar button */
+  const sbCalBtn=document.getElementById('sbCalBtn');
+  if(sbCalBtn)sbCalBtn.addEventListener('click',()=>openMenuPanel('calendar'));
+
+  /* Sidebar export button */
+  const sbExportBtn=document.getElementById('sbExportBtn');
+  if(sbExportBtn)sbExportBtn.addEventListener('click',exportData);
+
+  /* Profile panel export/import */
+  const exportDataBtn=document.getElementById('exportDataBtn');
+  if(exportDataBtn)exportDataBtn.addEventListener('click',exportData);
+  const importDataInput=document.getElementById('importDataInput');
+  if(importDataInput)importDataInput.addEventListener('change',e=>{
+    const f=e.target.files[0];if(!f)return;
+    importData(f);e.target.value='';
   });
 
   initAuth();
