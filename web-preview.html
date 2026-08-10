@@ -632,17 +632,27 @@ html{height:-webkit-fill-available}
 </style>
 
 <!-- AUTH SCREEN -->
-<!-- SYNC CODE MODAL -->
+<!-- SYNC MODAL -->
 <div id="syncModal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);align-items:center;justify-content:center">
   <div style="background:var(--card);border-radius:20px;padding:28px 24px;width:min(92vw,420px);box-shadow:0 20px 60px rgba(0,0,0,.5)">
-    <div style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:6px">Paste Sync Code</div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">On your other device, tap <strong style="color:var(--text)">Copy Sync Code</strong>, send the text to yourself (email, message, notes), then paste it below.</div>
+    <div id="syncModalTitle" style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:6px">Paste Sync Code</div>
+    <div id="syncModalSub" style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">On your other device tap <strong style="color:var(--text)">Share Sync Link</strong>, send the link to yourself, then open that link here — or paste a sync code below.</div>
     <textarea id="syncCodeInput" placeholder="Paste your sync code here…" style="width:100%;height:110px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:var(--text);font-size:12px;font-family:monospace;padding:10px;resize:none;box-sizing:border-box;outline:none"></textarea>
     <div id="syncModalErr" style="font-size:11px;color:#FF6060;margin-top:6px;min-height:16px"></div>
     <div style="display:flex;gap:10px;margin-top:14px">
       <button id="syncModalCancel" style="flex:1;padding:12px;border-radius:12px;background:rgba(255,255,255,.06);border:none;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer">Cancel</button>
       <button id="syncModalApply" style="flex:2;padding:12px;border-radius:12px;background:var(--green);border:none;color:#000;font-size:13px;font-weight:800;cursor:pointer">Apply &amp; Reload</button>
     </div>
+  </div>
+</div>
+
+<!-- SYNC LINK DETECTED BANNER -->
+<div id="syncLinkBanner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9500;background:var(--card);border-radius:16px;padding:16px 20px;box-shadow:0 8px 40px rgba(0,0,0,.5);border:1px solid rgba(0,229,100,.3);width:min(92vw,380px)">
+  <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px">Sync link detected</div>
+  <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Import your data from the other device?</div>
+  <div style="display:flex;gap:8px">
+    <button id="syncLinkNo" style="flex:1;padding:10px;border-radius:10px;background:rgba(255,255,255,.06);border:none;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer">Cancel</button>
+    <button id="syncLinkYes" style="flex:2;padding:10px;border-radius:10px;background:var(--green);border:none;color:#000;font-size:12px;font-weight:800;cursor:pointer">Yes, Import</button>
   </div>
 </div>
 
@@ -710,7 +720,7 @@ html{height:-webkit-fill-available}
       </button>
       <button class="sb-extra-btn" id="sbSyncBtn">
         <svg viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"/></svg>
-        <span>Sync Data</span>
+        <span>Sync Link</span>
       </button>
     </div>
     <div class="sb-team-selector">
@@ -982,9 +992,9 @@ html{height:-webkit-fill-available}
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       FAQ
     </button>
-    <button class="menu-item" onclick="showSyncModal();closeMobileMenu()">
+    <button class="menu-item" onclick="shareSyncLink();closeMobileMenu()">
       <svg viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"/></svg>
-      Sync Data
+      Share Sync Link
     </button>
   </div>
   <div class="menu-version">CoachChucho Web v2.0</div>
@@ -1055,9 +1065,10 @@ html{height:-webkit-fill-available}
     <div style="padding-top:16px;border-top:1px solid rgba(255,255,255,.06);margin-top:16px">
       <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:10px">Data &amp; Sync</div>
       <div style="font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.6">Transfer your data to another device — no file needed.</div>
+      <button id="shareSyncLinkBtn" style="width:100%;padding:11px;border-radius:10px;background:rgba(0,229,100,.10);border:1px solid rgba(0,229,100,.25);color:var(--green);font-size:12px;font-weight:800;cursor:pointer;margin-bottom:8px">Share Sync Link</button>
       <div style="display:flex;gap:8px;margin-bottom:10px">
-        <button id="copySyncCodeBtn" style="flex:1;padding:10px;border-radius:10px;background:rgba(0,229,100,.08);border:1px solid rgba(0,229,100,.2);color:var(--green);font-size:11px;font-weight:800;cursor:pointer">Copy Sync Code</button>
-        <button id="pasteSyncCodeBtn" style="flex:1;padding:10px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--text);font-size:11px;font-weight:800;cursor:pointer">Paste Sync Code</button>
+        <button id="copySyncCodeBtn" style="flex:1;padding:9px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--text);font-size:11px;font-weight:700;cursor:pointer">Copy Code</button>
+        <button id="pasteSyncCodeBtn" style="flex:1;padding:9px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--text);font-size:11px;font-weight:700;cursor:pointer">Paste Code</button>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:12px">
         <button id="exportDataBtn" style="flex:1;padding:8px;border-radius:10px;background:none;border:1px solid rgba(255,255,255,.08);color:var(--dim);font-size:10px;font-weight:700;cursor:pointer">Export File</button>
@@ -2623,17 +2634,64 @@ function _buildSyncPayload(){
   return out;
 }
 
+function _syncBaseUrl(){
+  // Points at the GitHub Pages deployment so the link works on any device
+  return 'https://philliplopez1996-cell.github.io/Coachchucho-app/';
+}
+
+function shareSyncLink(){
+  try{
+    const json=JSON.stringify(_buildSyncPayload());
+    const code='CC2:'+btoa(unescape(encodeURIComponent(json)));
+    const url=_syncBaseUrl()+'#'+code;
+    if(navigator.share){
+      navigator.share({
+        title:'CoachChucho Sync',
+        text:'Open this on your other device to sync your roster.',
+        url:url
+      }).catch(()=>{});
+    }else{
+      navigator.clipboard.writeText(url).then(()=>{
+        showToast('Sync link copied — open it on your other device!');
+      }).catch(()=>{
+        prompt('Open this link on your other device:',url);
+      });
+    }
+  }catch(e){showToast('Could not generate sync link');}
+}
+
 function copySyncCode(){
   try{
     const json=JSON.stringify(_buildSyncPayload());
     const code='CC2:'+btoa(unescape(encodeURIComponent(json)));
     navigator.clipboard.writeText(code).then(()=>{
-      showToast('Sync code copied! Paste it on your other device.');
+      showToast('Sync code copied!');
     }).catch(()=>{
-      // fallback: show code in a prompt so user can copy manually
       prompt('Copy this sync code and paste it on your other device:',code);
     });
   }catch(e){showToast('Could not generate sync code');}
+}
+
+function checkIncomingSyncLink(){
+  const hash=location.hash;
+  if(!hash.startsWith('#CC2:'))return;
+  const code=hash.slice(1);
+  // Show banner asking to import
+  const banner=document.getElementById('syncLinkBanner');
+  if(!banner)return;
+  banner.style.display='block';
+  document.getElementById('syncLinkYes').onclick=()=>{
+    const err=applySyncCode(code);
+    if(err){showToast(err);banner.style.display='none';return;}
+    history.replaceState(null,'',location.pathname+location.search);
+    banner.style.display='none';
+    showToast('Data synced — reloading…');
+    setTimeout(()=>location.reload(),900);
+  };
+  document.getElementById('syncLinkNo').onclick=()=>{
+    history.replaceState(null,'',location.pathname+location.search);
+    banner.style.display='none';
+  };
 }
 
 function applySyncCode(code){
@@ -3066,11 +3124,19 @@ function initAuth(){
   const sbCalBtn=document.getElementById('sbCalBtn');
   if(sbCalBtn)sbCalBtn.addEventListener('click',()=>openMenuPanel('calendar'));
 
-  /* Sidebar sync button */
+  /* Sidebar sync button — opens share on mobile, copy link on desktop */
   const sbSyncBtn=document.getElementById('sbSyncBtn');
-  if(sbSyncBtn)sbSyncBtn.addEventListener('click',showSyncModal);
+  if(sbSyncBtn)sbSyncBtn.addEventListener('click',shareSyncLink);
 
-  /* Profile panel export/import + sync code */
+  /* Profile panel sync buttons */
+  const shareSyncLinkBtn=document.getElementById('shareSyncLinkBtn');
+  if(shareSyncLinkBtn)shareSyncLinkBtn.addEventListener('click',shareSyncLink);
+  const copySyncCodeBtn=document.getElementById('copySyncCodeBtn');
+  if(copySyncCodeBtn)copySyncCodeBtn.addEventListener('click',copySyncCode);
+  const pasteSyncCodeBtn=document.getElementById('pasteSyncCodeBtn');
+  if(pasteSyncCodeBtn)pasteSyncCodeBtn.addEventListener('click',showSyncModal);
+
+  /* Profile panel export/import file */
   const exportDataBtn=document.getElementById('exportDataBtn');
   if(exportDataBtn)exportDataBtn.addEventListener('click',exportData);
   const importDataInput=document.getElementById('importDataInput');
@@ -3078,10 +3144,6 @@ function initAuth(){
     const f=e.target.files[0];if(!f)return;
     importData(f);e.target.value='';
   });
-  const copySyncCodeBtn=document.getElementById('copySyncCodeBtn');
-  if(copySyncCodeBtn)copySyncCodeBtn.addEventListener('click',copySyncCode);
-  const pasteSyncCodeBtn=document.getElementById('pasteSyncCodeBtn');
-  if(pasteSyncCodeBtn)pasteSyncCodeBtn.addEventListener('click',showSyncModal);
 
   /* Sync modal */
   const syncModalCancel=document.getElementById('syncModalCancel');
@@ -3100,6 +3162,7 @@ function initAuth(){
     if(e.target===document.getElementById('syncModal'))closeSyncModal();
   });
 
+  checkIncomingSyncLink();
   initAuth();
 })();
 </script>
