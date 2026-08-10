@@ -632,6 +632,20 @@ html{height:-webkit-fill-available}
 </style>
 
 <!-- AUTH SCREEN -->
+<!-- SYNC CODE MODAL -->
+<div id="syncModal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);align-items:center;justify-content:center">
+  <div style="background:var(--card);border-radius:20px;padding:28px 24px;width:min(92vw,420px);box-shadow:0 20px 60px rgba(0,0,0,.5)">
+    <div style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:6px">Paste Sync Code</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">On your other device, tap <strong style="color:var(--text)">Copy Sync Code</strong>, send the text to yourself (email, message, notes), then paste it below.</div>
+    <textarea id="syncCodeInput" placeholder="Paste your sync code here…" style="width:100%;height:110px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:var(--text);font-size:12px;font-family:monospace;padding:10px;resize:none;box-sizing:border-box;outline:none"></textarea>
+    <div id="syncModalErr" style="font-size:11px;color:#FF6060;margin-top:6px;min-height:16px"></div>
+    <div style="display:flex;gap:10px;margin-top:14px">
+      <button id="syncModalCancel" style="flex:1;padding:12px;border-radius:12px;background:rgba(255,255,255,.06);border:none;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer">Cancel</button>
+      <button id="syncModalApply" style="flex:2;padding:12px;border-radius:12px;background:var(--green);border:none;color:#000;font-size:13px;font-weight:800;cursor:pointer">Apply &amp; Reload</button>
+    </div>
+  </div>
+</div>
+
 <div class="auth-screen" id="authScreen" style="display:none">
   <div class="auth-card">
     <div class="auth-logo">Coach<em>Chucho</em></div>
@@ -694,9 +708,9 @@ html{height:-webkit-fill-available}
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         <span>FAQ</span>
       </button>
-      <button class="sb-extra-btn" id="sbExportBtn">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        <span>Export Data</span>
+      <button class="sb-extra-btn" id="sbSyncBtn">
+        <svg viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"/></svg>
+        <span>Sync Data</span>
       </button>
     </div>
     <div class="sb-team-selector">
@@ -968,9 +982,9 @@ html{height:-webkit-fill-available}
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       FAQ
     </button>
-    <button class="menu-item" onclick="exportData();closeMobileMenu()">
-      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Export Data
+    <button class="menu-item" onclick="showSyncModal();closeMobileMenu()">
+      <svg viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"/></svg>
+      Sync Data
     </button>
   </div>
   <div class="menu-version">CoachChucho Web v2.0</div>
@@ -1040,11 +1054,15 @@ html{height:-webkit-fill-available}
     <div id="profileTeams"></div>
     <div style="padding-top:16px;border-top:1px solid rgba(255,255,255,.06);margin-top:16px">
       <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:10px">Data &amp; Sync</div>
-      <div style="font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.6">To use your data on another device, export it here and import the file there.</div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.6">Transfer your data to another device — no file needed.</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button id="copySyncCodeBtn" style="flex:1;padding:10px;border-radius:10px;background:rgba(0,229,100,.08);border:1px solid rgba(0,229,100,.2);color:var(--green);font-size:11px;font-weight:800;cursor:pointer">Copy Sync Code</button>
+        <button id="pasteSyncCodeBtn" style="flex:1;padding:10px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--text);font-size:11px;font-weight:800;cursor:pointer">Paste Sync Code</button>
+      </div>
       <div style="display:flex;gap:8px;margin-bottom:12px">
-        <button id="exportDataBtn" style="flex:1;padding:10px;border-radius:10px;background:rgba(0,229,100,.08);border:1px solid rgba(0,229,100,.2);color:var(--green);font-size:11px;font-weight:800;cursor:pointer">Export Data</button>
-        <label style="flex:1;padding:10px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--text);font-size:11px;font-weight:800;cursor:pointer;text-align:center;display:block">
-          Import Data
+        <button id="exportDataBtn" style="flex:1;padding:8px;border-radius:10px;background:none;border:1px solid rgba(255,255,255,.08);color:var(--dim);font-size:10px;font-weight:700;cursor:pointer">Export File</button>
+        <label style="flex:1;padding:8px;border-radius:10px;background:none;border:1px solid rgba(255,255,255,.08);color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;text-align:center;display:block">
+          Import File
           <input type="file" id="importDataInput" accept=".json" style="display:none">
         </label>
       </div>
@@ -2597,6 +2615,53 @@ function importData(file){
   r.readAsText(file);
 }
 
+function _buildSyncPayload(){
+  const keys=['teams','pitch','bench','nextId','events','evNextId','coach'];
+  const out={_v:2,_d:new Date().toISOString()};
+  keys.forEach(k=>{const v=localStorage.getItem(_sk(k));if(v)out[k]=v;});
+  const auth=localStorage.getItem('cc_auth');if(auth)out._auth=auth;
+  return out;
+}
+
+function copySyncCode(){
+  try{
+    const json=JSON.stringify(_buildSyncPayload());
+    const code='CC2:'+btoa(unescape(encodeURIComponent(json)));
+    navigator.clipboard.writeText(code).then(()=>{
+      showToast('Sync code copied! Paste it on your other device.');
+    }).catch(()=>{
+      // fallback: show code in a prompt so user can copy manually
+      prompt('Copy this sync code and paste it on your other device:',code);
+    });
+  }catch(e){showToast('Could not generate sync code');}
+}
+
+function applySyncCode(code){
+  try{
+    const raw=code.trim();
+    if(!raw.startsWith('CC2:'))return 'Invalid sync code — make sure you copied the full code.';
+    const json=decodeURIComponent(escape(atob(raw.slice(4))));
+    const d=JSON.parse(json);
+    const keys=['teams','pitch','bench','nextId','events','evNextId','coach'];
+    keys.forEach(k=>{if(d[k])localStorage.setItem(_sk(k),d[k]);});
+    if(d._auth)localStorage.setItem('cc_auth',d._auth);
+    return null; // no error
+  }catch(e){return 'Could not read sync code — make sure you copied it completely.';}
+}
+
+function showSyncModal(){
+  const m=document.getElementById('syncModal');
+  const inp=document.getElementById('syncCodeInput');
+  const err=document.getElementById('syncModalErr');
+  inp.value='';err.textContent='';
+  m.style.display='flex';
+  setTimeout(()=>inp.focus(),100);
+}
+
+function closeSyncModal(){
+  document.getElementById('syncModal').style.display='none';
+}
+
 function bootApp(){
   loadFromStorage();
   const ptn=document.getElementById('pitchTeamNm');
@@ -3001,17 +3066,38 @@ function initAuth(){
   const sbCalBtn=document.getElementById('sbCalBtn');
   if(sbCalBtn)sbCalBtn.addEventListener('click',()=>openMenuPanel('calendar'));
 
-  /* Sidebar export button */
-  const sbExportBtn=document.getElementById('sbExportBtn');
-  if(sbExportBtn)sbExportBtn.addEventListener('click',exportData);
+  /* Sidebar sync button */
+  const sbSyncBtn=document.getElementById('sbSyncBtn');
+  if(sbSyncBtn)sbSyncBtn.addEventListener('click',showSyncModal);
 
-  /* Profile panel export/import */
+  /* Profile panel export/import + sync code */
   const exportDataBtn=document.getElementById('exportDataBtn');
   if(exportDataBtn)exportDataBtn.addEventListener('click',exportData);
   const importDataInput=document.getElementById('importDataInput');
   if(importDataInput)importDataInput.addEventListener('change',e=>{
     const f=e.target.files[0];if(!f)return;
     importData(f);e.target.value='';
+  });
+  const copySyncCodeBtn=document.getElementById('copySyncCodeBtn');
+  if(copySyncCodeBtn)copySyncCodeBtn.addEventListener('click',copySyncCode);
+  const pasteSyncCodeBtn=document.getElementById('pasteSyncCodeBtn');
+  if(pasteSyncCodeBtn)pasteSyncCodeBtn.addEventListener('click',showSyncModal);
+
+  /* Sync modal */
+  const syncModalCancel=document.getElementById('syncModalCancel');
+  if(syncModalCancel)syncModalCancel.addEventListener('click',closeSyncModal);
+  const syncModalApply=document.getElementById('syncModalApply');
+  if(syncModalApply)syncModalApply.addEventListener('click',()=>{
+    const code=document.getElementById('syncCodeInput').value;
+    const errEl=document.getElementById('syncModalErr');
+    const err=applySyncCode(code);
+    if(err){errEl.textContent=err;return;}
+    closeSyncModal();
+    showToast('Data synced — reloading…');
+    setTimeout(()=>location.reload(),900);
+  });
+  document.getElementById('syncModal').addEventListener('click',e=>{
+    if(e.target===document.getElementById('syncModal'))closeSyncModal();
   });
 
   initAuth();
