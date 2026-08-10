@@ -4,8 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Programs & Pricing | Coach Chucho Elite Training</title>
-  <link rel="stylesheet" href="styles.css?v=3">
-  <script src="https://assets.calendly.com/assets/external/widget.js"></script>
+  <link rel="stylesheet" href="styles.css?v=4">
 </head>
 <body>
 
@@ -171,11 +170,8 @@
 <div class="modal" id="scheduleModal">
   <div class="modal-box">
     <div class="modal-title">Coach's Schedule</div>
-    <p class="step2-hint">Browse open times below, then start a booking whenever you're ready. Available 7:30 AM – 4:30 PM, every day, with a 30-minute break between sessions.</p>
+    <p class="step2-hint">Pick a day to see open times, then book it in one tap. Available 7:30 AM – 3:30 PM, every day, with a 30-minute break between sessions.</p>
     <div id="calScheduleContainer" style="min-height: 480px;"></div>
-    <div class="modal-actions" id="scheduleBookBtnWrap" style="display:none;">
-      <button type="button" class="send-btn" onclick="closeSchedule(); openModal('New Booking Request');">Book a session</button>
-    </div>
     <div class="modal-actions">
       <button type="button" class="cancel-btn" onclick="closeSchedule()" style="width: 100%;">Close</button>
     </div>
@@ -233,12 +229,9 @@
 
     <div id="bookingStep2" style="display:none">
       <div class="modal-title">Pick a date &amp; time</div>
-      <p class="step2-hint">Available 7:30 AM – 4:30 PM, every day. Sessions are automatically spaced 30 minutes apart.</p>
-      <div id="calendlyContainer" style="min-height: 480px;"></div>
-      <div id="calendlyFallback" style="display:none;">
-        <div id="calFallbackContainer"></div>
-      </div>
-      <div id="calendlyConfirmed" class="booking-confirmed" style="display:none;"></div>
+      <p class="step2-hint">Available 7:30 AM – 3:30 PM, every day. Sessions are automatically spaced 30 minutes apart.</p>
+      <div id="calBookingContainer" style="min-height: 480px;"></div>
+      <div id="bookingConfirmed" class="booking-confirmed" style="display:none;"></div>
       <div class="modal-actions">
         <button type="button" class="cancel-btn" onclick="closeModal()" style="width: 100%;">Close</button>
       </div>
@@ -246,6 +239,6 @@
   </div>
 </div>
 
-<script src="script.js?v=3"></script>
+<script src="script.js?v=4"></script>
 </body>
 </html>
