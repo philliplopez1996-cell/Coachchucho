@@ -660,17 +660,29 @@ html{height:-webkit-fill-available}
   <div class="auth-card">
     <div class="auth-logo">Coach<em>Chucho</em></div>
     <div class="auth-tabs" style="margin-bottom:18px">
-      <button class="auth-tab active" id="authTabCoach">Coach Login</button>
-      <button class="auth-tab" id="authTabParent">Parent Access</button>
+      <button class="auth-tab active" id="authTabCreate">Create Account</button>
+      <button class="auth-tab" id="authTabCoach">Log In</button>
+      <button class="auth-tab" id="authTabParent">Parent</button>
     </div>
-    <!-- Coach login panel -->
-    <div id="authCoachPanel">
+
+    <!-- Create Account panel -->
+    <div id="authCreatePanel">
+      <input class="auth-input" id="authCreateName" type="text" placeholder="Your name" autocomplete="name">
+      <input class="auth-input" id="authCreateEmail" type="email" placeholder="Email address" autocomplete="email">
+      <input class="auth-input" id="authCreatePass" type="password" placeholder="Password (min. 6 characters)" autocomplete="new-password">
+      <input class="auth-input" id="authCreatePass2" type="password" placeholder="Confirm password" autocomplete="new-password">
+      <button class="auth-btn" id="authCreateSubmit">Create Account</button>
+      <div class="auth-err" id="authCreateError"></div>
+    </div>
+
+    <!-- Log In panel -->
+    <div id="authCoachPanel" style="display:none">
       <input class="auth-input" id="authEmail" type="email" placeholder="Email address" autocomplete="email">
       <input class="auth-input" id="authPassword" type="password" placeholder="Password" autocomplete="current-password">
       <button class="auth-btn" id="authSubmit">Log In</button>
       <div class="auth-err" id="authError"></div>
-      <div class="auth-note" style="margin-top:12px">Set your email &amp; password in your Coach Profile to enable login.</div>
     </div>
+
     <!-- Parent access panel -->
     <div id="authParentPanel" style="display:none">
       <div class="auth-sub" style="margin-bottom:14px">Enter the email address you gave the coach to view your child's player card.</div>
@@ -2769,21 +2781,26 @@ function bootApp(){
   if(elbl&&auth)elbl.textContent=auth.email||'';
 }
 
+function _switchAuthTab(tab){
+  ['create','coach','parent'].forEach(t=>{
+    const tabEl=document.getElementById('authTab'+t.charAt(0).toUpperCase()+t.slice(1));
+    const panEl=document.getElementById('auth'+t.charAt(0).toUpperCase()+t.slice(1)+'Panel');
+    if(tabEl)tabEl.classList.toggle('active',t===tab);
+    if(panEl)panEl.style.display=t===tab?'':'none';
+  });
+}
+
 function initAuth(){
-  const auth=_getAuth();
-  if(!auth||!auth.email){
-    /* No account set up yet — go straight in */
+  if(sessionStorage.getItem('cc_ok')==='1'){
     document.getElementById('authScreen').style.display='none';
     bootApp();
-  } else {
-    /* Credentials exist — check session */
-    if(sessionStorage.getItem('cc_ok')==='1'){
-      document.getElementById('authScreen').style.display='none';
-      bootApp();
-    } else {
-      document.getElementById('authScreen').style.display='flex';
-    }
+    return;
   }
+  /* Always require auth — new visitors must create an account */
+  document.getElementById('authScreen').style.display='flex';
+  const auth=_getAuth();
+  /* Default to Create Account for new devices, Log In for returning coaches */
+  _switchAuthTab(auth&&auth.email?'coach':'create');
 }
 
 /* ══════════════════════════════════════════════
@@ -3081,31 +3098,53 @@ function initAuth(){
     }
   });
 
-  /* Auth screen — coach/parent tab toggle */
-  function _switchAuthTab(tab){
-    document.getElementById('authTabCoach').classList.toggle('active',tab==='coach');
-    document.getElementById('authTabParent').classList.toggle('active',tab==='parent');
-    document.getElementById('authCoachPanel').style.display=tab==='coach'?'':'none';
-    document.getElementById('authParentPanel').style.display=tab==='parent'?'':'none';
-  }
+  /* Auth tab listeners (function itself is module-level) */
+  document.getElementById('authTabCreate').addEventListener('click',()=>_switchAuthTab('create'));
   document.getElementById('authTabCoach').addEventListener('click',()=>_switchAuthTab('coach'));
   document.getElementById('authTabParent').addEventListener('click',()=>_switchAuthTab('parent'));
 
-  /* Coach login submit */
+  /* Create Account submit */
+  document.getElementById('authCreateSubmit').addEventListener('click',()=>{
+    const name=document.getElementById('authCreateName').value.trim();
+    const email=document.getElementById('authCreateEmail').value.trim();
+    const pass=document.getElementById('authCreatePass').value;
+    const pass2=document.getElementById('authCreatePass2').value;
+    const errEl=document.getElementById('authCreateError');
+    errEl.textContent='';
+    if(!name){errEl.textContent='Enter your name';return;}
+    if(!email||!email.includes('@')){errEl.textContent='Enter a valid email address';return;}
+    if(pass.length<6){errEl.textContent='Password must be at least 6 characters';return;}
+    if(pass!==pass2){errEl.textContent='Passwords do not match';return;}
+    /* Check email not already taken on this device */
+    const existing=_getAuth();
+    if(existing&&existing.email&&existing.email.toLowerCase()===email.toLowerCase()){
+      errEl.textContent='An account with that email already exists — use Log In';return;
+    }
+    _saveAuth({email,password:pass,phone:''});
+    /* Pre-fill coach name */
+    COACH.name=name;
+    COACH.initials=_coachInitials(name);
+    localStorage.setItem(_sk('coach'),JSON.stringify(COACH));
+    sessionStorage.setItem('cc_ok','1');
+    document.getElementById('authScreen').style.display='none';
+    bootApp();
+  });
+  document.getElementById('authCreatePass2').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('authCreateSubmit').click();});
+
+  /* Log In submit */
   document.getElementById('authSubmit').addEventListener('click',()=>{
     const email=document.getElementById('authEmail').value.trim();
     const pass=document.getElementById('authPassword').value;
     const errEl=document.getElementById('authError');
     errEl.textContent='';
     const stored=_getAuth();
-    if(!stored||!stored.email){errEl.textContent='No account set up yet — go to Coach Profile to create one';return;}
+    if(!stored||!stored.email){errEl.textContent='No account found — create one first';return;}
     if(email.toLowerCase()!==stored.email.toLowerCase()){errEl.textContent='Incorrect email';return;}
     if(pass!==stored.password){errEl.textContent='Incorrect password';return;}
     sessionStorage.setItem('cc_ok','1');
     document.getElementById('authScreen').style.display='none';
     bootApp();
   });
-  /* Allow Enter key on password field */
   document.getElementById('authPassword').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('authSubmit').click();});
 
   /* Parent access submit */
@@ -3138,10 +3177,8 @@ function initAuth(){
     soBtn.addEventListener('click',()=>{
       sessionStorage.removeItem('cc_ok');
       closeMenuPanel('profile');
-      const auth=_getAuth();
-      if(auth&&auth.email){
-        document.getElementById('authScreen').style.display='flex';
-      }
+      document.getElementById('authScreen').style.display='flex';
+      _switchAuthTab('coach');
     });
   }
 
