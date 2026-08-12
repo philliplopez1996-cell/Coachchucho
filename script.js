@@ -149,16 +149,70 @@
     if (e.target === this) closeSchedule();
   });
 
+  // Booking requests email straight to the coach via FormSubmit.co — a
+  // free form-to-email service that needs no backend and no account beyond
+  // a one-time confirmation click on the coach's email the very first time
+  // it's used.
+  const BOOKING_EMAIL = 'coachchucho@gmail.com';
+
   function submitBooking(e) {
     e.preventDefault();
     document.getElementById('bookingStep1').style.display = 'none';
     document.getElementById('bookingStep2').style.display = 'block';
+
+    const bookingInfo = {
+      plan: document.getElementById('planLabel').textContent,
+      kidsName: document.getElementById('kidsName').value,
+      kidsAge: document.getElementById('kidsAge').value,
+      positions: document.getElementById('positions').value,
+      parentName: document.getElementById('parentName').value,
+      phone: document.getElementById('phone').value,
+      email: document.getElementById('email').value,
+      notes: document.getElementById('notes').value
+    };
+
     createCalendarWidget(document.getElementById('calBookingContainer'), function(dateLabel, timeLabel) {
-      document.getElementById('calBookingContainer').style.display = 'none';
-      const confirmed = document.getElementById('bookingConfirmed');
-      confirmed.textContent = '✓ Requested ' + dateLabel + ' at ' + timeLabel + " — we'll confirm by email or phone shortly.";
-      confirmed.style.display = 'block';
+      sendBookingRequest(bookingInfo, dateLabel, timeLabel);
     }, 'Confirm & send request');
+  }
+
+  function sendBookingRequest(info, dateLabel, timeLabel) {
+    const container = document.getElementById('calBookingContainer');
+    container.innerHTML = '<div class="step2-hint">Sending your request…</div>';
+
+    fetch('https://formsubmit.co/ajax/' + BOOKING_EMAIL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        _subject: 'New booking request — ' + info.plan,
+        Plan: info.plan,
+        'Requested date': dateLabel,
+        'Requested time': timeLabel,
+        "Kid's name": info.kidsName,
+        "Kid's age": info.kidsAge,
+        'Position(s)': info.positions,
+        "Parent's name": info.parentName,
+        "Parent's phone": info.phone,
+        "Parent's email": info.email,
+        'Notes': info.notes || '(none)'
+      })
+    })
+      .then(res => { if (!res.ok) throw new Error('request failed'); })
+      .then(() => {
+        container.style.display = 'none';
+        const confirmed = document.getElementById('bookingConfirmed');
+        confirmed.textContent = '✓ Requested ' + dateLabel + ' at ' + timeLabel + " — we've emailed the coach, and you'll hear back to confirm.";
+        confirmed.style.display = 'block';
+      })
+      .catch(() => {
+        container.innerHTML = '<div class="step2-hint" style="margin-bottom:16px;">Something went wrong sending your request. Please call or text directly to confirm, or try again below.</div>';
+        const retryBtn = document.createElement('button');
+        retryBtn.type = 'button';
+        retryBtn.className = 'send-btn';
+        retryBtn.textContent = 'Try again';
+        retryBtn.addEventListener('click', () => sendBookingRequest(info, dateLabel, timeLabel));
+        container.appendChild(retryBtn);
+      });
   }
   document.getElementById('bookingModal')?.addEventListener('click', function(e) {
     if (e.target === this) closeModal();
