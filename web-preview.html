@@ -1503,9 +1503,6 @@ html{height:-webkit-fill-available}
           <button type="button" id="evCustomTypeConfirm" style="width:100%;height:36px;border-radius:9px;border:1px solid rgba(0,229,100,.4);background:rgba(0,229,100,.12);color:var(--green);font-size:12px;font-weight:900;cursor:pointer">Add Type</button>
         </div>
       </div>
-      <div class="ap-field"><div class="ap-label">Event Color</div>
-        <div class="ev-color-row" id="evColorRow"></div>
-      </div>
       <div class="ap-field"><div class="ap-label">Title / Opponent</div><input class="ap-input" id="evTitle" type="text" placeholder="e.g. Team Practice or vs FC Wolves"></div>
       <div class="ap-2col">
         <div class="ap-field"><div class="ap-label">Date</div><input class="ap-input" id="evDate" type="date"></div>
@@ -2644,36 +2641,28 @@ function showDayEvents(d,y,m){
 
 let _editingEvent=null;
 const EV_COLORS=['#00E564','#4B9FFF','#FF5C5C','#FF9F40','#A78BFA','#FF5C8D','#FFE140','#38D9F5'];
+/* EV_TYPE_DEFAULTS kept as silent fallback so old saved events still render their color */
 const EV_TYPE_DEFAULTS={practice:'#00E564',game:'#4B9FFF',meeting:'#FF9F40',tournament:'#FF5C5C'};
-const EV_BUILT_IN=[
-  {key:'practice',label:'Practice',color:'#00E564'},
-  {key:'game',label:'Game',color:'#4B9FFF'},
-  {key:'meeting',label:'Team Meeting',color:'#FF9F40'},
-  {key:'tournament',label:'Tournament',color:'#FF5C5C'},
-];
 let CUSTOM_EV_TYPES=JSON.parse(localStorage.getItem(_sk('customEvTypes'))||'[]');
-function _allEvTypes(){return[...EV_BUILT_IN,...CUSTOM_EV_TYPES];}
-function _typeColor(key){const t=_allEvTypes().find(t=>t.key===key);return t?t.color:EV_TYPE_DEFAULTS[key]||'#00E564';}
-function _nextCustomColor(){const used=_allEvTypes().map(t=>t.color);return EV_COLORS.find(c=>!used.includes(c))||EV_COLORS[(CUSTOM_EV_TYPES.length+4)%EV_COLORS.length];}
+function _allEvTypes(){return CUSTOM_EV_TYPES;}
+function _typeColor(key){const t=CUSTOM_EV_TYPES.find(t=>t.key===key);return t?t.color:EV_TYPE_DEFAULTS[key]||'#00E564';}
+function _nextCustomColor(){const used=CUSTOM_EV_TYPES.map(t=>t.color);return EV_COLORS.find(c=>!used.includes(c))||EV_COLORS[CUSTOM_EV_TYPES.length%EV_COLORS.length];}
 function _renderEvTypeButtons(){
   const row=document.getElementById('evTypeRow');if(!row)return;
   row.innerHTML='';
-  _allEvTypes().forEach(t=>{
-    const isCustom=!EV_BUILT_IN.find(b=>b.key===t.key);
+  if(!CUSTOM_EV_TYPES.length){
+    row.innerHTML=`<div style="font-size:11px;color:var(--muted);padding:6px 2px;font-style:italic">No types yet — tap <strong style="color:var(--green)">+ Add Type</strong> above to create one</div>`;
+    return;
+  }
+  CUSTOM_EV_TYPES.forEach(t=>{
     const btn=document.createElement('button');
     btn.className='ev-type-btn'+(t.key===_evType?' sel':'');
     btn.dataset.evtype=t.key;
-    if(isCustom){
-      btn.innerHTML=`<span style="pointer-events:none">${t.label}</span><span class="ev-type-del" data-delkey="${t.key}" style="margin-left:5px;opacity:.55;font-size:13px;line-height:1;vertical-align:middle;pointer-events:auto">×</span>`;
-    } else {
-      btn.textContent=t.label;
-    }
+    btn.innerHTML=`<span style="pointer-events:none;display:inline-flex;align-items:center;gap:5px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${t.color};flex-shrink:0"></span>${t.label}</span><span class="ev-type-del" data-delkey="${t.key}" style="margin-left:6px;opacity:.5;font-size:13px;line-height:1;vertical-align:middle;pointer-events:auto">×</span>`;
     btn.addEventListener('click',()=>{
       _evType=btn.dataset.evtype;
       _evColor=_typeColor(_evType);
       _renderEvTypeButtons();
-      document.getElementById('evScoreRow').style.display=(_evType==='game')?'':'none';
-      _renderEvColorSwatches();
     });
     row.appendChild(btn);
   });
@@ -2683,31 +2672,23 @@ function _renderEvTypeButtons(){
       const key=x.dataset.delkey;
       CUSTOM_EV_TYPES=CUSTOM_EV_TYPES.filter(t=>t.key!==key);
       localStorage.setItem(_sk('customEvTypes'),JSON.stringify(CUSTOM_EV_TYPES));
-      if(_evType===key){_evType='practice';_evColor=_typeColor('practice');}
-      _renderEvTypeButtons();_renderEvColorSwatches();
+      if(_evType===key){
+        _evType=CUSTOM_EV_TYPES[0]?.key||'';
+        _evColor=_evType?_typeColor(_evType):'#00E564';
+      }
+      _renderEvTypeButtons();
     });
   });
 }
-let _evType='practice';
+let _evType='';
 let _evColor='#00E564';
 let _customTypeColor='';
 let _extraDates=[];
 
-function _renderEvColorSwatches(){
-  const row=document.getElementById('evColorRow');if(!row)return;
-  row.innerHTML=EV_COLORS.map(c=>`<div class="ev-color-swatch${c===_evColor?' sel':''}" data-color="${c}" style="background:${c}"></div>`).join('');
-  row.querySelectorAll('.ev-color-swatch').forEach(sw=>{
-    sw.addEventListener('click',()=>{
-      _evColor=sw.dataset.color;
-      row.querySelectorAll('.ev-color-swatch').forEach(s=>s.classList.toggle('sel',s.dataset.color===_evColor));
-    });
-  });
-}
-
 function openEventModal(ev=null, prefillDate=null){
   _editingEvent=ev;
-  _evType=ev?ev.type:'practice';
-  _evColor=ev?(ev.color||_typeColor(ev.type)):_typeColor(_evType);
+  _evType=ev?ev.type:(CUSTOM_EV_TYPES[0]?.key||'');
+  _evColor=ev?(ev.color||_typeColor(ev.type)):(_evType?_typeColor(_evType):'#00E564');
 
   document.getElementById('evModalTitle').textContent=ev?'Edit Event':'New Event';
   document.getElementById('evTitle').value=ev?ev.title:'';
@@ -2726,17 +2707,6 @@ function openEventModal(ev=null, prefillDate=null){
   /* Type buttons */
   _renderEvTypeButtons();
 
-  /* Score row for past games */
-  const scoreRow=document.getElementById('evScoreRow');
-  scoreRow.style.display=(_evType==='game')?'':'none';
-  if(ev&&ev.done){
-    document.getElementById('evHome').value=ev.homeScore||0;
-    document.getElementById('evAway').value=ev.awayScore||0;
-  } else {
-    document.getElementById('evHome').value='';
-    document.getElementById('evAway').value='';
-  }
-
   /* Delete button only for existing events */
   document.getElementById('evDeleteBtn').style.display=ev?'':'none';
 
@@ -2745,7 +2715,6 @@ function openEventModal(ev=null, prefillDate=null){
   document.getElementById('evMultiDateSection').style.display=ev?'none':'';
   document.getElementById('evExtraPicker').value='';
   _renderExtraDates();
-  _renderEvColorSwatches();
 
   document.getElementById('eventModalOverlay').classList.add('open');
 }
@@ -3563,11 +3532,19 @@ function initAuth(){
   const evCustomTypeCancel=document.getElementById('evCustomTypeCancel');
   function _renderCustomColorPicker(){
     const picker=document.getElementById('evCustomColorPicker');if(!picker)return;
-    picker.innerHTML=EV_COLORS.map(c=>`<div class="ev-color-swatch${c===_customTypeColor?' sel':''}" data-color="${c}" style="background:${c}"></div>`).join('');
+    const usedColors=CUSTOM_EV_TYPES.map(t=>t.color);
+    picker.innerHTML=EV_COLORS.map(c=>{
+      const taken=usedColors.includes(c)&&c!==_customTypeColor;
+      return `<div class="ev-color-swatch${c===_customTypeColor?' sel':''}" data-color="${c}" data-taken="${taken?'1':'0'}"
+        style="background:${c};${taken?'opacity:.28;cursor:not-allowed;':''}position:relative;">
+        ${taken?`<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:rgba(0,0,0,.55);pointer-events:none">✕</div>`:''}
+      </div>`;
+    }).join('');
     picker.querySelectorAll('.ev-color-swatch').forEach(sw=>{
       sw.addEventListener('click',()=>{
+        if(sw.dataset.taken==='1'){showToast('Color already taken — pick another');return;}
         _customTypeColor=sw.dataset.color;
-        picker.querySelectorAll('.ev-color-swatch').forEach(s=>s.classList.toggle('sel',s.dataset.color===_customTypeColor));
+        _renderCustomColorPicker();
       });
     });
   }
@@ -3592,7 +3569,7 @@ function initAuth(){
     localStorage.setItem(_sk('customEvTypes'),JSON.stringify(CUSTOM_EV_TYPES));
     _evType=key;_evColor=color;
     evCustomTypeInput.value='';evCustomTypeForm.style.display='none';
-    _renderEvTypeButtons();_renderEvColorSwatches();
+    _renderEvTypeButtons();
   }
   if(evCustomTypeConfirm)evCustomTypeConfirm.addEventListener('click',_doAddCustomType);
   if(evCustomTypeInput)evCustomTypeInput.addEventListener('keydown',e=>{if(e.key==='Enter')_doAddCustomType();});
@@ -3601,22 +3578,20 @@ function initAuth(){
   /* Event save */
   const evSaveBtn=document.getElementById('evSaveBtn');
   if(evSaveBtn)evSaveBtn.addEventListener('click',()=>{
+    if(!_evType){showToast('Select an event type first');return;}
     const title=document.getElementById('evTitle').value.trim();
     if(!title){showToast('Enter event title');return;}
     const date=document.getElementById('evDate').value;
     if(!date){showToast('Select a date');return;}
     const time=document.getElementById('evTime').value||'';
     const teamId=document.getElementById('evTeam').value||'';
-    const isDone=_evType==='game'&&document.getElementById('evHome').value!=='';
-    const homeScore=isDone?parseInt(document.getElementById('evHome').value)||0:0;
-    const awayScore=isDone?parseInt(document.getElementById('evAway').value)||0:0;
     if(_editingEvent){
-      Object.assign(_editingEvent,{title,date,time,teamId,type:_evType,color:_evColor,done:isDone,homeScore,awayScore});
+      Object.assign(_editingEvent,{title,date,time,teamId,type:_evType,color:_evColor});
       saveToStorage();closeEventModal();buildCal();showToast('Event updated!');
     } else {
       const allDates=[date,..._extraDates.filter(d=>d&&d!==date)];
       allDates.forEach(d=>{
-        EVENTS.push({id:'ev_'+(++_evNextId),type:_evType,color:_evColor,title,date:d,time,teamId,done:false,homeScore:0,awayScore:0});
+        EVENTS.push({id:'ev_'+(++_evNextId),type:_evType,color:_evColor,title,date:d,time,teamId});
       });
       saveToStorage();closeEventModal();buildCal();
       showToast(allDates.length>1?`${allDates.length} events added!`:'Event added!');
