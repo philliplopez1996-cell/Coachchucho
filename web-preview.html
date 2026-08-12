@@ -369,27 +369,118 @@ html{height:-webkit-fill-available}
 .cal-view-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
 .cal-view-title{font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:30px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text)}
 .cal-view-hdr .cal-add-btn{width:auto;margin:0;padding:9px 20px;font-size:12px}
-.cal-view-body{display:grid;grid-template-columns:1fr 320px;gap:32px;align-items:start}
-.cal-view-left{min-width:0}
-.cal-view-right{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;overflow-y:auto;max-height:calc(100vh - 160px);position:sticky;top:16px}
-/* Bigger calendar grid cells */
-#view-calendar .cal-grid{gap:4px;margin-bottom:20px}
-#view-calendar .cal-day{min-height:72px;border-radius:10px;font-size:13px;align-items:flex-start;padding:8px 10px;gap:4px;border:1px solid transparent}
-#view-calendar .cal-day:hover{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.07)}
-#view-calendar .cal-day.today{border-color:rgba(0,229,100,.35)}
-#view-calendar .cal-day.sel-day{border-color:rgba(0,229,100,.55)}
+.cal-view-body{display:grid;grid-template-columns:1fr 320px;gap:28px;align-items:start}
+/* Left card panel wrapping the whole grid */
+.cal-view-left{
+  min-width:0;
+  background:rgba(255,255,255,.018);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:20px;
+  padding:20px 20px 16px;
+  box-shadow:0 8px 40px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.05);
+}
+/* Right events panel */
+.cal-view-right{
+  background:rgba(255,255,255,.02);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:18px;
+  padding:20px;
+  overflow-y:auto;
+  max-height:calc(100vh - 160px);
+  position:sticky;
+  top:16px;
+  box-shadow:0 6px 32px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.05);
+}
+/* Grid spacing */
+#view-calendar .cal-grid{gap:6px;margin-bottom:16px}
+/* Individual day cells — base card */
+#view-calendar .cal-day{
+  min-height:78px;
+  border-radius:12px;
+  font-size:13px;
+  align-items:flex-start;
+  padding:10px 11px;
+  gap:4px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.035);
+  box-shadow:0 2px 6px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.045);
+  transition:all .18s cubic-bezier(.25,.8,.25,1);
+}
+/* Hover — cell rises */
+#view-calendar .cal-day:hover{
+  background:rgba(255,255,255,.07);
+  border-color:rgba(255,255,255,.18);
+  box-shadow:0 8px 24px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.08);
+  transform:translateY(-2px);
+}
+/* Today — green glow card */
+#view-calendar .cal-day.today{
+  background:rgba(0,229,100,.1);
+  border-color:rgba(0,229,100,.32);
+  box-shadow:0 0 0 1px rgba(0,229,100,.18),0 4px 20px rgba(0,229,100,.14),inset 0 1px 0 rgba(0,229,100,.12);
+}
+#view-calendar .cal-day.today:hover{
+  background:rgba(0,229,100,.15);
+  border-color:rgba(0,229,100,.45);
+  box-shadow:0 0 0 1px rgba(0,229,100,.28),0 10px 28px rgba(0,229,100,.22),inset 0 1px 0 rgba(0,229,100,.18);
+  transform:translateY(-2px);
+}
+/* Selected day */
+#view-calendar .cal-day.sel-day{
+  background:rgba(0,229,100,.16);
+  border-color:rgba(0,229,100,.5);
+  box-shadow:0 0 0 1px rgba(0,229,100,.28),0 6px 24px rgba(0,229,100,.2),inset 0 1px 0 rgba(0,229,100,.18);
+}
+/* Other-month days fade out and have no card */
+#view-calendar .cal-day.other-month{
+  opacity:.2;
+  background:transparent;
+  border-color:transparent;
+  box-shadow:none;
+}
 #view-calendar .cal-day-num{font-size:14px;font-weight:800;line-height:1}
 #view-calendar .cal-dot{width:6px;height:6px;margin-top:auto}
-#view-calendar .cal-dow{font-size:10px;padding:6px 0 10px;font-weight:900;letter-spacing:.5px}
-#view-calendar .cal-month-nav{margin-bottom:16px}
+#view-calendar .cal-dow{font-size:10px;padding:4px 0 10px;font-weight:900;letter-spacing:.5px}
+/* Month nav row */
+#view-calendar .cal-month-nav{margin-bottom:18px}
 #view-calendar .cal-month-lbl{font-size:22px;letter-spacing:1.5px}
-#view-calendar .cal-nav-btn{width:34px;height:34px;font-size:20px;border-radius:9px}
+#view-calendar .cal-nav-btn{
+  width:36px;height:36px;font-size:20px;border-radius:10px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 2px 8px rgba(0,0,0,.25);
+  transition:all .15s;
+}
+#view-calendar .cal-nav-btn:hover{
+  background:rgba(255,255,255,.1);
+  border-color:rgba(255,255,255,.2);
+  box-shadow:0 4px 14px rgba(0,0,0,.35);
+  transform:translateY(-1px);
+}
+/* Event list items — add a bit more polish */
+.cal-view-right .cal-event-item{
+  border-radius:10px;
+  padding:10px 10px;
+  margin-bottom:4px;
+  border-bottom:none;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);
+  transition:all .14s;
+}
+.cal-view-right .cal-event-item:hover{
+  background:rgba(255,255,255,.06);
+  border-color:rgba(255,255,255,.13);
+  transform:translateX(2px);
+}
+.cal-view-right .cal-event-item:last-child{border:1px solid rgba(255,255,255,.07)}
 @media(max-width:768px){
   .cal-view-wrap{padding:12px 12px 32px}
   .cal-view-body{grid-template-columns:1fr}
-  .cal-view-right{max-height:none;position:static}
-  #view-calendar .cal-day{min-height:44px;padding:5px 6px;font-size:11px}
-  #view-calendar .cal-day-num{font-size:11px}
+  .cal-view-left{padding:14px 12px 12px;border-radius:16px}
+  .cal-view-right{max-height:none;position:static;border-radius:16px}
+  #view-calendar .cal-day{min-height:48px;padding:6px 7px;font-size:11px;border-radius:9px}
+  #view-calendar .cal-day-num{font-size:12px}
+  #view-calendar .cal-day:hover{transform:none}
 }
 
 /* ── Event modal ── */
