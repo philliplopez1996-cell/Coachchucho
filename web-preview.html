@@ -1454,12 +1454,18 @@ html{height:-webkit-fill-available}
       <button class="addp-close" id="evModalClose">✕</button>
     </div>
     <div class="addp-body">
-      <div class="ap-field"><div class="ap-label">Event Type</div>
-        <div class="ev-type-row">
-          <button class="ev-type-btn sel" data-evtype="practice">Practice</button>
-          <button class="ev-type-btn" data-evtype="game">Game</button>
-          <button class="ev-type-btn" data-evtype="meeting">Team Meeting</button>
-          <button class="ev-type-btn" data-evtype="tournament">Tournament</button>
+      <div class="ap-field">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div class="ap-label" style="margin-bottom:0">Event Type</div>
+          <button type="button" id="evAddTypeBtn" style="font-size:10px;font-weight:800;color:var(--green);background:rgba(0,229,100,.1);border:1px solid rgba(0,229,100,.25);border-radius:6px;padding:3px 9px;cursor:pointer;letter-spacing:.3px">+ Custom</button>
+        </div>
+        <div class="ev-type-row" id="evTypeRow"></div>
+        <div id="evCustomTypeForm" style="display:none;margin-top:8px">
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="evCustomTypeInput" class="ap-input" type="text" placeholder="e.g. Friendly, Tryout…" maxlength="24" style="flex:1;height:36px">
+            <button type="button" id="evCustomTypeConfirm" style="height:36px;padding:0 14px;border-radius:9px;border:1px solid rgba(0,229,100,.4);background:rgba(0,229,100,.12);color:var(--green);font-size:12px;font-weight:900;cursor:pointer;flex-shrink:0;white-space:nowrap">Add</button>
+            <button type="button" id="evCustomTypeCancel" style="height:36px;width:36px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:none;color:var(--muted);font-size:14px;cursor:pointer;flex-shrink:0">✕</button>
+          </div>
         </div>
       </div>
       <div class="ap-field"><div class="ap-label">Event Color</div>
@@ -2436,7 +2442,7 @@ function buildCal(){
     if(ed.getFullYear()===y&&ed.getMonth()===m){
       const d=ed.getDate();
       if(!eventDayColors[d])eventDayColors[d]=[];
-      const c=e.color||(EV_TYPE_DEFAULTS[e.type]||'#00E564');
+      const c=e.color||_typeColor(e.type);
       if(!eventDayColors[d].includes(c))eventDayColors[d].push(c);
     }
   });
@@ -2467,7 +2473,7 @@ function buildCal(){
 }
 
 function _evBadge(ev){
-  const color=ev.color||(EV_TYPE_DEFAULTS[ev.type]||'#00E564');
+  const color=ev.color||_typeColor(ev.type);
   if(ev.type==='game'){
     if(!ev.done)return `<div class="cal-ev-badge badge-upcoming">Upcoming</div>`;
     const res=ev.homeScore>ev.awayScore?'W':ev.homeScore<ev.awayScore?'L':'D';
@@ -2478,7 +2484,7 @@ function _evBadge(ev){
   return `<div class="cal-ev-badge" style="background:${color}20;color:${color};border:1px solid ${color}55">${labels[ev.type]||ev.type}</div>`;
 }
 function _evHtml(ev,showDate){
-  const color=ev.color||(EV_TYPE_DEFAULTS[ev.type]||'#00E564');
+  const color=ev.color||_typeColor(ev.type);
   const meta=showDate?`${fmtDate(ev.date)} · ${fmtTime(ev.time)}`:fmtTime(ev.time);
   return `<div class="cal-event-item" data-eid="${ev.id}" style="cursor:pointer">
     <div class="cal-ev-stripe" style="background:${color}"></div>
@@ -2533,6 +2539,29 @@ function showDayEvents(d,y,m){
 let _editingEvent=null;
 const EV_COLORS=['#00E564','#4B9FFF','#FF5C5C','#FF9F40','#A78BFA','#FF5C8D','#FFE140','#38D9F5'];
 const EV_TYPE_DEFAULTS={practice:'#00E564',game:'#4B9FFF',meeting:'#FF9F40',tournament:'#FF5C5C'};
+const EV_BUILT_IN=[
+  {key:'practice',label:'Practice',color:'#00E564'},
+  {key:'game',label:'Game',color:'#4B9FFF'},
+  {key:'meeting',label:'Team Meeting',color:'#FF9F40'},
+  {key:'tournament',label:'Tournament',color:'#FF5C5C'},
+];
+let CUSTOM_EV_TYPES=JSON.parse(localStorage.getItem(_sk('customEvTypes'))||'[]');
+function _allEvTypes(){return[...EV_BUILT_IN,...CUSTOM_EV_TYPES];}
+function _typeColor(key){const t=_allEvTypes().find(t=>t.key===key);return t?t.color:EV_TYPE_DEFAULTS[key]||'#00E564';}
+function _nextCustomColor(){const used=_allEvTypes().map(t=>t.color);return EV_COLORS.find(c=>!used.includes(c))||EV_COLORS[(CUSTOM_EV_TYPES.length+4)%EV_COLORS.length];}
+function _renderEvTypeButtons(){
+  const row=document.getElementById('evTypeRow');if(!row)return;
+  row.innerHTML=_allEvTypes().map(t=>`<button class="ev-type-btn${t.key===_evType?' sel':''}" data-evtype="${t.key}">${t.label}</button>`).join('');
+  row.querySelectorAll('.ev-type-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      _evType=btn.dataset.evtype;
+      _evColor=_typeColor(_evType);
+      _renderEvTypeButtons();
+      document.getElementById('evScoreRow').style.display=(_evType==='game')?'':'none';
+      _renderEvColorSwatches();
+    });
+  });
+}
 let _evType='practice';
 let _evColor='#00E564';
 let _extraDates=[];
@@ -2551,7 +2580,7 @@ function _renderEvColorSwatches(){
 function openEventModal(ev=null, prefillDate=null){
   _editingEvent=ev;
   _evType=ev?ev.type:'practice';
-  _evColor=ev?ev.color||(EV_TYPE_DEFAULTS[ev.type]||'#00E564'):(EV_TYPE_DEFAULTS[_evType]||'#00E564');
+  _evColor=ev?(ev.color||_typeColor(ev.type)):_typeColor(_evType);
 
   document.getElementById('evModalTitle').textContent=ev?'Edit Event':'New Event';
   document.getElementById('evTitle').value=ev?ev.title:'';
@@ -2568,7 +2597,7 @@ function openEventModal(ev=null, prefillDate=null){
   if(ev&&ev.teamId)sel.value=ev.teamId;
 
   /* Type buttons */
-  document.querySelectorAll('.ev-type-btn').forEach(b=>b.classList.toggle('sel',b.dataset.evtype===_evType));
+  _renderEvTypeButtons();
 
   /* Score row for past games */
   const scoreRow=document.getElementById('evScoreRow');
@@ -3349,16 +3378,33 @@ function initAuth(){
   const evOverlay=document.getElementById('eventModalOverlay');
   if(evOverlay)evOverlay.addEventListener('click',e=>{if(e.target===e.currentTarget)closeEventModal();});
 
-  /* Event type toggle */
-  document.querySelectorAll('.ev-type-btn').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      _evType=btn.dataset.evtype;
-      _evColor=EV_TYPE_DEFAULTS[_evType]||'#00E564';
-      document.querySelectorAll('.ev-type-btn').forEach(b=>b.classList.toggle('sel',b.dataset.evtype===_evType));
-      document.getElementById('evScoreRow').style.display=(_evType==='game')?'':'none';
-      _renderEvColorSwatches();
+  /* Custom event type form */
+  const evAddTypeBtn=document.getElementById('evAddTypeBtn');
+  const evCustomTypeForm=document.getElementById('evCustomTypeForm');
+  const evCustomTypeInput=document.getElementById('evCustomTypeInput');
+  const evCustomTypeConfirm=document.getElementById('evCustomTypeConfirm');
+  const evCustomTypeCancel=document.getElementById('evCustomTypeCancel');
+  if(evAddTypeBtn){
+    evAddTypeBtn.addEventListener('click',()=>{
+      const showing=evCustomTypeForm.style.display!=='none';
+      evCustomTypeForm.style.display=showing?'none':'';
+      if(!showing){evCustomTypeInput.value='';evCustomTypeInput.focus();}
     });
-  });
+  }
+  function _doAddCustomType(){
+    const label=evCustomTypeInput.value.trim();if(!label)return;
+    const key='custom_'+label.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
+    if(_allEvTypes().find(t=>t.key===key)){showToast('Type already exists!');return;}
+    const color=_nextCustomColor();
+    CUSTOM_EV_TYPES.push({key,label,color});
+    localStorage.setItem(_sk('customEvTypes'),JSON.stringify(CUSTOM_EV_TYPES));
+    _evType=key;_evColor=color;
+    evCustomTypeInput.value='';evCustomTypeForm.style.display='none';
+    _renderEvTypeButtons();_renderEvColorSwatches();
+  }
+  if(evCustomTypeConfirm)evCustomTypeConfirm.addEventListener('click',_doAddCustomType);
+  if(evCustomTypeInput)evCustomTypeInput.addEventListener('keydown',e=>{if(e.key==='Enter')_doAddCustomType();});
+  if(evCustomTypeCancel)evCustomTypeCancel.addEventListener('click',()=>{evCustomTypeForm.style.display='none';evCustomTypeInput.value='';});
 
   /* Event save */
   const evSaveBtn=document.getElementById('evSaveBtn');
