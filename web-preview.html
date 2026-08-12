@@ -1,5 +1,5 @@
 <!doctype html>
-<title>CoachChucho — Web</title>
+<title>Roster Radar</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
@@ -27,7 +27,7 @@ html{height:-webkit-fill-available}
 .shell.collapsed .sb-logo{display:none}
 .sb-toggle{width:28px;height:28px;border-radius:7px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .sb-toggle svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
-.sb-coach{padding:12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;overflow:hidden;cursor:pointer}
+.sb-coach{padding:12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;overflow:hidden;cursor:pointer}
 .sb-coach:hover{background:rgba(0,229,100,.03)}
 .sb-av{width:36px;height:36px;border-radius:50%;background:rgba(0,229,100,.12);border:2px solid rgba(0,229,100,.35);display:flex;align-items:center;justify-content:center;font-family:'Impact',Arial,sans-serif;font-size:14px;color:var(--green);flex-shrink:0}
 .sb-coach-info{min-width:0;overflow:hidden}
@@ -52,7 +52,7 @@ html{height:-webkit-fill-available}
 .sb-extra-btn svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
 .shell.collapsed .sb-extra-btn span{display:none}
 .shell.collapsed .sb-extra-btn{justify-content:center;padding:9px}
-.sb-team-selector{padding:10px 12px 14px;border-top:1px solid var(--border);flex-shrink:0;overflow:hidden}
+.sb-team-selector{padding:10px 12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;overflow:hidden}
 .sb-team-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--dim);margin-bottom:6px;white-space:nowrap}
 .shell.collapsed .sb-team-lbl{display:none}
 .team-chip{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:7px;cursor:pointer;border:1px solid transparent;transition:all .15s;margin-bottom:3px}
@@ -658,7 +658,7 @@ html{height:-webkit-fill-available}
 
 <div class="auth-screen" id="authScreen" style="display:none">
   <div class="auth-card">
-    <div class="auth-logo">Coach<em>Chucho</em></div>
+    <div class="auth-logo">Roster<em>Radar</em></div>
     <div class="auth-tabs" style="margin-bottom:18px">
       <button class="auth-tab active" id="authTabCreate">Create Account</button>
       <button class="auth-tab" id="authTabCoach">Log In</button>
@@ -702,17 +702,14 @@ html{height:-webkit-fill-available}
   <!-- SIDEBAR (desktop) -->
   <nav class="sidebar" id="sidebar">
     <div class="sb-toprow">
-      <div class="sb-logo">Coach<em>Chucho</em></div>
+      <div class="sb-logo">Roster<em>Radar</em></div>
       <button class="sb-toggle" id="sbToggle">
         <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
     </div>
-    <div class="sb-coach" id="sbCoach">
-      <div class="sb-av" id="sbAvEl">C</div>
-      <div class="sb-coach-info">
-        <div class="sb-info-name" id="sbNameEl">Coach</div>
-        <div class="sb-info-role" id="sbRoleEl">Head Coach · My Club</div>
-      </div>
+    <div class="sb-team-selector">
+      <div class="sb-team-lbl">Active Team</div>
+      <div id="teamChips"></div>
     </div>
     <div class="sb-nav">
       <div class="sb-section-lbl">Main</div>
@@ -728,6 +725,10 @@ html{height:-webkit-fill-available}
         <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         <span class="nav-item-lbl">Calendar</span>
       </button>
+      <button class="nav-item" id="sbStatsBtn">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span class="nav-item-lbl">Stats</span>
+      </button>
     </div>
     <div class="sb-extra">
       <button class="sb-extra-btn" onclick="openMenuPanel('faq')">
@@ -739,9 +740,12 @@ html{height:-webkit-fill-available}
         <span>Sync Link</span>
       </button>
     </div>
-    <div class="sb-team-selector">
-      <div class="sb-team-lbl">Active Team</div>
-      <div id="teamChips"></div>
+    <div class="sb-coach" id="sbCoach">
+      <div class="sb-av" id="sbAvEl">C</div>
+      <div class="sb-coach-info">
+        <div class="sb-info-name" id="sbNameEl">Coach</div>
+        <div class="sb-info-role" id="sbRoleEl">Head Coach · My Club</div>
+      </div>
     </div>
   </nav>
 
@@ -975,6 +979,10 @@ html{height:-webkit-fill-available}
       <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M12 3v18M2 12h20"/></svg>
       <span class="bnav-lbl">Pitch</span>
     </button>
+    <button class="bnav-btn" id="bnavStatsBtn">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span class="bnav-lbl">Stats</span>
+    </button>
   </nav>
 
 </div>
@@ -985,7 +993,7 @@ html{height:-webkit-fill-available}
 <!-- MOBILE MENU PANEL -->
 <div class="menu-panel" id="menuPanelMobile">
   <div class="menu-topbar">
-    <div class="menu-logo">Coach<em>Chucho</em></div>
+    <div class="menu-logo">Roster<em>Radar</em></div>
     <button class="menu-close" id="menuClose">✕</button>
   </div>
   <div class="menu-coach">
@@ -1004,6 +1012,10 @@ html{height:-webkit-fill-available}
       <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       Calendar
     </button>
+    <button class="menu-item" onclick="openMenuPanel('stats');closeMobileMenu()">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Stats
+    </button>
     <button class="menu-item" onclick="openMenuPanel('faq');closeMobileMenu()">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       FAQ
@@ -1013,7 +1025,7 @@ html{height:-webkit-fill-available}
       Share Sync Link
     </button>
   </div>
-  <div class="menu-version">CoachChucho Web v2.0</div>
+  <div class="menu-version">Roster Radar Web v2.0</div>
 </div>
 
 <!-- CALENDAR PANEL -->
@@ -1110,6 +1122,17 @@ html{height:-webkit-fill-available}
     <div class="panel-title">FAQ</div>
   </div>
   <div class="panel-body" id="faqBody"></div>
+</div>
+
+<!-- STATS PANEL -->
+<div class="panel-overlay" id="panelStats">
+  <div class="panel-topbar">
+    <button class="panel-back" onclick="closeMenuPanel('stats')">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="panel-title">Stats</div>
+  </div>
+  <div class="panel-body" id="statsBody"></div>
 </div>
 
 <!-- PLAYER MODAL -->
@@ -2191,7 +2214,7 @@ function closePostgame(){document.getElementById('postgameOverlay').classList.re
    MENU PANELS (Calendar / Profile / FAQ)
 ══════════════════════════════════════════════ */
 function openMenuPanel(type){
-  const ids={calendar:'panelCalendar',profile:'panelProfile',faq:'panelFaq'};
+  const ids={calendar:'panelCalendar',profile:'panelProfile',faq:'panelFaq',stats:'panelStats'};
   const id=ids[type];if(!id)return;
   document.querySelectorAll('.panel-overlay').forEach(p=>p.classList.remove('open'));
   document.getElementById(id).classList.add('open');
@@ -2199,9 +2222,10 @@ function openMenuPanel(type){
   if(type==='calendar')buildCal();
   if(type==='profile')renderProfilePanel();
   if(type==='faq')renderFaqPanel();
+  if(type==='stats')buildStats();
 }
 function closeMenuPanel(type){
-  const ids={calendar:'panelCalendar',profile:'panelProfile',faq:'panelFaq'};
+  const ids={calendar:'panelCalendar',profile:'panelProfile',faq:'panelFaq',stats:'panelStats'};
   const id=ids[type];if(id)document.getElementById(id).classList.remove('open');
   document.getElementById('panelBackdrop').classList.remove('show');
 }
@@ -2518,6 +2542,81 @@ function renderFaqPanel(){
 }
 
 /* ══════════════════════════════════════════════
+   STATS PANEL
+══════════════════════════════════════════════ */
+function buildStats(){
+  const b=document.getElementById('statsBody');if(!b)return;
+  const team=activeTeam||TEAMS[0];
+  if(!team){
+    b.innerHTML='<div style="text-align:center;padding:40px 16px;color:var(--muted);font-size:13px">No teams yet. Create a team to see stats.</div>';
+    return;
+  }
+  const rec=getTeamRecord(team.id);
+  const games=EVENTS.filter(e=>e.type==='game'&&e.teamId===team.id&&e.done);
+  const winPct=games.length>0?Math.round((rec.w/games.length)*100):0;
+  const gd=rec.gf-rec.ga;
+  const recentGames=[...games].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+  const players=team.players||[];
+  const scorers=[...players].sort((a,b)=>(b.goals||0)-(a.goals||0)).filter(p=>(p.goals||0)>0).slice(0,5);
+  const assisters=[...players].sort((a,b)=>(b.assists||0)-(a.assists||0)).filter(p=>(p.assists||0)>0).slice(0,5);
+
+  const teamSel=TEAMS.length>1?`<div style="margin-bottom:16px">
+    <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--dim);margin-bottom:8px">Team</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">${TEAMS.map(t=>`<button onclick="buildStatsForTeam('${t.id}')" style="padding:6px 12px;border-radius:20px;border:1px solid ${t.id===team.id?'rgba(0,229,100,.5)':'rgba(255,255,255,.1)'};background:${t.id===team.id?'rgba(0,229,100,.1)':'transparent'};color:${t.id===team.id?'var(--green)':'var(--muted)'};font-size:11px;font-weight:700;cursor:pointer">${t.name}</button>`).join('')}</div>
+  </div>`:'';;
+
+  const formChips=recentGames.length>0?recentGames.map(g=>{
+    const r=g.homeScore>g.awayScore?'W':g.homeScore<g.awayScore?'L':'T';
+    const c=r==='W'?'var(--green)':r==='L'?'var(--red)':'var(--gold)';
+    const bg=r==='W'?'rgba(0,229,100,.15)':r==='L'?'rgba(255,96,96,.15)':'rgba(255,215,0,.15)';
+    return `<span style="width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:${bg};border:1.5px solid ${c};color:${c};font-size:13px;font-weight:900;font-family:'Impact',Arial,sans-serif">${r}</span>`;
+  }).join(''):'<span style="font-size:11px;color:var(--dim)">No completed games yet</span>';
+
+  const formList=recentGames.length>0?`<div style="margin-top:8px;display:flex;flex-direction:column;gap:5px">${recentGames.map(g=>{
+    const r=g.homeScore>g.awayScore?'W':g.homeScore<g.awayScore?'L':'T';
+    const c=r==='W'?'var(--green)':r==='L'?'var(--red)':'var(--gold)';
+    const d=g.date?new Date(g.date+'T00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
+    return `<div style="display:flex;align-items:center;gap:8px;font-size:10px"><span style="font-weight:900;color:${c};min-width:12px">${r}</span><span style="font-variant-numeric:tabular-nums;color:var(--text);font-weight:700">${g.homeScore}–${g.awayScore}</span><span style="color:var(--dim);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${g.title||'Game'}</span><span style="color:var(--dim);flex-shrink:0">${d}</span></div>`;
+  }).join('')}</div>`:'';
+
+  function lbRow(p,stat,col){
+    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:rgba(255,255,255,.03);margin-bottom:5px">
+      <div style="font-family:'Impact',Arial,sans-serif;font-size:24px;color:${col};min-width:28px;text-align:center">${p[stat]||0}</div>
+      <div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div><div style="font-size:9px;color:var(--muted);font-weight:700;margin-top:1px">${p.pos}</div></div>
+    </div>`;
+  }
+
+  b.innerHTML=`${teamSel}
+  <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--dim);margin-bottom:8px">Season Record · ${team.season||'—'}</div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px">
+    <div style="background:rgba(0,229,100,.08);border:1px solid rgba(0,229,100,.2);border-radius:10px;padding:10px;text-align:center"><div style="font-family:'Impact',Arial,sans-serif;font-size:24px;color:var(--green)">${rec.w}</div><div style="font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:2px">Wins</div></div>
+    <div style="background:rgba(255,96,96,.07);border:1px solid rgba(255,96,96,.2);border-radius:10px;padding:10px;text-align:center"><div style="font-family:'Impact',Arial,sans-serif;font-size:24px;color:var(--red)">${rec.l}</div><div style="font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:2px">Losses</div></div>
+    <div style="background:rgba(255,215,0,.07);border:1px solid rgba(255,215,0,.2);border-radius:10px;padding:10px;text-align:center"><div style="font-family:'Impact',Arial,sans-serif;font-size:24px;color:var(--gold)">${rec.t}</div><div style="font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:2px">Draws</div></div>
+    <div style="background:rgba(90,171,255,.07);border:1px solid rgba(90,171,255,.2);border-radius:10px;padding:10px;text-align:center"><div style="font-family:'Impact',Arial,sans-serif;font-size:24px;color:var(--blue)">${winPct}%</div><div style="font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:2px">Win %</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:16px">
+    <div style="background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px;text-align:center"><div style="font-family:'Impact',Arial,sans-serif;font-size:22px;color:var(--green)">${rec.gf}</div><div style="font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:2px">Goals For</div></div>
+    <div style="background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px;text-align:center"><div style="font-family:'Impact',Arial,sans-serif;font-size:22px;color:var(--red)">${rec.ga}</div><div style="font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:2px">Against</div></div>
+    <div style="background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px;text-align:center"><div style="font-family:'Impact',Arial,sans-serif;font-size:22px;color:${gd>0?'var(--green)':gd<0?'var(--red)':'var(--muted)'}">${gd>0?'+':''}${gd}</div><div style="font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-top:2px">Diff</div></div>
+  </div>
+  <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--dim);margin-bottom:8px">Recent Form</div>
+  <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:4px">${formChips}</div>
+  ${formList}
+  <div style="margin-top:16px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--dim);margin-bottom:8px">Top Scorers</div>
+  ${scorers.length>0?scorers.map(p=>lbRow(p,'goals','var(--green)')).join(''):'<div style="font-size:11px;color:var(--dim);text-align:center;padding:12px">No goals recorded yet</div>'}
+  <div style="margin-top:12px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--dim);margin-bottom:8px">Top Assisters</div>
+  ${assisters.length>0?assisters.map(p=>lbRow(p,'assists','var(--blue)')).join(''):'<div style="font-size:11px;color:var(--dim);text-align:center;padding:12px">No assists recorded yet</div>'}`;
+}
+
+function buildStatsForTeam(teamId){
+  const t=TEAMS.find(x=>x.id===teamId);
+  if(!t)return;
+  activeTeam=t;
+  renderTeamChips();
+  buildStats();
+}
+
+/* ══════════════════════════════════════════════
    ADD PLAYER MODAL
 ══════════════════════════════════════════════ */
 let _apFoot='Right';
@@ -2670,7 +2769,7 @@ function importData(file){
       if(d._auth)localStorage.setItem('cc_auth',d._auth);
       showToast('Data imported — reloading…');
       setTimeout(()=>location.reload(),900);
-    }catch(err){showToast('Could not read file — make sure it\'s a CoachChucho export');}
+    }catch(err){showToast('Could not read file — make sure it\'s a Roster Radar export');}
   };
   r.readAsText(file);
 }
@@ -2695,7 +2794,7 @@ function shareSyncLink(){
     const url=_syncBaseUrl()+'#'+code;
     if(navigator.share){
       navigator.share({
-        title:'CoachChucho Sync',
+        title:'Roster Radar Sync',
         text:'Open this on your other device to sync your roster.',
         url:url
       }).catch(()=>{});
@@ -2845,7 +2944,7 @@ function initAuth(){
   if(backdrop)backdrop.addEventListener('click',()=>{
     closeMobileMenu();
     document.querySelectorAll('.panel-overlay.open').forEach(p=>{
-      const type=p.id==='panelCalendar'?'calendar':p.id==='panelProfile'?'profile':p.id==='panelFaq'?'faq':null;
+      const type=p.id==='panelCalendar'?'calendar':p.id==='panelProfile'?'profile':p.id==='panelFaq'?'faq':p.id==='panelStats'?'stats':null;
       if(type)closeMenuPanel(type);
     });
   });
@@ -3220,6 +3319,14 @@ function initAuth(){
   /* Sidebar calendar button */
   const sbCalBtn=document.getElementById('sbCalBtn');
   if(sbCalBtn)sbCalBtn.addEventListener('click',()=>openMenuPanel('calendar'));
+
+  /* Sidebar stats button */
+  const sbStatsBtn=document.getElementById('sbStatsBtn');
+  if(sbStatsBtn)sbStatsBtn.addEventListener('click',()=>openMenuPanel('stats'));
+
+  /* Bottom nav stats button */
+  const bnavStatsBtn=document.getElementById('bnavStatsBtn');
+  if(bnavStatsBtn)bnavStatsBtn.addEventListener('click',()=>openMenuPanel('stats'));
 
   /* Sidebar sync button — opens share on mobile, copy link on desktop */
   const sbSyncBtn=document.getElementById('sbSyncBtn');
