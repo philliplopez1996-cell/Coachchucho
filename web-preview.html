@@ -11,7 +11,15 @@
   --border:rgba(0,229,100,.1);--border2:rgba(255,255,255,.06);
   --sidebar-w:228px;--sidebar-w-col:60px;--topbar:52px;--modal-z:200;
 }
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden}
+html,body{
+  height:100%;
+  background:
+    radial-gradient(ellipse 70% 55% at 18% 15%, rgba(0,229,100,.055) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 70% at 85% 88%, rgba(0,40,16,.55) 0%, transparent 60%),
+    radial-gradient(ellipse 100% 60% at 50% 110%, rgba(0,15,8,.7) 0%, transparent 55%),
+    var(--bg);
+  color:var(--text);font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden
+}
 html{height:-webkit-fill-available}
 
 /* ── Shell ── */
@@ -84,7 +92,7 @@ html{height:-webkit-fill-available}
 @keyframes rb-blip-anim{0%,82%{opacity:0}83%{opacity:1}90%{opacity:.8}95%{opacity:.3}100%{opacity:0}}
 
 /* ── Main / Views ── */
-.main{overflow:hidden;display:flex;position:relative}
+.main{overflow:hidden;display:flex;position:relative;background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(0,229,100,.03) 0%,transparent 65%)}
 .view{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:20px;display:none;scrollbar-width:thin;scrollbar-color:var(--dim) transparent}
 .view.active{display:block}
 .view::-webkit-scrollbar{width:4px}
@@ -437,6 +445,13 @@ html{height:-webkit-fill-available}
   background:transparent;
   border-color:transparent;
   box-shadow:none;
+}
+@media(min-width:769px){
+  #view-calendar .cal-day:not(.other-month)::before{
+    content:'+';position:absolute;top:6px;right:9px;font-size:15px;font-weight:700;
+    color:rgba(255,255,255,0);transition:color .15s;pointer-events:none;line-height:1;
+  }
+  #view-calendar .cal-day:not(.other-month):hover::before{color:rgba(0,229,100,.55)}
 }
 #view-calendar .cal-day-num{font-size:14px;font-weight:800;line-height:1}
 #view-calendar .cal-dot{width:6px;height:6px;margin-top:auto}
@@ -2441,6 +2456,11 @@ function buildCal(){
     grid.innerHTML=h;
     grid.querySelectorAll('.cal-day[data-d]').forEach(cell=>{
       cell.addEventListener('click',()=>showDayEvents(parseInt(cell.dataset.d),y,m));
+      cell.addEventListener('dblclick',()=>{
+        const d=parseInt(cell.dataset.d);
+        const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        openEventModal(null,dateStr);
+      });
     });
   }
   renderEventsList();
