@@ -1153,12 +1153,7 @@ html{height:-webkit-fill-available}
               <button class="cal-nav-btn" id="calNextBtn">›</button>
             </div>
             <div class="cal-grid" id="calGrid"></div>
-            <div style="display:flex;gap:14px;align-items:center;padding:12px 0 4px;flex-wrap:wrap">
-              <div style="display:flex;gap:6px;align-items:center;font-size:10px;color:var(--muted);font-weight:700"><div style="width:18px;height:4px;border-radius:999px;background:#00E564;box-shadow:0 0 6px #00E56488"></div>Practice</div>
-              <div style="display:flex;gap:6px;align-items:center;font-size:10px;color:var(--muted);font-weight:700"><div style="width:18px;height:4px;border-radius:999px;background:#4B9FFF;box-shadow:0 0 6px #4B9FFF88"></div>Game</div>
-              <div style="display:flex;gap:6px;align-items:center;font-size:10px;color:var(--muted);font-weight:700"><div style="width:18px;height:4px;border-radius:999px;background:#FF9F40;box-shadow:0 0 6px #FF9F4088"></div>Meeting</div>
-              <div style="display:flex;gap:6px;align-items:center;font-size:10px;color:var(--muted);font-weight:700"><div style="width:18px;height:4px;border-radius:999px;background:#FF5C5C;box-shadow:0 0 6px #FF5C5C88"></div>Tournament</div>
-            </div>
+            <div id="calTypeLegend" style="display:flex;gap:10px;align-items:center;padding:10px 0 4px;flex-wrap:wrap;min-height:28px"></div>
           </div>
           <div class="cal-view-right">
             <div class="cal-events-title" id="calEventsTitle">Events</div>
@@ -2573,6 +2568,7 @@ function buildCal(){
     });
   }
   renderEventsList();
+  _renderCalLegend();
 }
 
 function _evBadge(ev){
@@ -2639,6 +2635,16 @@ function showDayEvents(d,y,m){
   _wireEvItems(list);
 }
 
+function _renderCalLegend(){
+  const el=document.getElementById('calTypeLegend');if(!el)return;
+  if(!CUSTOM_EV_TYPES.length){el.innerHTML='';return;}
+  el.innerHTML=CUSTOM_EV_TYPES.map(t=>`
+    <div style="display:flex;gap:6px;align-items:center;font-size:10px;color:var(--muted);font-weight:700;white-space:nowrap">
+      <div style="width:18px;height:4px;border-radius:999px;background:${t.color};box-shadow:0 0 6px ${t.color}88;flex-shrink:0"></div>
+      ${t.label}
+    </div>`).join('');
+}
+
 let _editingEvent=null;
 const EV_COLORS=['#00E564','#4B9FFF','#FF5C5C','#FF9F40','#A78BFA','#FF5C8D','#FFE140','#38D9F5'];
 /* EV_TYPE_DEFAULTS kept as silent fallback so old saved events still render their color */
@@ -2677,6 +2683,7 @@ function _renderEvTypeButtons(){
         _evColor=_evType?_typeColor(_evType):'#00E564';
       }
       _renderEvTypeButtons();
+      _renderCalLegend();
     });
   });
 }
@@ -3570,6 +3577,7 @@ function initAuth(){
     _evType=key;_evColor=color;
     evCustomTypeInput.value='';evCustomTypeForm.style.display='none';
     _renderEvTypeButtons();
+    _renderCalLegend();
   }
   if(evCustomTypeConfirm)evCustomTypeConfirm.addEventListener('click',_doAddCustomType);
   if(evCustomTypeInput)evCustomTypeInput.addEventListener('keydown',e=>{if(e.key==='Enter')_doAddCustomType();});
