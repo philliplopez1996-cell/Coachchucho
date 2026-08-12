@@ -1396,7 +1396,7 @@ html{height:-webkit-fill-available}
       </div>
       <div class="ap-field"><div class="ap-label">Full Name</div><input class="ap-input" id="apName" placeholder="e.g. Luis Ramirez" type="text"></div>
       <div class="ap-2col">
-        <div class="ap-field"><div class="ap-label">Position</div>
+        <div class="ap-field"><div class="ap-label">Primary Position</div>
           <select class="ap-input" id="apPos">
             <option>GK</option><option>LB</option><option>CB</option><option>RB</option>
             <option>CDM</option><option>CM</option><option>CAM</option><option>LM</option><option>RM</option>
@@ -1404,6 +1404,30 @@ html{height:-webkit-fill-available}
           </select>
         </div>
         <div class="ap-field"><div class="ap-label">Jersey #</div><input class="ap-input" id="apNum" type="number" min="1" max="99" placeholder="9"></div>
+      </div>
+      <div class="ap-field" style="margin-top:-4px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div class="ap-label" style="margin-bottom:0">Can Also Play</div>
+          <button type="button" id="apAddPosBtn" style="font-size:10px;font-weight:800;color:var(--green);background:rgba(0,229,100,.1);border:1px solid rgba(0,229,100,.25);border-radius:6px;padding:3px 9px;cursor:pointer;letter-spacing:.3px">+ Position</button>
+        </div>
+        <div id="apPos2Row" style="display:none;flex-direction:row;gap:6px;align-items:center;margin-bottom:6px">
+          <select class="ap-input" id="apPos2" style="flex:1">
+            <option value="">— none —</option>
+            <option>GK</option><option>LB</option><option>CB</option><option>RB</option>
+            <option>CDM</option><option>CM</option><option>CAM</option><option>LM</option><option>RM</option>
+            <option>ST</option><option>LW</option><option>RW</option><option>CF</option>
+          </select>
+          <button type="button" id="apRmPos2" style="width:32px;height:40px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:none;color:var(--muted);font-size:18px;cursor:pointer;flex-shrink:0;line-height:1">×</button>
+        </div>
+        <div id="apPos3Row" style="display:none;flex-direction:row;gap:6px;align-items:center">
+          <select class="ap-input" id="apPos3" style="flex:1">
+            <option value="">— none —</option>
+            <option>GK</option><option>LB</option><option>CB</option><option>RB</option>
+            <option>CDM</option><option>CM</option><option>CAM</option><option>LM</option><option>RM</option>
+            <option>ST</option><option>LW</option><option>RW</option><option>CF</option>
+          </select>
+          <button type="button" id="apRmPos3" style="width:32px;height:40px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:none;color:var(--muted);font-size:18px;cursor:pointer;flex-shrink:0;line-height:1">×</button>
+        </div>
       </div>
       <div class="ap-field"><div class="ap-label">Attributes (0–99)</div>
         <div class="slider-grid">
@@ -1819,7 +1843,7 @@ function renderCards(){
   const pos=document.querySelector('#rosterPills .pill.on')?.dataset.pos||'All';
   const posOrder=['GK','LB','CB','RB','LWB','RWB','CDM','CM','DM','LM','RM','CAM','LW','RW','ST','CF','SS'];
   let filtered=activeTeam.players.filter(p=>{
-    const ms=!term||p.name.toLowerCase().includes(term)||p.pos.toLowerCase().includes(term);
+    const ms=!term||p.name.toLowerCase().includes(term)||p.pos.toLowerCase().includes(term)||(p.pos2||'').toLowerCase().includes(term)||(p.pos3||'').toLowerCase().includes(term);
     const mp=pos==='All'||(pos==='GK'&&p.pos==='GK')||(pos==='DEF'&&DEF_POS.includes(p.pos))||(pos==='MID'&&MID_POS.includes(p.pos))||(pos==='FWD'&&FWD_POS.includes(p.pos));
     return ms&&mp;
   });
@@ -1895,7 +1919,7 @@ function openPlayerModal(p, subIndex=null, pitchIdx=null){
     <div style="background:${tierBg};padding:20px 18px 14px;text-align:center;border-bottom:1px solid rgba(255,255,255,.08)">
       <div style="width:72px;height:72px;border-radius:50%;${avatarStyle};border:3px solid ${tierAccent}66;display:flex;align-items:center;justify-content:center;font-family:'Impact',Arial,sans-serif;font-size:26px;margin:0 auto 10px">${p.photo?'':p.init}</div>
       <div style="font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:22px;letter-spacing:.5px;color:#DFF0E3">${p.name}</div>
-      <div style="font-size:11px;color:#6B9A78;margin-top:3px">${p.pos} · #${p.num} · ${tierLabel}${p.flag?' · '+p.flag:''}</div>
+      <div style="font-size:11px;color:#6B9A78;margin-top:3px">${[p.pos,p.pos2,p.pos3].filter(Boolean).join(' / ')} · #${p.num} · ${tierLabel}${p.flag?' · '+p.flag:''}</div>
       <div style="font-size:32px;font-family:'Impact',Arial,sans-serif;color:${tierAccent};margin-top:6px">${p.ovr}</div>
     </div>
     <div style="padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.06)">
@@ -1983,6 +2007,12 @@ function openEditPlayer(p){
   _apPhoto='';
   document.getElementById('apName').value=p.name;
   document.getElementById('apPos').value=p.pos;
+  const _ep2=p.pos2||'';const _ep3=p.pos3||'';
+  document.getElementById('apPos2').value=_ep2;
+  document.getElementById('apPos3').value=_ep3;
+  document.getElementById('apPos2Row').style.display=_ep2?'flex':'none';
+  document.getElementById('apPos3Row').style.display=_ep3?'flex':'none';
+  document.getElementById('apAddPosBtn').style.display=(_ep2&&_ep3)?'none':'';
   document.getElementById('apNum').value=p.num;
   document.getElementById('apFlag').value=p.flag||'';
   document.getElementById('apParentEmail').value=p.parentEmail||'';
@@ -2951,6 +2981,11 @@ function openAddPlayer(){
   _apPhoto='';
   document.getElementById('apName').value='';
   document.getElementById('apPos').value='ST';
+  document.getElementById('apPos2').value='';
+  document.getElementById('apPos3').value='';
+  document.getElementById('apPos2Row').style.display='none';
+  document.getElementById('apPos3Row').style.display='none';
+  document.getElementById('apAddPosBtn').style.display='';
   document.getElementById('apNum').value='';
   document.getElementById('apFlag').value='';
   document.getElementById('apWeight').value='';
@@ -3352,6 +3387,46 @@ function initAuth(){
   if(apClose)apClose.addEventListener('click',closeAddPlayer);
   document.getElementById('addPlayerOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeAddPlayer();});
 
+  /* Secondary position controls */
+  const apAddPosBtn=document.getElementById('apAddPosBtn');
+  const apPos2Row=document.getElementById('apPos2Row');
+  const apPos3Row=document.getElementById('apPos3Row');
+  const apRmPos2=document.getElementById('apRmPos2');
+  const apRmPos3=document.getElementById('apRmPos3');
+  if(apAddPosBtn){
+    apAddPosBtn.addEventListener('click',()=>{
+      if(apPos2Row.style.display==='none'||!apPos2Row.style.display){
+        apPos2Row.style.display='flex';
+        document.getElementById('apPos2').value='';
+      } else {
+        apPos3Row.style.display='flex';
+        document.getElementById('apPos3').value='';
+        apAddPosBtn.style.display='none';
+      }
+    });
+  }
+  if(apRmPos2){
+    apRmPos2.addEventListener('click',()=>{
+      if(apPos3Row.style.display==='flex'){
+        document.getElementById('apPos2').value=document.getElementById('apPos3').value;
+        document.getElementById('apPos3').value='';
+        apPos3Row.style.display='none';
+        apAddPosBtn.style.display='';
+      } else {
+        document.getElementById('apPos2').value='';
+        apPos2Row.style.display='none';
+        apAddPosBtn.style.display='';
+      }
+    });
+  }
+  if(apRmPos3){
+    apRmPos3.addEventListener('click',()=>{
+      document.getElementById('apPos3').value='';
+      apPos3Row.style.display='none';
+      if(apAddPosBtn)apAddPosBtn.style.display='';
+    });
+  }
+
   /* Foot pills */
   document.querySelectorAll('#apFootPills .foot-pill').forEach(b=>{
     b.addEventListener('click',()=>{
@@ -3380,6 +3455,8 @@ function initAuth(){
     const phy=+document.getElementById('apPhy').value;
     const ovr=Math.round((pac+sho+pas+dri+def+phy)/6);
     const pos=document.getElementById('apPos').value;
+    const pos2=document.getElementById('apPos2').value||'';
+    const pos3=document.getElementById('apPos3').value||'';
     const num=parseInt(document.getElementById('apNum').value)||activeTeam.players.length+1;
     const flag=document.getElementById('apFlag').value.trim();
     const tier=ovr>=85?'elite':ovr>=75?'gold':'silver';
@@ -3391,11 +3468,11 @@ function initAuth(){
       const ownerTeam=TEAMS.find(t=>t.players.some(x=>x===_editingPlayer||x.name===_editingPlayer.name));
       if(ownerTeam){
         const pi=ownerTeam.players.findIndex(x=>x===_editingPlayer||x.name===_editingPlayer.name);
-        if(pi>-1)Object.assign(ownerTeam.players[pi],{name,pos,num,ovr,tier,init,flag,pac,sho,pas,dri,def,phy,parentEmail,parentPhone,photo});
+        if(pi>-1)Object.assign(ownerTeam.players[pi],{name,pos,pos2,pos3,num,ovr,tier,init,flag,pac,sho,pas,dri,def,phy,parentEmail,parentPhone,photo});
       }
       saveToStorage();renderCards();closeAddPlayer();showToast(name+' updated!');
     } else {
-      const p={name,pos,num,ovr,tier,init,flag,pac,sho,pas,dri,def,phy,goals:0,assists:0,potm:0,cs:0,parentEmail,parentPhone,photo};
+      const p={name,pos,pos2,pos3,num,ovr,tier,init,flag,pac,sho,pas,dri,def,phy,goals:0,assists:0,potm:0,cs:0,parentEmail,parentPhone,photo};
       activeTeam.players.push(p);
       saveToStorage();renderCards();closeAddPlayer();showToast(name+' added to roster!');
     }
