@@ -1102,8 +1102,17 @@ html{height:-webkit-fill-available}
             <div class="pitch-match-log" id="matchLog">
               <div class="pml-empty">Match just started — events will appear here</div>
             </div>
+            <!-- Formation shape switcher for match mode -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;margin-bottom:6px">
+              <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim)">Formation Shape</span>
+              <div class="pmp-wrap" style="padding:2px;gap:2px">
+                <button class="pmp-btn" id="mSlotDef" data-mslot="defensive" onclick="switchMatchFormSlot('defensive')">DEF</button>
+                <button class="pmp-btn pmp-active" id="mSlotBal" data-mslot="balanced" onclick="switchMatchFormSlot('balanced')">BAL</button>
+                <button class="pmp-btn" id="mSlotAtk" data-mslot="attacking" onclick="switchMatchFormSlot('attacking')">ATK</button>
+              </div>
+            </div>
             <!-- Pitch board in match mode (same SVG, non-draggable) -->
-            <div class="pitch-board" style="margin-top:10px">
+            <div class="pitch-board">
               <svg viewBox="0 0 68 100" preserveAspectRatio="none">
                 <defs>
                   <radialGradient id="pGW2" cx="34" cy="50" r="44" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#fff" stop-opacity=".08"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></radialGradient>
@@ -2176,6 +2185,16 @@ function switchFormSlot(slot){
   renderPitchTokens();
 }
 
+let _matchSlot='balanced';
+function switchMatchFormSlot(slot){
+  _matchSlot=slot;
+  const formPos=getFormPositions(activeTeam?activeTeam.format:null);
+  const pos=SAVED_FORMATIONS[slot]||formPos[slot];
+  match.starters.forEach((p,i)=>{if(pos[i]){p.cx=pos[i].cx;p.cy=pos[i].cy;}});
+  document.querySelectorAll('[data-mslot]').forEach(b=>b.classList.toggle('pmp-active',b.dataset.mslot===slot));
+  renderMatchPitchTokens();
+}
+
 function saveFormation(){
   SAVED_FORMATIONS[activeSlot]=PITCH_PLAYERS.map(p=>({cx:p.cx,cy:p.cy}));
   const lbl={defensive:'Defensive',balanced:'Balanced',attacking:'Attacking'}[activeSlot]||activeSlot;
@@ -2212,6 +2231,8 @@ function initMatch(){
   match.running=false;
   match.seconds=0;match.homeScore=0;match.awayScore=0;
   match.log=[];match.subOff=null;match.subsDone=[];
+  _matchSlot='balanced';
+  document.querySelectorAll('[data-mslot]').forEach(b=>b.classList.toggle('pmp-active',b.dataset.mslot==='balanced'));
   match.starters=[...PITCH_PLAYERS];
   match.bench=[...BENCH_PLAYERS];
   document.getElementById('matchClock').textContent='00:00';
@@ -3001,6 +3022,7 @@ function saveToStorage(){
     localStorage.setItem(_sk('teams'),JSON.stringify(TEAMS));
     localStorage.setItem(_sk('pitch'),JSON.stringify(PITCH_PLAYERS));
     localStorage.setItem(_sk('bench'),JSON.stringify(BENCH_PLAYERS));
+    localStorage.setItem(_sk('savedFormations'),JSON.stringify(SAVED_FORMATIONS));
     localStorage.setItem(_sk('nextId'),String(_teamNextId));
     localStorage.setItem(_sk('events'),JSON.stringify(EVENTS));
     localStorage.setItem(_sk('evNextId'),String(_evNextId));
@@ -3019,6 +3041,8 @@ function loadFromStorage(){
     if(p){const d=JSON.parse(p);PITCH_PLAYERS.length=0;d.forEach(x=>PITCH_PLAYERS.push(x));}
     const b=localStorage.getItem(_sk('bench'));
     if(b){const d=JSON.parse(b);BENCH_PLAYERS.length=0;d.forEach(x=>BENCH_PLAYERS.push(x));}
+    const sf=localStorage.getItem(_sk('savedFormations'));
+    if(sf){const d=JSON.parse(sf);Object.assign(SAVED_FORMATIONS,d);}
     const ni=localStorage.getItem(_sk('nextId'));
     if(ni)_teamNextId=+ni;
     const ev=localStorage.getItem(_sk('events'));
@@ -3031,7 +3055,7 @@ function loadFromStorage(){
 }
 
 function exportData(){
-  const keys=['teams','pitch','bench','nextId','events','evNextId','coach'];
+  const keys=['teams','pitch','bench','savedFormations','nextId','events','evNextId','coach'];
   const out={_v:1,_d:new Date().toISOString()};
   keys.forEach(k=>{const v=localStorage.getItem(_sk(k));if(v)out[k]=v;});
   const auth=localStorage.getItem('cc_auth');if(auth)out._auth=auth;
@@ -3048,7 +3072,7 @@ function importData(file){
   r.onload=e=>{
     try{
       const d=JSON.parse(e.target.result);
-      const keys=['teams','pitch','bench','nextId','events','evNextId','coach'];
+      const keys=['teams','pitch','bench','savedFormations','nextId','events','evNextId','coach'];
       keys.forEach(k=>{if(d[k])localStorage.setItem(_sk(k),d[k]);});
       if(d._auth)localStorage.setItem('cc_auth',d._auth);
       showToast('Data imported — reloading…');
@@ -3059,7 +3083,7 @@ function importData(file){
 }
 
 function _buildSyncPayload(){
-  const keys=['teams','pitch','bench','nextId','events','evNextId','coach'];
+  const keys=['teams','pitch','bench','savedFormations','nextId','events','evNextId','coach'];
   const out={_v:2,_d:new Date().toISOString()};
   keys.forEach(k=>{const v=localStorage.getItem(_sk(k));if(v)out[k]=v;});
   const auth=localStorage.getItem('cc_auth');if(auth)out._auth=auth;
@@ -3133,7 +3157,7 @@ function applySyncCode(code){
     if(!raw.startsWith('CC2:'))return 'Invalid sync code — make sure you copied the full code.';
     const json=decodeURIComponent(escape(atob(raw.slice(4))));
     const d=JSON.parse(json);
-    const keys=['teams','pitch','bench','nextId','events','evNextId','coach'];
+    const keys=['teams','pitch','bench','savedFormations','nextId','events','evNextId','coach'];
     keys.forEach(k=>{if(d[k])localStorage.setItem(_sk(k),d[k]);});
     if(d._auth)localStorage.setItem('cc_auth',d._auth);
     return null; // no error
