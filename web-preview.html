@@ -377,6 +377,19 @@ html{height:-webkit-fill-available}
 .badge-draw{background:rgba(255,215,0,.08);color:var(--gold);border:1px solid rgba(255,215,0,.25)}
 .badge-upcoming{background:rgba(90,170,255,.08);color:var(--blue);border:1px solid rgba(90,170,255,.25)}
 .badge-practice{background:rgba(107,154,120,.1);color:var(--muted);border:1px solid rgba(107,154,120,.25)}
+/* Calendar main view (desktop) */
+.cal-view-wrap{max-width:900px;padding:24px 24px 40px}
+.cal-view-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.cal-view-title{font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:26px;letter-spacing:1px;text-transform:uppercase;color:var(--text)}
+.cal-view-hdr .cal-add-btn{width:auto;margin:0;padding:8px 16px}
+.cal-view-body{display:grid;grid-template-columns:1fr 340px;gap:28px;align-items:start}
+.cal-view-left{}
+.cal-view-right{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;overflow-y:auto;max-height:calc(100vh - 180px)}
+@media(max-width:768px){
+  .cal-view-wrap{padding:12px 12px 32px}
+  .cal-view-body{grid-template-columns:1fr}
+  .cal-view-right{max-height:none}
+}
 
 /* ── Event modal ── */
 .ev-type-row{display:flex;gap:6px;margin-bottom:14px}
@@ -751,10 +764,6 @@ html{height:-webkit-fill-available}
         <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M12 3v18M2 12h20"/></svg>
         <span class="nav-item-lbl">Pitch &amp; Formation</span>
       </button>
-      <button class="nav-item" id="sbCalBtn">
-        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        <span class="nav-item-lbl">Calendar</span>
-      </button>
       <!-- Mini calendar in sidebar -->
       <div class="sb-mini-cal" id="sbMiniCal">
         <div class="smc-nav-row">
@@ -814,7 +823,7 @@ html{height:-webkit-fill-available}
   <main class="main">
 
     <!-- ROSTER TAB -->
-    <div class="view active" id="view-roster">
+    <div class="view" id="view-roster">
       <!-- Teams list -->
       <div id="teamsView">
         <div class="roster-header">
@@ -1003,6 +1012,34 @@ html{height:-webkit-fill-available}
       </div>
     </div>
 
+    <!-- CALENDAR VIEW (desktop default, mobile via menu) -->
+    <div class="view active" id="view-calendar">
+      <div class="cal-view-wrap">
+        <div class="cal-view-hdr">
+          <div class="cal-view-title">Calendar</div>
+          <button class="cal-add-btn" onclick="openEventModal()">+ Add Event</button>
+        </div>
+        <div class="cal-view-body">
+          <div class="cal-view-left">
+            <div class="cal-month-nav" style="margin-bottom:12px">
+              <button class="cal-nav-btn" id="calPrevBtn">‹</button>
+              <div class="cal-month-lbl" id="calMonthLbl">July 2025</div>
+              <button class="cal-nav-btn" id="calNextBtn">›</button>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+            <div style="display:flex;gap:10px;align-items:center;padding:8px 0;flex-wrap:wrap">
+              <div style="display:flex;gap:5px;align-items:center;font-size:10px;color:var(--muted);font-weight:700"><div class="cal-dot dot-game"></div>Game</div>
+              <div style="display:flex;gap:5px;align-items:center;font-size:10px;color:var(--muted);font-weight:700"><div class="cal-dot dot-practice"></div>Practice</div>
+            </div>
+          </div>
+          <div class="cal-view-right">
+            <div class="cal-events-title" id="calEventsTitle">Events</div>
+            <div id="calEventsList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <!-- BOTTOM NAV (mobile) -->
@@ -1068,30 +1105,7 @@ html{height:-webkit-fill-available}
   <div class="menu-version">Roster Radar Web v2.0</div>
 </div>
 
-<!-- CALENDAR PANEL -->
-<div class="panel-overlay" id="panelCalendar">
-  <div class="panel-topbar">
-    <button class="panel-back" onclick="closeMenuPanel('calendar')">
-      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-    </button>
-    <div class="panel-title">Calendar</div>
-    <button class="cal-add-btn" style="margin:0;width:auto;padding:5px 11px;font-size:11px" onclick="openEventModal()">+ Add</button>
-  </div>
-  <div class="panel-body">
-    <div class="cal-month-nav">
-      <button class="cal-nav-btn" id="calPrevBtn">‹</button>
-      <div class="cal-month-lbl" id="calMonthLbl">July 2025</div>
-      <button class="cal-nav-btn" id="calNextBtn">›</button>
-    </div>
-    <div class="cal-grid" id="calGrid"></div>
-    <div style="display:flex;gap:10px;align-items:center;padding:4px 0 12px;flex-wrap:wrap">
-      <div style="display:flex;gap:5px;align-items:center;font-size:10px;color:var(--muted);font-weight:700"><div class="cal-dot dot-game"></div>Game</div>
-      <div style="display:flex;gap:5px;align-items:center;font-size:10px;color:var(--muted);font-weight:700"><div class="cal-dot dot-practice"></div>Practice</div>
-    </div>
-    <div class="cal-events-title" id="calEventsTitle">Events</div>
-    <div id="calEventsList"></div>
-  </div>
-</div>
+<!-- CALENDAR PANEL (mobile fallback shell — content lives in view-calendar) -->
 
 <!-- PROFILE PANEL -->
 <div class="panel-overlay" id="panelProfile">
@@ -1501,10 +1515,11 @@ function switchView(v){
   document.querySelectorAll('.view').forEach(el=>el.classList.toggle('active',el.id==='view-'+v));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
   document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
-  const titles={roster:'Roster',radar:'Player Radar',pitch:'Pitch & Formation'};
+  const titles={roster:'Roster',radar:'Player Radar',pitch:'Pitch & Formation',calendar:'Calendar'};
   document.getElementById('topTitle').textContent=titles[v]||v;
   if(v==='radar'){renderRadarSlots();}
   if(v==='pitch'){renderPitchTokens();renderRegularBench();}
+  if(v==='calendar'){buildCal();}
 }
 
 /* ══════════════════════════════════════════════
@@ -2254,18 +2269,19 @@ function closePostgame(){document.getElementById('postgameOverlay').classList.re
    MENU PANELS (Calendar / Profile / FAQ)
 ══════════════════════════════════════════════ */
 function openMenuPanel(type){
-  const ids={calendar:'panelCalendar',profile:'panelProfile',faq:'panelFaq',stats:'panelStats'};
+  if(type==='calendar'){switchView('calendar');closeMobileMenu();return;}
+  const ids={profile:'panelProfile',faq:'panelFaq',stats:'panelStats'};
   const id=ids[type];if(!id)return;
   document.querySelectorAll('.panel-overlay').forEach(p=>p.classList.remove('open'));
   document.getElementById(id).classList.add('open');
   document.getElementById('panelBackdrop').classList.add('show');
-  if(type==='calendar')buildCal();
   if(type==='profile')renderProfilePanel();
   if(type==='faq')renderFaqPanel();
   if(type==='stats')buildStats();
 }
 function closeMenuPanel(type){
-  const ids={calendar:'panelCalendar',profile:'panelProfile',faq:'panelFaq',stats:'panelStats'};
+  if(type==='calendar')return;
+  const ids={profile:'panelProfile',faq:'panelFaq',stats:'panelStats'};
   const id=ids[type];if(id)document.getElementById(id).classList.remove('open');
   document.getElementById('panelBackdrop').classList.remove('show');
 }
@@ -2414,7 +2430,7 @@ function renderSidebarCal(){
     el.addEventListener('click',()=>{
       const d=new Date(el.dataset.date+'T00:00');
       _calYear=d.getFullYear();_calMonth=d.getMonth();
-      openMenuPanel('calendar');
+      switchView('calendar');
     });
   });
 }
@@ -2946,7 +2962,7 @@ function bootApp(){
   applyCoachUI();
   renderTeamChips();
   showTeamsList();
-  switchView('roster');
+  switchView('calendar');
   renderPitchTokens();
   renderRegularBench();
   /* Show coach email in profile panel */
@@ -3014,7 +3030,7 @@ function initAuth(){
   if(backdrop)backdrop.addEventListener('click',()=>{
     closeMobileMenu();
     document.querySelectorAll('.panel-overlay.open').forEach(p=>{
-      const type=p.id==='panelCalendar'?'calendar':p.id==='panelProfile'?'profile':p.id==='panelFaq'?'faq':p.id==='panelStats'?'stats':null;
+      const type=p.id==='panelProfile'?'profile':p.id==='panelFaq'?'faq':p.id==='panelStats'?'stats':null;
       if(type)closeMenuPanel(type);
     });
   });
@@ -3407,7 +3423,7 @@ function initAuth(){
 
   /* Sidebar calendar button */
   const sbCalBtn=document.getElementById('sbCalBtn');
-  if(sbCalBtn)sbCalBtn.addEventListener('click',()=>openMenuPanel('calendar'));
+  if(sbCalBtn)sbCalBtn.addEventListener('click',()=>switchView('calendar'));
 
   /* Sidebar mini-calendar */
   renderSidebarCal();
