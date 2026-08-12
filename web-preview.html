@@ -1559,11 +1559,7 @@ function _migrateAuth(){
 /* ══════════════════════════════════════════════
    DATA
 ══════════════════════════════════════════════ */
-let TEAMS=[
-  {id:'u14',name:'GSA United U14',initial:'G',color:'#00E564',formation:'4-3-3',season:'Spring 2025',ovr:0,players:[]},
-  {id:'u16',name:'GSA Elite U16',initial:'E',color:'#4B9FFF',formation:'4-2-3-1',season:'Spring 2025',ovr:0,players:[]},
-  {id:'u12',name:'GSA Academy U12',initial:'A',color:'#FF8C42',formation:'4-4-2',season:'Spring 2025',ovr:0,players:[]},
-];
+let TEAMS=[];
 
 const PITCH_PLAYERS=[];
 
@@ -3078,6 +3074,17 @@ function saveToStorage(){
 }
 
 function loadFromStorage(){
+  /* Always wipe in-memory state first — prevents data from a previous account
+     bleeding into a new one when accounts are switched without a full page reload */
+  TEAMS.length=0;
+  PITCH_PLAYERS.length=0;
+  BENCH_PLAYERS.length=0;
+  EVENTS.length=0;
+  CUSTOM_EV_TYPES.length=0;
+  _teamNextId=1;
+  _evNextId=1;
+  ['defensive','balanced','attacking'].forEach(k=>SAVED_FORMATIONS[k]=null);
+  Object.assign(COACH,{name:'Coach',role:'Head Coach',club:'',initials:'C',phone:'',pfp:null,theme:'field'});
   try{
     const t=localStorage.getItem(_sk('teams'));
     if(t){const d=JSON.parse(t);TEAMS.length=0;d.forEach(x=>{
