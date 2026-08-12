@@ -246,9 +246,10 @@ html{height:-webkit-fill-available}
 .pitch-board{border-radius:10px;overflow:hidden;border:2px solid rgba(0,229,100,.6);box-shadow:0 0 20px rgba(0,229,100,.18);position:relative;width:100%}
 .pitch-board svg{display:block;width:100%}
 .pitch-overlay{position:absolute;inset:0;pointer-events:none}
-.pitch-tok{position:absolute;transform:translate(-50%,-50%);pointer-events:all;cursor:pointer;display:flex;flex-direction:column;align-items:center;border-radius:5px;padding:2px 3px 3px;width:36px;transition:transform .15s;z-index:2}
+.pitch-tok{position:absolute;transform:translate(-50%,-50%);pointer-events:all;cursor:grab;touch-action:none;display:flex;flex-direction:column;align-items:center;border-radius:5px;padding:2px 3px 3px;width:36px;transition:transform .15s;z-index:2}
 .pitch-tok:hover{transform:translate(-50%,-50%) scale(1.15)}
-.pitch-tok.dragging{transform:translate(-50%,-50%) scale(1.2);z-index:10}
+.pitch-tok.dragging{transform:translate(-50%,-50%) scale(1.25);z-index:10;cursor:grabbing}
+.pitch-tok.sub-out{outline:2px solid var(--gold);outline-offset:2px;box-shadow:0 0 14px rgba(255,215,0,.55)}
 .pitch-tok-gold{background:linear-gradient(160deg,#3a2400 0%,#6b4600 50%,#3a2400 100%);border:1px solid rgba(255,215,0,.5);box-shadow:0 2px 8px rgba(0,0,0,.7)}
 .pitch-tok-elite{background:linear-gradient(160deg,#060d1e 0%,#0d2040 50%,#060d1e 100%);border:1px solid rgba(70,130,255,.55);box-shadow:0 2px 8px rgba(0,0,0,.7)}
 .pitch-tok-silver{background:linear-gradient(160deg,#1a1f2e 0%,#28304a 50%,#1a1f2e 100%);border:1px solid rgba(160,160,200,.35);box-shadow:0 2px 8px rgba(0,0,0,.7)}
@@ -698,6 +699,9 @@ html{height:-webkit-fill-available}
 .bench-info{flex:1;min-width:0}
 .bench-name{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bench-meta{font-size:9px;color:var(--muted)}
+.bench-sub-banner{background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.28);border-radius:9px;padding:8px 12px;margin:8px 10px 4px;font-size:10px;font-weight:800;color:var(--gold);text-align:center;letter-spacing:.3px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.bench-player.sub-pick{cursor:pointer;background:rgba(255,215,0,.04)}
+.bench-player.sub-pick:hover{background:rgba(255,215,0,.13)}
 /* Match bench chip sub-elements */
 .bcm-num{font-size:9px;font-weight:800;color:var(--dim);width:18px;flex-shrink:0}
 .bcm-av{width:28px;height:28px;border-radius:50%;background:rgba(0,229,100,.1);border:1px solid rgba(0,229,100,.25);display:flex;align-items:center;justify-content:center;font-family:'Impact',Arial,sans-serif;font-size:10px;color:var(--green);flex-shrink:0}
@@ -1054,7 +1058,7 @@ html{height:-webkit-fill-available}
                 </svg>
                 <div class="pitch-overlay" id="pitchOverlay"></div>
               </div>
-              <div class="pitch-hint">Drag tokens to reposition · Click to view player</div>
+              <div class="pitch-hint">Hold &amp; drag to move · Tap to view / sub out</div>
             </div>
           </div>
           <div class="bench-panel">
@@ -1524,6 +1528,35 @@ let TEAMS=[
 const PITCH_PLAYERS=[];
 
 const BENCH_PLAYERS=[];
+let _regularSubPitchIdx=null;
+
+function _startRegularSub(pi){
+  _regularSubPitchIdx=pi;
+  closePlayerModal();
+  const tok=document.querySelector(`#pitchOverlay .pitch-tok[data-pi="${pi}"]`);
+  if(tok)tok.classList.add('sub-out');
+  renderRegularBench();
+}
+function _cancelRegularSub(){
+  _regularSubPitchIdx=null;
+  document.querySelectorAll('#pitchOverlay .pitch-tok.sub-out').forEach(t=>t.classList.remove('sub-out'));
+  renderRegularBench();
+}
+function _doRegularSubSwap(bi,isPitchTok=false){
+  const pi=_regularSubPitchIdx;
+  if(pi===null||pi===undefined)return;
+  const pitchP=PITCH_PLAYERS[pi];
+  const benchP=BENCH_PLAYERS[bi];
+  if(!pitchP||!benchP){_cancelRegularSub();return;}
+  const{cx,cy}=pitchP;
+  const newPitchP={...benchP,cx,cy};
+  const newBenchP={...pitchP};delete newBenchP.cx;delete newBenchP.cy;
+  PITCH_PLAYERS.splice(pi,1,newPitchP);
+  BENCH_PLAYERS.splice(bi,1,newBenchP);
+  _regularSubPitchIdx=null;
+  saveToStorage();renderPitchTokens();renderRegularBench();
+  showToast(`↕ ${benchP.name} on · ${pitchP.name} off`);
+}
 
 const FORM_POSITIONS={
   defensive:[
@@ -1844,7 +1877,7 @@ function buildRadarSvg(p){
   s+='</svg>';return s;
 }
 
-function openPlayerModal(p, subIndex=null){
+function openPlayerModal(p, subIndex=null, pitchIdx=null){
   const modal=document.getElementById('playerModal');
   const body=document.getElementById('pmBody');
   const tierLabel={gold:'Gold',elite:'Elite',silver:'Silver'}[p.tier]||p.tier;
@@ -1883,13 +1916,20 @@ function openPlayerModal(p, subIndex=null){
       ${p.parentEmail?`<div style="font-size:12px;color:#6B9A78;margin-bottom:4px">✉ ${p.parentEmail}</div>`:''}
       ${p.parentPhone?`<div style="font-size:12px;color:#6B9A78">✆ ${p.parentPhone}</div>`:''}
     </div>`:''}
-    <div style="height:${subIndex!==null?4:20}px"></div>
+    <div style="height:${(subIndex!==null||pitchIdx!==null)?4:20}px"></div>
   `;
   if(subIndex!==null){
     const subBar=document.createElement('div');
     subBar.style.cssText='padding:0 18px 8px';
     subBar.innerHTML='<button class="pga-btn pga-sub" style="width:100%;font-size:12px">⟳ Sub In</button>';
     subBar.querySelector('button').addEventListener('click',()=>{closePlayerModal();openSubPicker(subIndex);});
+    body.appendChild(subBar);
+  }
+  if(pitchIdx!==null){
+    const subBar=document.createElement('div');
+    subBar.style.cssText='padding:0 18px 8px';
+    subBar.innerHTML=`<button style="width:100%;padding:11px;border-radius:10px;background:rgba(255,215,0,.09);border:1px solid rgba(255,215,0,.32);color:var(--gold);font-size:12px;font-weight:800;cursor:pointer;letter-spacing:.4px;display:flex;align-items:center;justify-content:center;gap:7px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M7 16V4m0 0L3 8m4-4 4 4M17 8v12m0 0 4-4m-4 4-4-4"/></svg>Sub Out</button>`;
+    subBar.querySelector('button').addEventListener('click',()=>_startRegularSub(pitchIdx));
     body.appendChild(subBar);
   }
   /* Delete player button */
@@ -2099,14 +2139,16 @@ function makeDraggable(tok,pi){
   if(match.running)return;
   let sx,sy,scx,scy,moved=false;
   tok.addEventListener('pointerdown',e=>{
+    if(e.button&&e.button!==0)return;
     e.preventDefault();tok.setPointerCapture(e.pointerId);
     sx=e.clientX;sy=e.clientY;scx=PITCH_PLAYERS[pi].cx;scy=PITCH_PLAYERS[pi].cy;moved=false;
     tok.classList.add('dragging');
   });
   tok.addEventListener('pointermove',e=>{
     if(!tok.hasPointerCapture(e.pointerId))return;
+    e.preventDefault();
     const dx=e.clientX-sx,dy=e.clientY-sy;
-    if(!moved&&(Math.abs(dx)>4||Math.abs(dy)>4))moved=true;
+    if(!moved&&(Math.abs(dx)>6||Math.abs(dy)>6))moved=true;
     if(moved){
       const rect=tok.parentElement.getBoundingClientRect();
       const ncx=Math.max(3,Math.min(97,scx+dx/rect.width*100));
@@ -2117,8 +2159,12 @@ function makeDraggable(tok,pi){
   });
   tok.addEventListener('pointerup',()=>{
     tok.classList.remove('dragging');
-    if(!moved)openPlayerModal(PITCH_PLAYERS[pi]);
+    if(!moved){
+      if(_regularSubPitchIdx!==null){_doRegularSubSwap(pi,true);}
+      else{openPlayerModal(PITCH_PLAYERS[pi],null,pi);}
+    }
   });
+  tok.addEventListener('pointercancel',()=>{tok.classList.remove('dragging');});
 }
 
 function switchFormSlot(slot){
@@ -2140,11 +2186,22 @@ function saveFormation(){
 function renderRegularBench(){
   const b=document.getElementById('regularBench');
   if(!b)return;
-  b.innerHTML=BENCH_PLAYERS.map(p=>`<div class="bench-player">
-    <div class="bench-av ${p.tier||'silver'}">${p.init}</div>
-    <div class="bench-info"><div class="bench-name">${p.name}</div><div class="bench-meta">${p.pos} · #${p.num}</div></div>
-    <div style="font-family:'Impact',Arial,sans-serif;font-size:14px;color:#6B9A78">${p.ovr}</div>
-  </div>`).join('');
+  const subMode=_regularSubPitchIdx!==null;
+  const outP=subMode?PITCH_PLAYERS[_regularSubPitchIdx]:null;
+  let html='';
+  if(subMode){
+    html+=`<div class="bench-sub-banner"><span>Select sub for <strong>${outP?.name||'player'}</strong></span><button onclick="_cancelRegularSub()" style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:14px;line-height:1;padding:0;opacity:.75" title="Cancel">✕</button></div>`;
+  }
+  if(!BENCH_PLAYERS.length){
+    html+='<div style="text-align:center;padding:28px 12px;font-size:11px;color:var(--dim);font-weight:700">No bench players</div>';
+  } else {
+    html+=BENCH_PLAYERS.map((p,i)=>`<div class="bench-player${subMode?' sub-pick':''}" ${subMode?`onclick="_doRegularSubSwap(${i})"`:''}>
+      <div class="bench-av ${p.tier||'silver'}">${p.init}</div>
+      <div class="bench-info"><div class="bench-name">${p.name}</div><div class="bench-meta">${p.pos} · #${p.num}</div></div>
+      ${subMode?`<span style="font-size:9px;font-weight:900;color:var(--gold);flex-shrink:0;letter-spacing:.3px">↕ IN</span>`:`<span style="font-family:'Impact',Arial,sans-serif;font-size:14px;color:#6B9A78">${p.ovr}</span>`}
+    </div>`).join('');
+  }
+  b.innerHTML=html;
 }
 
 /* ══════════════════════════════════════════════
