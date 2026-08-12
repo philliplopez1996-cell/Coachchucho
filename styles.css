@@ -247,19 +247,6 @@
       border-color: rgba(198,255,61,0.4);
       color: var(--lime);
     }
-    .nav-badge {
-      margin-left: auto;
-      font-size: 10px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      padding: 3px 8px;
-      border-radius: 10px;
-      background: rgba(198,255,61,0.15);
-      color: var(--lime);
-      border: 1px solid rgba(198,255,61,0.4);
-      white-space: nowrap;
-    }
     .nav-item .icon {
       font-size: 22px;
       width: 32px;
