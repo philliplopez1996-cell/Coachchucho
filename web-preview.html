@@ -611,9 +611,14 @@ html{height:-webkit-fill-available}
 .postgame-confirm-btn{width:100%;padding:14px;background:var(--green);border:none;border-radius:12px;color:#071A0A;font-size:14px;font-weight:900;cursor:pointer;margin-top:16px;letter-spacing:.3px}
 
 /* ── Add Player Modal ── */
-.addp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:220;display:none;align-items:flex-end}
+.addp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:220;display:none;align-items:flex-end;justify-content:center}
 .addp-overlay.open{display:flex}
 .addp-sheet{background:linear-gradient(160deg,#0c1810 0%,#060d08 100%);border-radius:20px 20px 0 0;border:1px solid var(--border);width:100%;max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
+/* Desktop: centered dialog instead of bottom sheet */
+@media(min-width:769px){
+  #eventModalOverlay{align-items:center}
+  #eventModalOverlay .addp-sheet{width:500px;max-width:96vw;border-radius:20px;max-height:88vh}
+}
 .addp-topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0}
 .addp-title{font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:16px;letter-spacing:1px;color:var(--text)}
 .addp-close{width:28px;height:28px;border-radius:7px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:var(--muted);cursor:pointer;font-size:14px}
@@ -1120,11 +1125,11 @@ html{height:-webkit-fill-available}
               <button class="cal-nav-btn" id="calNextBtn">›</button>
             </div>
             <div class="cal-grid" id="calGrid"></div>
-            <div style="display:flex;gap:12px;align-items:center;padding:10px 0;flex-wrap:wrap">
-              <div style="display:flex;gap:5px;align-items:center;font-size:10px;color:var(--muted);font-weight:700"><div class="cal-dot" style="background:#00E564;box-shadow:0 0 4px #00E56488"></div>Practice</div>
-              <div style="display:flex;gap:5px;align-items:center;font-size:10px;color:var(--muted);font-weight:700"><div class="cal-dot" style="background:#4B9FFF;box-shadow:0 0 4px #4B9FFF88"></div>Game</div>
-              <div style="display:flex;gap:5px;align-items:center;font-size:10px;color:var(--muted);font-weight:700"><div class="cal-dot" style="background:#FF9F40;box-shadow:0 0 4px #FF9F4088"></div>Meeting</div>
-              <div style="display:flex;gap:5px;align-items:center;font-size:10px;color:var(--muted);font-weight:700"><div class="cal-dot" style="background:#FF5C5C;box-shadow:0 0 4px #FF5C5C88"></div>Tournament</div>
+            <div style="display:flex;gap:14px;align-items:center;padding:12px 0 4px;flex-wrap:wrap">
+              <div style="display:flex;gap:6px;align-items:center;font-size:10px;color:var(--muted);font-weight:700"><div style="width:18px;height:4px;border-radius:999px;background:#00E564;box-shadow:0 0 6px #00E56488"></div>Practice</div>
+              <div style="display:flex;gap:6px;align-items:center;font-size:10px;color:var(--muted);font-weight:700"><div style="width:18px;height:4px;border-radius:999px;background:#4B9FFF;box-shadow:0 0 6px #4B9FFF88"></div>Game</div>
+              <div style="display:flex;gap:6px;align-items:center;font-size:10px;color:var(--muted);font-weight:700"><div style="width:18px;height:4px;border-radius:999px;background:#FF9F40;box-shadow:0 0 6px #FF9F4088"></div>Meeting</div>
+              <div style="display:flex;gap:6px;align-items:center;font-size:10px;color:var(--muted);font-weight:700"><div style="width:18px;height:4px;border-radius:999px;background:#FF5C5C;box-shadow:0 0 6px #FF5C5C88"></div>Tournament</div>
             </div>
           </div>
           <div class="cal-view-right">
@@ -1452,11 +1457,14 @@ html{height:-webkit-fill-available}
       </div>
       <!-- Multi-date: hidden when editing an existing event -->
       <div id="evMultiDateSection" style="display:none;margin-bottom:4px">
-        <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:8px">Also add on these dates</div>
+        <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:8px">Repeat on additional dates</div>
         <div id="evDateChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;min-height:0"></div>
         <div class="ap-field" style="margin:0">
-          <div class="ap-label">Pick a date to add it</div>
-          <input class="ap-input" id="evExtraPicker" type="date">
+          <div class="ap-label">Add another date</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input class="ap-input" id="evExtraPicker" type="date" style="flex:1">
+            <button type="button" id="evExtraAddBtn" style="height:40px;padding:0 16px;border-radius:9px;border:1px solid rgba(0,229,100,.4);background:rgba(0,229,100,.12);color:var(--green);font-size:13px;font-weight:900;cursor:pointer;flex-shrink:0;white-space:nowrap">+ Add</button>
+          </div>
         </div>
       </div>
       <div class="ap-field"><div class="ap-label">Team</div>
@@ -2425,7 +2433,7 @@ function buildCal(){
     const colors=eventDayColors[d]||[];
     let cls='cal-day'+(isToday?' today':'');
     h+=`<div class="${cls}" data-d="${d}"><div class="cal-day-num">${d}</div>`;
-    if(colors.length)h+=`<div style="display:flex;gap:3px;margin-top:auto;flex-wrap:wrap">${colors.slice(0,3).map(c=>`<div class="cal-dot" style="background:${c};box-shadow:0 0 4px ${c}88"></div>`).join('')}</div>`;
+    if(colors.length)h+=`<div style="position:absolute;bottom:7px;left:8px;right:8px;display:flex;gap:3px">${colors.slice(0,3).map(c=>`<div style="height:4px;border-radius:999px;flex:1;background:${c};box-shadow:0 0 6px ${c}99"></div>`).join('')}</div>`;
     h+=`</div>`;
   }
   const grid=document.getElementById('calGrid');
@@ -3357,9 +3365,10 @@ function initAuth(){
     }
   });
 
-  /* Multi-date: auto-add chip as soon as a date is picked */
+  /* Multi-date: add via button OR auto-add on change (both for cross-browser reliability) */
   const evExtraPicker=document.getElementById('evExtraPicker');
-  if(evExtraPicker)evExtraPicker.addEventListener('change',()=>{
+  function _tryAddExtraDate(){
+    if(!evExtraPicker)return;
     const val=evExtraPicker.value;
     if(!val)return;
     const primary=document.getElementById('evDate').value;
@@ -3367,7 +3376,13 @@ function initAuth(){
     _extraDates.push(val);
     _renderExtraDates();
     evExtraPicker.value='';
-  });
+  }
+  if(evExtraPicker){
+    evExtraPicker.addEventListener('change',_tryAddExtraDate);
+    evExtraPicker.addEventListener('input',_tryAddExtraDate);
+  }
+  const evExtraAddBtn=document.getElementById('evExtraAddBtn');
+  if(evExtraAddBtn)evExtraAddBtn.addEventListener('click',_tryAddExtraDate);
 
   /* Event delete */
   const evDeleteBtn=document.getElementById('evDeleteBtn');
