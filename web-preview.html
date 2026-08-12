@@ -1533,6 +1533,11 @@ html{height:-webkit-fill-available}
 <div class="toast" id="toast"></div>
 
 <script>
+/* ── Signup tracking (Google Apps Script webhook) ──
+   Paste your deployed web app URL below.
+   Leave empty to disable tracking.                  */
+const SIGNUP_WEBHOOK_URL='';
+
 /* ══════════════════════════════════════════════
    LOCAL AUTH HELPERS
 ══════════════════════════════════════════════ */
@@ -3697,6 +3702,14 @@ function initAuth(){
     localStorage.setItem(_sk('coach'),JSON.stringify(COACH));
     sessionStorage.setItem('cc_ok','1');
     sessionStorage.setItem('cc_ns',_userNs);
+    /* Track signup — fire-and-forget, never blocks the user */
+    if(SIGNUP_WEBHOOK_URL){
+      fetch(SIGNUP_WEBHOOK_URL,{method:'POST',body:JSON.stringify({
+        name,email,
+        timestamp:new Date().toISOString(),
+        device:navigator.userAgent.slice(0,120)
+      })}).catch(()=>{});
+    }
     document.getElementById('authScreen').style.display='none';
     bootApp();
   });
