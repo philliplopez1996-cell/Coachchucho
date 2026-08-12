@@ -1469,12 +1469,14 @@ html{height:-webkit-fill-available}
           <button type="button" id="evAddTypeBtn" style="font-size:10px;font-weight:800;color:var(--green);background:rgba(0,229,100,.1);border:1px solid rgba(0,229,100,.25);border-radius:6px;padding:3px 9px;cursor:pointer;letter-spacing:.3px">+ Custom</button>
         </div>
         <div class="ev-type-row" id="evTypeRow"></div>
-        <div id="evCustomTypeForm" style="display:none;margin-top:8px">
-          <div style="display:flex;gap:8px;align-items:center">
+        <div id="evCustomTypeForm" style="display:none;margin-top:8px;padding:10px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:10px">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
             <input id="evCustomTypeInput" class="ap-input" type="text" placeholder="e.g. Friendly, Tryout…" maxlength="24" style="flex:1;height:36px">
-            <button type="button" id="evCustomTypeConfirm" style="height:36px;padding:0 14px;border-radius:9px;border:1px solid rgba(0,229,100,.4);background:rgba(0,229,100,.12);color:var(--green);font-size:12px;font-weight:900;cursor:pointer;flex-shrink:0;white-space:nowrap">Add</button>
             <button type="button" id="evCustomTypeCancel" style="height:36px;width:36px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:none;color:var(--muted);font-size:14px;cursor:pointer;flex-shrink:0">✕</button>
           </div>
+          <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:7px">Pick a color</div>
+          <div id="evCustomColorPicker" style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px"></div>
+          <button type="button" id="evCustomTypeConfirm" style="width:100%;height:36px;border-radius:9px;border:1px solid rgba(0,229,100,.4);background:rgba(0,229,100,.12);color:var(--green);font-size:12px;font-weight:900;cursor:pointer">Add Type</button>
         </div>
       </div>
       <div class="ap-field"><div class="ap-label">Event Color</div>
@@ -2625,8 +2627,17 @@ function _typeColor(key){const t=_allEvTypes().find(t=>t.key===key);return t?t.c
 function _nextCustomColor(){const used=_allEvTypes().map(t=>t.color);return EV_COLORS.find(c=>!used.includes(c))||EV_COLORS[(CUSTOM_EV_TYPES.length+4)%EV_COLORS.length];}
 function _renderEvTypeButtons(){
   const row=document.getElementById('evTypeRow');if(!row)return;
-  row.innerHTML=_allEvTypes().map(t=>`<button class="ev-type-btn${t.key===_evType?' sel':''}" data-evtype="${t.key}">${t.label}</button>`).join('');
-  row.querySelectorAll('.ev-type-btn').forEach(btn=>{
+  row.innerHTML='';
+  _allEvTypes().forEach(t=>{
+    const isCustom=!EV_BUILT_IN.find(b=>b.key===t.key);
+    const btn=document.createElement('button');
+    btn.className='ev-type-btn'+(t.key===_evType?' sel':'');
+    btn.dataset.evtype=t.key;
+    if(isCustom){
+      btn.innerHTML=`<span style="pointer-events:none">${t.label}</span><span class="ev-type-del" data-delkey="${t.key}" style="margin-left:5px;opacity:.55;font-size:13px;line-height:1;vertical-align:middle;pointer-events:auto">×</span>`;
+    } else {
+      btn.textContent=t.label;
+    }
     btn.addEventListener('click',()=>{
       _evType=btn.dataset.evtype;
       _evColor=_typeColor(_evType);
@@ -2634,10 +2645,22 @@ function _renderEvTypeButtons(){
       document.getElementById('evScoreRow').style.display=(_evType==='game')?'':'none';
       _renderEvColorSwatches();
     });
+    row.appendChild(btn);
+  });
+  row.querySelectorAll('.ev-type-del').forEach(x=>{
+    x.addEventListener('click',e=>{
+      e.stopPropagation();
+      const key=x.dataset.delkey;
+      CUSTOM_EV_TYPES=CUSTOM_EV_TYPES.filter(t=>t.key!==key);
+      localStorage.setItem(_sk('customEvTypes'),JSON.stringify(CUSTOM_EV_TYPES));
+      if(_evType===key){_evType='practice';_evColor=_typeColor('practice');}
+      _renderEvTypeButtons();_renderEvColorSwatches();
+    });
   });
 }
 let _evType='practice';
 let _evColor='#00E564';
+let _customTypeColor='';
 let _extraDates=[];
 
 function _renderEvColorSwatches(){
@@ -3461,18 +3484,33 @@ function initAuth(){
   const evCustomTypeInput=document.getElementById('evCustomTypeInput');
   const evCustomTypeConfirm=document.getElementById('evCustomTypeConfirm');
   const evCustomTypeCancel=document.getElementById('evCustomTypeCancel');
+  function _renderCustomColorPicker(){
+    const picker=document.getElementById('evCustomColorPicker');if(!picker)return;
+    picker.innerHTML=EV_COLORS.map(c=>`<div class="ev-color-swatch${c===_customTypeColor?' sel':''}" data-color="${c}" style="background:${c}"></div>`).join('');
+    picker.querySelectorAll('.ev-color-swatch').forEach(sw=>{
+      sw.addEventListener('click',()=>{
+        _customTypeColor=sw.dataset.color;
+        picker.querySelectorAll('.ev-color-swatch').forEach(s=>s.classList.toggle('sel',s.dataset.color===_customTypeColor));
+      });
+    });
+  }
   if(evAddTypeBtn){
     evAddTypeBtn.addEventListener('click',()=>{
       const showing=evCustomTypeForm.style.display!=='none';
       evCustomTypeForm.style.display=showing?'none':'';
-      if(!showing){evCustomTypeInput.value='';evCustomTypeInput.focus();}
+      if(!showing){
+        evCustomTypeInput.value='';
+        evCustomTypeInput.focus();
+        _customTypeColor=_nextCustomColor();
+        _renderCustomColorPicker();
+      }
     });
   }
   function _doAddCustomType(){
     const label=evCustomTypeInput.value.trim();if(!label)return;
     const key='custom_'+label.toLowerCase().replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'');
     if(_allEvTypes().find(t=>t.key===key)){showToast('Type already exists!');return;}
-    const color=_nextCustomColor();
+    const color=_customTypeColor||_nextCustomColor();
     CUSTOM_EV_TYPES.push({key,label,color});
     localStorage.setItem(_sk('customEvTypes'),JSON.stringify(CUSTOM_EV_TYPES));
     _evType=key;_evColor=color;
