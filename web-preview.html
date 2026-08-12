@@ -393,10 +393,16 @@ html{height:-webkit-fill-available}
 }
 
 /* ── Event modal ── */
-.ev-type-row{display:flex;gap:6px;margin-bottom:14px}
-.ev-type-btn{flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:none;color:var(--muted);font-size:12px;font-weight:800;cursor:pointer;transition:all .15s}
-.ev-type-btn.sel{background:rgba(0,229,100,.12);border-color:rgba(0,229,100,.4);color:var(--green)}
-.ev-type-btn.sel-game{background:rgba(90,170,255,.1);border-color:rgba(90,170,255,.35);color:var(--blue)}
+.ev-type-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px}
+.ev-type-btn{padding:9px 6px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:none;color:var(--muted);font-size:11px;font-weight:800;cursor:pointer;transition:all .15s;text-align:center}
+.ev-type-btn:hover{border-color:rgba(255,255,255,.2);color:var(--text)}
+.ev-type-btn.sel{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.28);color:var(--text)}
+/* Color swatches */
+.ev-color-row{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:14px}
+.ev-color-swatch{width:30px;height:30px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;position:relative;flex-shrink:0;transition:transform .12s,border-color .12s;box-sizing:border-box}
+.ev-color-swatch:hover{transform:scale(1.14)}
+.ev-color-swatch.sel{border-color:rgba(255,255,255,.9);box-shadow:0 0 0 1.5px rgba(0,0,0,.55)}
+.ev-color-swatch.sel::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.9)}
 
 /* ── Profile edit ── */
 .prof-edit-form{background:var(--surface);border-radius:12px;border:1px solid var(--border2);padding:14px;margin-top:12px}
@@ -1023,9 +1029,11 @@ html{height:-webkit-fill-available}
               <button class="cal-nav-btn" id="calNextBtn">›</button>
             </div>
             <div class="cal-grid" id="calGrid"></div>
-            <div style="display:flex;gap:10px;align-items:center;padding:8px 0;flex-wrap:wrap">
-              <div style="display:flex;gap:5px;align-items:center;font-size:10px;color:var(--muted);font-weight:700"><div class="cal-dot dot-game"></div>Game</div>
-              <div style="display:flex;gap:5px;align-items:center;font-size:10px;color:var(--muted);font-weight:700"><div class="cal-dot dot-practice"></div>Practice</div>
+            <div style="display:flex;gap:12px;align-items:center;padding:10px 0;flex-wrap:wrap">
+              <div style="display:flex;gap:5px;align-items:center;font-size:10px;color:var(--muted);font-weight:700"><div class="cal-dot" style="background:#00E564;box-shadow:0 0 4px #00E56488"></div>Practice</div>
+              <div style="display:flex;gap:5px;align-items:center;font-size:10px;color:var(--muted);font-weight:700"><div class="cal-dot" style="background:#4B9FFF;box-shadow:0 0 4px #4B9FFF88"></div>Game</div>
+              <div style="display:flex;gap:5px;align-items:center;font-size:10px;color:var(--muted);font-weight:700"><div class="cal-dot" style="background:#FF9F40;box-shadow:0 0 4px #FF9F4088"></div>Meeting</div>
+              <div style="display:flex;gap:5px;align-items:center;font-size:10px;color:var(--muted);font-weight:700"><div class="cal-dot" style="background:#FF5C5C;box-shadow:0 0 4px #FF5C5C88"></div>Tournament</div>
             </div>
           </div>
           <div class="cal-view-right">
@@ -1337,9 +1345,14 @@ html{height:-webkit-fill-available}
     <div class="addp-body">
       <div class="ap-field"><div class="ap-label">Event Type</div>
         <div class="ev-type-row">
-          <button class="ev-type-btn sel" data-evtype="practice" id="evTypePractice">Practice</button>
-          <button class="ev-type-btn" data-evtype="game" id="evTypeGame">Game</button>
+          <button class="ev-type-btn sel" data-evtype="practice">Practice</button>
+          <button class="ev-type-btn" data-evtype="game">Game</button>
+          <button class="ev-type-btn" data-evtype="meeting">Team Meeting</button>
+          <button class="ev-type-btn" data-evtype="tournament">Tournament</button>
         </div>
+      </div>
+      <div class="ap-field"><div class="ap-label">Event Color</div>
+        <div class="ev-color-row" id="evColorRow"></div>
       </div>
       <div class="ap-field"><div class="ap-label">Title / Opponent</div><input class="ap-input" id="evTitle" type="text" placeholder="e.g. Team Practice or vs FC Wolves"></div>
       <div class="ap-2col">
@@ -2303,11 +2316,14 @@ function buildCal(){
   const monFirst=(first===0?6:first-1);
   const daysInMonth=new Date(y,m+1,0).getDate();
   const today=new Date();
-  const eventDays={};
+  const eventDayColors={};
   EVENTS.forEach(e=>{
     const ed=new Date(e.date+'T12:00:00');
     if(ed.getFullYear()===y&&ed.getMonth()===m){
-      const d=ed.getDate();if(!eventDays[d])eventDays[d]=[];eventDays[d].push(e.type);
+      const d=ed.getDate();
+      if(!eventDayColors[d])eventDayColors[d]=[];
+      const c=e.color||(EV_TYPE_DEFAULTS[e.type]||'#00E564');
+      if(!eventDayColors[d].includes(c))eventDayColors[d].push(c);
     }
   });
   const DOW=['M','T','W','T','F','S','S'];
@@ -2315,12 +2331,10 @@ function buildCal(){
   for(let i=0;i<monFirst;i++)h+=`<div class="cal-day other-month"></div>`;
   for(let d=1;d<=daysInMonth;d++){
     const isToday=today.getFullYear()===y&&today.getMonth()===m&&today.getDate()===d;
-    const evTypes=eventDays[d]||[];
-    const hasGame=evTypes.includes('game'),hasPrac=evTypes.includes('practice');
+    const colors=eventDayColors[d]||[];
     let cls='cal-day'+(isToday?' today':'');
     h+=`<div class="${cls}" data-d="${d}"><div class="cal-day-num">${d}</div>`;
-    if(hasGame)h+=`<div class="cal-dot dot-game"></div>`;
-    else if(hasPrac)h+=`<div class="cal-dot dot-practice"></div>`;
+    if(colors.length)h+=`<div style="display:flex;gap:3px;margin-top:auto;flex-wrap:wrap">${colors.slice(0,3).map(c=>`<div class="cal-dot" style="background:${c};box-shadow:0 0 4px ${c}88"></div>`).join('')}</div>`;
     h+=`</div>`;
   }
   const grid=document.getElementById('calGrid');
@@ -2334,17 +2348,21 @@ function buildCal(){
 }
 
 function _evBadge(ev){
-  if(ev.type!=='game')return `<div class="cal-ev-badge badge-practice">Practice</div>`;
-  if(!ev.done)return `<div class="cal-ev-badge badge-upcoming">Upcoming</div>`;
-  const res=ev.homeScore>ev.awayScore?'W':ev.homeScore<ev.awayScore?'L':'D';
-  const cls=res==='W'?'badge-win':res==='L'?'badge-loss':'badge-draw';
-  return `<div class="cal-ev-badge ${cls}">${res} ${ev.homeScore}–${ev.awayScore}</div>`;
+  const color=ev.color||(EV_TYPE_DEFAULTS[ev.type]||'#00E564');
+  if(ev.type==='game'){
+    if(!ev.done)return `<div class="cal-ev-badge badge-upcoming">Upcoming</div>`;
+    const res=ev.homeScore>ev.awayScore?'W':ev.homeScore<ev.awayScore?'L':'D';
+    const cls=res==='W'?'badge-win':res==='L'?'badge-loss':'badge-draw';
+    return `<div class="cal-ev-badge ${cls}">${res} ${ev.homeScore}–${ev.awayScore}</div>`;
+  }
+  const labels={practice:'Practice',meeting:'Meeting',tournament:'Tournament'};
+  return `<div class="cal-ev-badge" style="background:${color}20;color:${color};border:1px solid ${color}55">${labels[ev.type]||ev.type}</div>`;
 }
 function _evHtml(ev,showDate){
-  const stripe=ev.type==='game'?'stripe-game':'stripe-practice';
+  const color=ev.color||(EV_TYPE_DEFAULTS[ev.type]||'#00E564');
   const meta=showDate?`${fmtDate(ev.date)} · ${fmtTime(ev.time)}`:fmtTime(ev.time);
   return `<div class="cal-event-item" data-eid="${ev.id}" style="cursor:pointer">
-    <div class="cal-ev-stripe ${stripe}"></div>
+    <div class="cal-ev-stripe" style="background:${color}"></div>
     <div class="cal-ev-info">
       <div class="cal-ev-name">${ev.title}</div>
       <div class="cal-ev-meta">${meta}</div>
@@ -2394,12 +2412,27 @@ function showDayEvents(d,y,m){
 }
 
 let _editingEvent=null;
+const EV_COLORS=['#00E564','#4B9FFF','#FF5C5C','#FF9F40','#A78BFA','#FF5C8D','#FFE140','#38D9F5'];
+const EV_TYPE_DEFAULTS={practice:'#00E564',game:'#4B9FFF',meeting:'#FF9F40',tournament:'#FF5C5C'};
 let _evType='practice';
+let _evColor='#00E564';
 let _extraDates=[];
+
+function _renderEvColorSwatches(){
+  const row=document.getElementById('evColorRow');if(!row)return;
+  row.innerHTML=EV_COLORS.map(c=>`<div class="ev-color-swatch${c===_evColor?' sel':''}" data-color="${c}" style="background:${c}"></div>`).join('');
+  row.querySelectorAll('.ev-color-swatch').forEach(sw=>{
+    sw.addEventListener('click',()=>{
+      _evColor=sw.dataset.color;
+      row.querySelectorAll('.ev-color-swatch').forEach(s=>s.classList.toggle('sel',s.dataset.color===_evColor));
+    });
+  });
+}
 
 function openEventModal(ev=null, prefillDate=null){
   _editingEvent=ev;
   _evType=ev?ev.type:'practice';
+  _evColor=ev?ev.color||(EV_TYPE_DEFAULTS[ev.type]||'#00E564'):(EV_TYPE_DEFAULTS[_evType]||'#00E564');
 
   document.getElementById('evModalTitle').textContent=ev?'Edit Event':'New Event';
   document.getElementById('evTitle').value=ev?ev.title:'';
@@ -2416,10 +2449,7 @@ function openEventModal(ev=null, prefillDate=null){
   if(ev&&ev.teamId)sel.value=ev.teamId;
 
   /* Type buttons */
-  document.querySelectorAll('.ev-type-btn').forEach(b=>{
-    b.classList.toggle('sel',b.dataset.evtype===_evType);
-    b.classList.toggle('sel-game',b.dataset.evtype==='game'&&_evType==='game');
-  });
+  document.querySelectorAll('.ev-type-btn').forEach(b=>b.classList.toggle('sel',b.dataset.evtype===_evType));
 
   /* Score row for past games */
   const scoreRow=document.getElementById('evScoreRow');
@@ -2440,6 +2470,7 @@ function openEventModal(ev=null, prefillDate=null){
   document.getElementById('evMultiDateSection').style.display=ev?'none':'';
   document.getElementById('evExtraPicker').value='';
   _renderExtraDates();
+  _renderEvColorSwatches();
 
   document.getElementById('eventModalOverlay').classList.add('open');
 }
@@ -3203,11 +3234,10 @@ function initAuth(){
   document.querySelectorAll('.ev-type-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{
       _evType=btn.dataset.evtype;
-      document.querySelectorAll('.ev-type-btn').forEach(b=>{
-        b.classList.toggle('sel',b.dataset.evtype===_evType);
-        b.classList.toggle('sel-game',b.dataset.evtype==='game'&&_evType==='game');
-      });
+      _evColor=EV_TYPE_DEFAULTS[_evType]||'#00E564';
+      document.querySelectorAll('.ev-type-btn').forEach(b=>b.classList.toggle('sel',b.dataset.evtype===_evType));
       document.getElementById('evScoreRow').style.display=(_evType==='game')?'':'none';
+      _renderEvColorSwatches();
     });
   });
 
@@ -3224,12 +3254,12 @@ function initAuth(){
     const homeScore=isDone?parseInt(document.getElementById('evHome').value)||0:0;
     const awayScore=isDone?parseInt(document.getElementById('evAway').value)||0:0;
     if(_editingEvent){
-      Object.assign(_editingEvent,{title,date,time,teamId,type:_evType,done:isDone,homeScore,awayScore});
+      Object.assign(_editingEvent,{title,date,time,teamId,type:_evType,color:_evColor,done:isDone,homeScore,awayScore});
       saveToStorage();closeEventModal();buildCal();showToast('Event updated!');
     } else {
       const allDates=[date,..._extraDates.filter(d=>d&&d!==date)];
       allDates.forEach(d=>{
-        EVENTS.push({id:'ev_'+(++_evNextId),type:_evType,title,date:d,time,teamId,done:false,homeScore:0,awayScore:0});
+        EVENTS.push({id:'ev_'+(++_evNextId),type:_evType,color:_evColor,title,date:d,time,teamId,done:false,homeScore:0,awayScore:0});
       });
       saveToStorage();closeEventModal();buildCal();
       showToast(allDates.length>1?`${allDates.length} events added!`:'Event added!');
