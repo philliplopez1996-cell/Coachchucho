@@ -1449,6 +1449,8 @@ html{height:-webkit-fill-available}
       <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin:14px 0 8px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06)">Parent / Guardian Contact</div>
       <div class="ap-field"><div class="ap-label">Parent Email</div><input class="ap-input" id="apParentEmail" type="email" placeholder="parent@email.com"></div>
       <div class="ap-field"><div class="ap-label">Parent Phone</div><input class="ap-input" id="apParentPhone" type="tel" placeholder="555-123-4567"></div>
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin:14px 0 10px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06)">Juggle Test · Monthly Record</div>
+      <div id="apJugglesWrap" style="display:flex;flex-direction:column;gap:9px;margin-bottom:4px"></div>
       <button class="ap-submit-btn" id="apSubmit">Add to Roster</button>
     </div>
   </div>
@@ -1952,6 +1954,20 @@ function openPlayerModal(p, subIndex=null, pitchIdx=null){
       ${p.parentEmail?`<div style="font-size:12px;color:#6B9A78;margin-bottom:4px">✉ ${p.parentEmail}</div>`:''}
       ${p.parentPhone?`<div style="font-size:12px;color:#6B9A78">✆ ${p.parentPhone}</div>`:''}
     </div>`:''}
+    ${(p.juggles&&p.juggles.some(j=>j&&j.count!==null))?`<div style="padding:14px 18px;border-top:1px solid rgba(255,255,255,.06)">
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:#3D5845;margin-bottom:10px">Juggle Test · Max</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+        ${(p.juggles||[]).map((j,i)=>{
+          const hasVal=j&&j.count!==null;
+          const dateStr=(j&&j.date)?new Date(j.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
+          return `<div style="background:rgba(0,0,0,.3);border-radius:10px;padding:10px 6px;border:1px solid rgba(255,255,255,.06);text-align:center">
+            <div style="font-size:${hasVal?'20':'14'}px;font-family:'Impact',Arial,sans-serif;color:${hasVal?'#DFF0E3':'#2A4030'}">${hasVal?j.count:'—'}</div>
+            <div style="font-size:8px;font-weight:800;color:#3D5845;text-transform:uppercase;letter-spacing:.6px;margin-top:3px">M${i+1}</div>
+            ${dateStr?`<div style="font-size:8px;color:#2A4030;margin-top:2px">${dateStr}</div>`:''}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`:''}
     <div style="height:${(subIndex!==null||pitchIdx!==null)?4:20}px"></div>
   `;
   if(subIndex!==null){
@@ -2007,6 +2023,21 @@ function openPlayerModal(p, subIndex=null, pitchIdx=null){
   modal.classList.add('open');
 }
 
+function _renderJugglesEdit(juggles){
+  const wrap=document.getElementById('apJugglesWrap');
+  if(!wrap)return;
+  const labels=['Month 1','Month 2','Month 3','Month 4'];
+  wrap.innerHTML=labels.map((lbl,i)=>{
+    const j=(juggles&&juggles[i])||{count:null,date:null};
+    const dateStr=j.date?new Date(j.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'';
+    return `<div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:11px;color:var(--dim);width:58px;flex-shrink:0">${lbl}</span>
+      <input type="number" id="apJuggle${i}" min="0" value="${j.count!==null&&j.count!==undefined?j.count:''}" placeholder="—" style="width:68px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--tx);font-size:14px;font-weight:800;padding:6px 9px;text-align:center;-moz-appearance:textfield"/>
+      <span style="font-size:10px;color:var(--dim)">${dateStr}</span>
+    </div>`;
+  }).join('');
+}
+
 function openEditPlayer(p){
   _editingPlayer=p;
   _apPhoto='';
@@ -2037,6 +2068,7 @@ function openEditPlayer(p){
   document.querySelectorAll('#apFootPills .foot-pill').forEach(b=>b.classList.toggle('sel',b.dataset.foot===_apFoot));
   document.querySelector('.addp-title').textContent='Edit Player';
   document.getElementById('apSubmit').textContent='Save Changes';
+  _renderJugglesEdit(p.juggles||[]);
   document.getElementById('addPlayerOverlay').classList.add('open');
 }
 
@@ -2988,6 +3020,7 @@ function openAddPlayer(){
   });
   _apFoot='Right';
   document.querySelectorAll('#apFootPills .foot-pill').forEach(b=>b.classList.toggle('sel',b.dataset.foot==='Right'));
+  _renderJugglesEdit([]);
   document.querySelector('.addp-title').textContent='Add Player';
   document.getElementById('apSubmit').textContent='Add to Roster';
   document.getElementById('addPlayerOverlay').classList.add('open');
@@ -3471,15 +3504,27 @@ function initAuth(){
     const parentEmail=document.getElementById('apParentEmail').value.trim();
     const parentPhone=document.getElementById('apParentPhone').value.trim();
     const photo=_apPhoto||(_editingPlayer?_editingPlayer.photo:'')||'';
+    const existingJuggles=(_editingPlayer&&_editingPlayer.juggles)||[];
+    const juggles=[0,1,2,3].map(i=>{
+      const inp=document.getElementById('apJuggle'+i);
+      const raw=inp?inp.value.trim():'';
+      const prev=existingJuggles[i]||{count:null,date:null};
+      if(raw!==''){
+        const count=Math.max(0,parseInt(raw)||0);
+        const noDate=(prev.count===null||prev.count===undefined);
+        return {count,date:noDate?new Date().toISOString().slice(0,10):prev.date};
+      }
+      return {count:null,date:null};
+    });
     if(_editingPlayer){
       const ownerTeam=TEAMS.find(t=>t.players.some(x=>x===_editingPlayer||x.name===_editingPlayer.name));
       if(ownerTeam){
         const pi=ownerTeam.players.findIndex(x=>x===_editingPlayer||x.name===_editingPlayer.name);
-        if(pi>-1)Object.assign(ownerTeam.players[pi],{name,pos,pos2,pos3,num,ovr,tier,init,flag,pac,sho,pas,dri,def,phy,parentEmail,parentPhone,photo});
+        if(pi>-1)Object.assign(ownerTeam.players[pi],{name,pos,pos2,pos3,num,ovr,tier,init,flag,pac,sho,pas,dri,def,phy,parentEmail,parentPhone,photo,juggles});
       }
       saveToStorage();renderCards();closeAddPlayer();showToast(name+' updated!');
     } else {
-      const p={name,pos,pos2,pos3,num,ovr,tier,init,flag,pac,sho,pas,dri,def,phy,goals:0,assists:0,potm:0,cs:0,parentEmail,parentPhone,photo};
+      const p={name,pos,pos2,pos3,num,ovr,tier,init,flag,pac,sho,pas,dri,def,phy,goals:0,assists:0,potm:0,cs:0,parentEmail,parentPhone,photo,juggles};
       activeTeam.players.push(p);
       saveToStorage();renderCards();closeAddPlayer();showToast(name+' added to roster!');
     }
