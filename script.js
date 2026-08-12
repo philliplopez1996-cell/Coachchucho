@@ -16,25 +16,17 @@
     setTimeout(() => {
       document.getElementById('bookingStep1').style.display = '';
       document.getElementById('bookingStep2').style.display = 'none';
-      document.getElementById('calendlyConfirmed').style.display = 'none';
-      document.getElementById('calendlyContainer').style.display = '';
-      document.getElementById('calendlyContainer').innerHTML = '';
-      document.getElementById('calendlyFallback').style.display = 'none';
-      document.getElementById('calFallbackContainer').innerHTML = '';
+      document.getElementById('bookingConfirmed').style.display = 'none';
+      document.getElementById('calBookingContainer').style.display = '';
+      document.getElementById('calBookingContainer').innerHTML = '';
       document.getElementById('bookingForm').reset();
     }, 300);
   }
 
-  // Coach's real Calendly scheduling page. 7:30am-4:30pm / 7-day availability and the
-  // 30-minute buffer are configured on the Calendly side (Availability settings) —
-  // this embed just displays whatever it shows. Clear this to fall back to the
-  // built-in calendar picker instead (e.g. while testing without a Calendly account).
-  const CALENDLY_URL = 'https://calendly.com/felipe-gsasoccer';
-
-  // ====== BUILT-IN SCHEDULE / TIME-SLOT PICKER ======
+  // ====== SCHEDULE / TIME-SLOT PICKER ======
   // Coach's working hours and session spacing — edit these to change availability everywhere.
   const SCHEDULE_START_MIN = 7 * 60 + 30;   // 7:30 AM
-  const SCHEDULE_END_MIN = 16 * 60 + 30;    // 4:30 PM
+  const SCHEDULE_END_MIN = 15 * 60 + 30;    // 3:30 PM
   const SESSION_MINUTES = 75;               // length of a session
   const BUFFER_MINUTES = 30;                // gap required after a session before the next can start
 
@@ -127,62 +119,28 @@
           <div class="cal-confirm-label">Confirm this time?</div>
           <div class="cal-confirm-datetime">${dateLabel}<br>${timeLabel}</div>
           <div class="modal-actions">
-            <button type="button" class="send-btn" id="calConfirmBtn">${confirmLabel}</button>
-            <button type="button" class="cancel-btn" id="calBackBtn">Choose another time</button>
+            <button type="button" class="send-btn cal-confirm-btn">${confirmLabel}</button>
+            <button type="button" class="cancel-btn cal-back-btn">Choose another time</button>
           </div>
         </div>
       `;
-      document.getElementById('calConfirmBtn').addEventListener('click', () => onPick(dateLabel, timeLabel));
-      document.getElementById('calBackBtn').addEventListener('click', render);
+      // Scoped to this widget's own container — createCalendarWidget can have
+      // multiple independent instances alive in the DOM at once (sidebar preview,
+      // booking form), so a global getElementById could grab the wrong instance.
+      container.querySelector('.cal-confirm-btn').addEventListener('click', () => onPick(dateLabel, timeLabel));
+      container.querySelector('.cal-back-btn').addEventListener('click', render);
     }
     render();
-  }
-
-  // Calendly's widget.js loads from an external <script> tag and can take a
-  // moment (or get blocked by an ad blocker / privacy extension — common for
-  // Calendly specifically). Poll briefly for it instead of checking once and
-  // silently giving up, and show a real message with a direct link if it
-  // never shows up, instead of leaving the container blank.
-  function loadCalendlyWidget(container, url, prefill, attempt) {
-    attempt = attempt || 0;
-    if (window.Calendly) {
-      container.innerHTML = '';
-      window.Calendly.initInlineWidget({ url: url, parentElement: container, prefill: prefill || {} });
-      return;
-    }
-    if (attempt < 20) {
-      if (attempt === 0) container.innerHTML = '<div class="step2-hint">Loading calendar…</div>';
-      setTimeout(() => loadCalendlyWidget(container, url, prefill, attempt + 1), 250);
-      return;
-    }
-    container.innerHTML = `
-      <div class="step2-hint" style="margin-bottom: 0;">
-        The calendar couldn't load (this can happen with an ad blocker or privacy extension enabled).
-        You can book directly here instead:<br><br>
-        <a href="${CALENDLY_URL}" target="_blank" rel="noopener" class="cta-btn" style="display:inline-block;">Open scheduling page</a>
-      </div>
-    `;
   }
 
   // Sidebar "Calendar" — schedule preview with a book-this-slot shortcut
   function openSchedule() {
     closeMenu();
     document.getElementById('scheduleModal').classList.add('show');
-    const container = document.getElementById('calScheduleContainer');
-    const bookBtnWrap = document.getElementById('scheduleBookBtnWrap');
-    if (CALENDLY_URL) {
-      // Real, live availability — show the actual Calendly picker to browse,
-      // then a plain button to start the real booking flow (intake form first).
-      bookBtnWrap.style.display = 'flex';
-      container.innerHTML = '';
-      loadCalendlyWidget(container, CALENDLY_URL + '?background_color=121212&text_color=e7e9ec&primary_color=c6ff3d');
-    } else {
-      bookBtnWrap.style.display = 'none';
-      createCalendarWidget(container, function(dateLabel, timeLabel) {
-        closeSchedule();
-        openModal('Session request — ' + dateLabel + ' at ' + timeLabel);
-      }, 'Confirm & start booking');
-    }
+    createCalendarWidget(document.getElementById('calScheduleContainer'), function(dateLabel, timeLabel) {
+      closeSchedule();
+      openModal('Session request — ' + dateLabel + ' at ' + timeLabel);
+    }, 'Confirm & start booking');
   }
   function closeSchedule() {
     document.getElementById('scheduleModal').classList.remove('show');
@@ -193,38 +151,15 @@
 
   function submitBooking(e) {
     e.preventDefault();
-    const name = document.getElementById('parentName').value;
-    const email = document.getElementById('email').value;
     document.getElementById('bookingStep1').style.display = 'none';
     document.getElementById('bookingStep2').style.display = 'block';
-
-    const container = document.getElementById('calendlyContainer');
-    const fallback = document.getElementById('calendlyFallback');
-    if (!CALENDLY_URL) {
-      container.style.display = 'none';
-      fallback.style.display = 'block';
-      createCalendarWidget(document.getElementById('calFallbackContainer'), function(dateLabel, timeLabel) {
-        fallback.style.display = 'none';
-        const confirmed = document.getElementById('calendlyConfirmed');
-        confirmed.textContent = '✓ Requested ' + dateLabel + ' at ' + timeLabel + " — we'll confirm by email shortly.";
-        confirmed.style.display = 'block';
-      }, 'Confirm & send request');
-      return;
-    }
-    fallback.style.display = 'none';
-    container.style.display = 'block';
-    loadCalendlyWidget(container, CALENDLY_URL + '?background_color=121212&text_color=e7e9ec&primary_color=c6ff3d', { name: name, email: email });
-  }
-
-  // Swap in a confirmation message once the parent actually picks a slot via Calendly
-  window.addEventListener('message', function(e) {
-    if (e.data && e.data.event === 'calendly.event_scheduled') {
-      document.getElementById('calendlyContainer').style.display = 'none';
-      const confirmed = document.getElementById('calendlyConfirmed');
-      confirmed.textContent = "✓ You're all set! A confirmation email is on its way.";
+    createCalendarWidget(document.getElementById('calBookingContainer'), function(dateLabel, timeLabel) {
+      document.getElementById('calBookingContainer').style.display = 'none';
+      const confirmed = document.getElementById('bookingConfirmed');
+      confirmed.textContent = '✓ Requested ' + dateLabel + ' at ' + timeLabel + " — we'll confirm by email or phone shortly.";
       confirmed.style.display = 'block';
-    }
-  });
+    }, 'Confirm & send request');
+  }
   document.getElementById('bookingModal')?.addEventListener('click', function(e) {
     if (e.target === this) closeModal();
   });
