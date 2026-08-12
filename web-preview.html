@@ -1536,9 +1536,20 @@ html{height:-webkit-fill-available}
 /* ══════════════════════════════════════════════
    LOCAL AUTH HELPERS
 ══════════════════════════════════════════════ */
-function _sk(k){return 'cc_'+k;}
-function _getAuth(){try{const a=localStorage.getItem('cc_auth');return a?JSON.parse(a):null;}catch(e){return null;}}
-function _saveAuth(obj){try{localStorage.setItem('cc_auth',JSON.stringify(obj));}catch(e){}}
+let _userNs=''; // set after login/signup; ''=legacy account namespace
+function _nsFromEmail(e){return e.toLowerCase().replace(/[^a-z0-9]/g,'_');}
+function _sk(k){return 'cc_'+(_userNs?_userNs+'_':'')+k;}
+function _getAccounts(){try{const a=localStorage.getItem('cc_accounts');return a?JSON.parse(a):null;}catch(e){return null;}}
+function _saveAccounts(o){try{localStorage.setItem('cc_accounts',JSON.stringify(o));}catch(e){}}
+function _getAuth(){const a=_getAccounts();return a?a[_userNs]||null:null;}
+function _saveAuth(obj){const a=_getAccounts()||{};a[_userNs]={...(a[_userNs]||{}),...obj};_saveAccounts(a);}
+/* One-time migration: move old single-account cc_auth into cc_accounts under ns='' */
+function _migrateAuth(){
+  if(_getAccounts()!==null)return;
+  const old=localStorage.getItem('cc_auth');
+  if(!old)return;
+  try{_saveAccounts({'':JSON.parse(old)});}catch(e){}
+}
 
 /* ══════════════════════════════════════════════
    DATA
@@ -2650,7 +2661,7 @@ let _editingEvent=null;
 const EV_COLORS=['#00E564','#4B9FFF','#FF5C5C','#FF9F40','#A78BFA','#FF5C8D','#FFE140','#38D9F5'];
 /* EV_TYPE_DEFAULTS kept as silent fallback so old saved events still render their color */
 const EV_TYPE_DEFAULTS={practice:'#00E564',game:'#4B9FFF',meeting:'#FF9F40',tournament:'#FF5C5C'};
-let CUSTOM_EV_TYPES=JSON.parse(localStorage.getItem(_sk('customEvTypes'))||'[]');
+let CUSTOM_EV_TYPES=[]; // loaded in loadFromStorage() after _userNs is set
 function _allEvTypes(){return CUSTOM_EV_TYPES;}
 function _typeColor(key){const t=CUSTOM_EV_TYPES.find(t=>t.key===key);return t?t.color:EV_TYPE_DEFAULTS[key]||'#00E564';}
 function _nextCustomColor(){const used=CUSTOM_EV_TYPES.map(t=>t.color);return EV_COLORS.find(c=>!used.includes(c))||EV_COLORS[CUSTOM_EV_TYPES.length%EV_COLORS.length];}
@@ -2839,7 +2850,7 @@ function renderProfilePanel(){
         const existing=_getAuth()||{};
         const updated={email:newEmail,password:newPass||existing.password||'',phone:COACH.phone};
         if(!updated.password){showToast('Enter a password too');return;}
-        _saveAuth(updated);
+        _saveAuth(updated); // saves into cc_accounts[_userNs]
         /* Mark session as active since coach just set credentials */
         sessionStorage.setItem('cc_ok','1');
         const elbl=document.getElementById('profileEmailLbl');
@@ -3082,14 +3093,16 @@ function loadFromStorage(){
     if(en)_evNextId=+en;
     const co=localStorage.getItem(_sk('coach'));
     if(co)Object.assign(COACH,JSON.parse(co));
+    const ct=localStorage.getItem(_sk('customEvTypes'));
+    if(ct)CUSTOM_EV_TYPES=JSON.parse(ct);else CUSTOM_EV_TYPES=[];
   }catch(e){}
 }
 
 function exportData(){
-  const keys=['teams','pitch','bench','savedFormations','nextId','events','evNextId','coach'];
+  const keys=['teams','pitch','bench','savedFormations','nextId','events','evNextId','coach','customEvTypes'];
   const out={_v:1,_d:new Date().toISOString()};
   keys.forEach(k=>{const v=localStorage.getItem(_sk(k));if(v)out[k]=v;});
-  const auth=localStorage.getItem('cc_auth');if(auth)out._auth=auth;
+  const authEntry=_getAuth();if(authEntry)out._auth=JSON.stringify(authEntry);
   const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
@@ -3103,9 +3116,9 @@ function importData(file){
   r.onload=e=>{
     try{
       const d=JSON.parse(e.target.result);
-      const keys=['teams','pitch','bench','savedFormations','nextId','events','evNextId','coach'];
+      const keys=['teams','pitch','bench','savedFormations','nextId','events','evNextId','coach','customEvTypes'];
       keys.forEach(k=>{if(d[k])localStorage.setItem(_sk(k),d[k]);});
-      if(d._auth)localStorage.setItem('cc_auth',d._auth);
+      if(d._auth){try{const a=_getAccounts()||{};a[_userNs]=JSON.parse(d._auth);_saveAccounts(a);}catch(e){}}
       showToast('Data imported — reloading…');
       setTimeout(()=>location.reload(),900);
     }catch(err){showToast('Could not read file — make sure it\'s a Roster Radar export');}
@@ -3114,10 +3127,10 @@ function importData(file){
 }
 
 function _buildSyncPayload(){
-  const keys=['teams','pitch','bench','savedFormations','nextId','events','evNextId','coach'];
+  const keys=['teams','pitch','bench','savedFormations','nextId','events','evNextId','coach','customEvTypes'];
   const out={_v:2,_d:new Date().toISOString()};
   keys.forEach(k=>{const v=localStorage.getItem(_sk(k));if(v)out[k]=v;});
-  const auth=localStorage.getItem('cc_auth');if(auth)out._auth=auth;
+  const authEntry=_getAuth();if(authEntry)out._auth=JSON.stringify(authEntry);
   return out;
 }
 
@@ -3188,9 +3201,13 @@ function applySyncCode(code){
     if(!raw.startsWith('CC2:'))return 'Invalid sync code — make sure you copied the full code.';
     const json=decodeURIComponent(escape(atob(raw.slice(4))));
     const d=JSON.parse(json);
-    const keys=['teams','pitch','bench','savedFormations','nextId','events','evNextId','coach'];
+    let authObj=null;
+    if(d._auth){try{authObj=JSON.parse(d._auth);}catch(e){}}
+    const targetNs=authObj&&authObj.email?_nsFromEmail(authObj.email):(sessionStorage.getItem('cc_ns')||_userNs);
+    _userNs=targetNs;
+    const keys=['teams','pitch','bench','savedFormations','nextId','events','evNextId','coach','customEvTypes'];
     keys.forEach(k=>{if(d[k])localStorage.setItem(_sk(k),d[k]);});
-    if(d._auth)localStorage.setItem('cc_auth',d._auth);
+    if(authObj){const a=_getAccounts()||{};a[targetNs]=authObj;_saveAccounts(a);sessionStorage.setItem('cc_ns',targetNs);}
     return null; // no error
   }catch(e){return 'Could not read sync code — make sure you copied it completely.';}
 }
@@ -3234,16 +3251,17 @@ function _switchAuthTab(tab){
 }
 
 function initAuth(){
+  _migrateAuth(); // one-time: move old cc_auth into cc_accounts
   if(sessionStorage.getItem('cc_ok')==='1'){
+    _userNs=sessionStorage.getItem('cc_ns')||'';
     document.getElementById('authScreen').style.display='none';
     bootApp();
     return;
   }
-  /* Always require auth — new visitors must create an account */
   document.getElementById('authScreen').style.display='flex';
-  const auth=_getAuth();
-  /* Default to Create Account for new devices, Log In for returning coaches */
-  _switchAuthTab(auth&&auth.email?'coach':'create');
+  const accs=_getAccounts()||{};
+  /* Default to Log In if any account exists, Create Account for new devices */
+  _switchAuthTab(Object.keys(accs).length>0?'coach':'create');
 }
 
 /* ══════════════════════════════════════════════
@@ -3665,16 +3683,20 @@ function initAuth(){
     if(pass.length<6){errEl.textContent='Password must be at least 6 characters';return;}
     if(pass!==pass2){errEl.textContent='Passwords do not match';return;}
     /* Check email not already taken on this device */
-    const existing=_getAuth();
-    if(existing&&existing.email&&existing.email.toLowerCase()===email.toLowerCase()){
-      errEl.textContent='An account with that email already exists — use Log In';return;
-    }
-    _saveAuth({email,password:pass,phone:''});
+    const accsChk=_getAccounts()||{};
+    const emailTaken=Object.values(accsChk).some(a=>a.email&&a.email.toLowerCase()===email.toLowerCase());
+    if(emailTaken){errEl.textContent='An account with that email already exists — use Log In';return;}
+    /* Namespace storage per user */
+    _userNs=_nsFromEmail(email);
+    const accsNew=_getAccounts()||{};
+    accsNew[_userNs]={email,password:pass,phone:''};
+    _saveAccounts(accsNew);
     /* Pre-fill coach name */
     COACH.name=name;
     COACH.initials=_coachInitials(name);
     localStorage.setItem(_sk('coach'),JSON.stringify(COACH));
     sessionStorage.setItem('cc_ok','1');
+    sessionStorage.setItem('cc_ns',_userNs);
     document.getElementById('authScreen').style.display='none';
     bootApp();
   });
@@ -3686,11 +3708,16 @@ function initAuth(){
     const pass=document.getElementById('authPassword').value;
     const errEl=document.getElementById('authError');
     errEl.textContent='';
-    const stored=_getAuth();
-    if(!stored||!stored.email){errEl.textContent='No account found — create one first';return;}
-    if(email.toLowerCase()!==stored.email.toLowerCase()){errEl.textContent='Incorrect email';return;}
-    if(pass!==stored.password){errEl.textContent='Incorrect password';return;}
+    const accsLogin=_getAccounts()||{};
+    let foundNs=null,foundAcc=null;
+    Object.entries(accsLogin).forEach(([ns,acc])=>{
+      if(acc.email&&acc.email.toLowerCase()===email.toLowerCase()){foundNs=ns;foundAcc=acc;}
+    });
+    if(!foundNs){errEl.textContent='No account found — create one first';return;}
+    if(pass!==foundAcc.password){errEl.textContent='Incorrect password';return;}
+    _userNs=foundNs;
     sessionStorage.setItem('cc_ok','1');
+    sessionStorage.setItem('cc_ns',_userNs);
     document.getElementById('authScreen').style.display='none';
     bootApp();
   });
