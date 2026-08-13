@@ -1508,8 +1508,9 @@ const ZONES = [
     id:'grasslands', num:1, name:'Grasslands',
     desc:'Where every soldier begins',
     rows:6, cols:6, mines:6, xpReward:80,
-    sky:['#020704','#050c07','#071009'],
+    sky:['#0d2414','#162c1c','#1e3824'],
     atmRgb:[74,255,63], accent:'#4AFF3F',
+    cloudRgb:[200,220,205],
     groundRgb:[20,42,20], groundHiRgb:[30,58,26],
     tile:{ top:'#0b1810', sideR:'#071009', sideL:'#060d07',
            revTop:'#0d1e11', revR:'#070f08', revL:'#050c06' },
@@ -1519,8 +1520,9 @@ const ZONES = [
     id:'highlands', num:2, name:'Highlands',
     desc:'Rocky cliffs and cold skies',
     rows:8, cols:8, mines:12, xpReward:130,
-    sky:['#030408','#06080e','#0a0c18'],
+    sky:['#0c1230','#141c42','#1c2854'],
     atmRgb:[120,140,220], accent:'#8899CC',
+    cloudRgb:[190,200,230],
     groundRgb:[30,32,48], groundHiRgb:[46,50,70],
     tile:{ top:'#141825', sideR:'#0a0c18', sideL:'#080a14',
            revTop:'#111520', revR:'#080a12', revL:'#06080e' },
@@ -1530,8 +1532,9 @@ const ZONES = [
     id:'ruins', num:3, name:'Ruins',
     desc:'Crumbling stone, forgotten traps',
     rows:10, cols:10, mines:18, xpReward:200,
-    sky:['#080402','#100804','#180c05'],
+    sky:['#261408','#321c0e','#402814'],
     atmRgb:[210,140,50], accent:'#C9A84C',
+    cloudRgb:[235,200,160],
     groundRgb:[34,20,10], groundHiRgb:[52,32,14],
     tile:{ top:'#1c1008', sideR:'#110a05', sideL:'#0e0804',
            revTop:'#181008', revR:'#0e0905', revL:'#0a0703' },
@@ -1541,8 +1544,9 @@ const ZONES = [
     id:'swamp', num:4, name:'Swamp',
     desc:'Murky waters hide the danger',
     rows:12, cols:12, mines:25, xpReward:300,
-    sky:['#020508','#030a0c','#040e12'],
+    sky:['#081624','#10202e','#182c3a'],
     atmRgb:[40,160,130], accent:'#4EBDC9',
+    cloudRgb:[160,210,210],
     groundRgb:[10,28,24], groundHiRgb:[16,42,34],
     tile:{ top:'#081812', sideR:'#040f0c', sideL:'#030b09',
            revTop:'#061510', revR:'#030d0a', revL:'#020a07' },
@@ -1552,8 +1556,9 @@ const ZONES = [
     id:'summit', num:5, name:'Summit',
     desc:'The final peak. No mercy.',
     rows:15, cols:15, mines:38, xpReward:500,
-    sky:['#040508','#06091a','#0c1028'],
+    sky:['#0c1840','#14204e','#1c2c60'],
     atmRgb:[180,200,255], accent:'#b0c8f0',
+    cloudRgb:[210,220,255],
     groundRgb:[54,58,74], groundHiRgb:[80,86,110],
     tile:{ top:'#1e2038', sideR:'#141628', sideL:'#10121e',
            revTop:'#1a1c2a', revR:'#10121a', revL:'#0c0e14' },
@@ -3369,6 +3374,11 @@ function launchZone(zoneIndex) {
   canvas.addEventListener('click', TD._onClick);
   canvas.addEventListener('touchend', td_onCanvasTouch, { passive: false });
 
+  // Clouds and birds (init after resize so we have W/H)
+  TD.clouds    = td_initClouds(canvas.width, canvas.height);
+  TD.birds     = [];
+  TD.birdTimer = 3 + Math.random() * 6;
+
   // Init powerups for this zone
   TD.powerups = {};
   profile.selectedPups.forEach(id => {
@@ -3486,6 +3496,38 @@ function td_loop(ts) {
   TD.camOY += (TD.camTOY - TD.camOY) * lk;
 
   if (TD.boom) TD.boom.t = Math.min(1, TD.boom.t + dt * 1.8);
+
+  // Clouds drift slowly left; respawn off the right when they exit left
+  const W = TD.canvas.width, H = TD.canvas.height;
+  if (TD.clouds) {
+    TD.clouds.forEach(cl => {
+      cl.x += cl.speed * dt;
+      if (cl.x + cl.w < -80) cl.x = W + 80 + Math.random() * 200;
+    });
+  }
+
+  // Birds spawn on timer, fly across, then disappear
+  if (TD.birds !== undefined) {
+    TD.birdTimer -= dt;
+    if (TD.birdTimer <= 0) {
+      TD.birdTimer = 5 + Math.random() * 10;
+      const n = 1 + (Math.random() < 0.3 ? 1 : 0); // occasionally 2 birds
+      for (let i = 0; i < n; i++) {
+        const fromLeft = Math.random() < 0.5;
+        TD.birds.push({
+          x:       fromLeft ? -80 : W + 80,
+          y:       H * (0.06 + Math.random() * 0.42),
+          speed:   (55 + Math.random() * 55) * (fromLeft ? 1 : -1),
+          flapPh:  Math.random() * Math.PI * 2,
+          flapSpd: 4 + Math.random() * 3,
+          size:    10 + Math.random() * 9,
+          opacity: 0.38 + Math.random() * 0.32,
+        });
+      }
+    }
+    TD.birds.forEach(b => { b.x += b.speed * dt; b.flapPh += b.flapSpd * dt; });
+    TD.birds = TD.birds.filter(b => b.x > -120 && b.x < W + 120);
+  }
 
   td_render();
 }
@@ -3690,8 +3732,8 @@ function td_render() {
   td_drawAmbient(ctx, W, H);
 
   // ── Build painter-sorted render list ──
-  // Ground plane: flat grass tiles surrounding the minefield
-  const GM = 4; // margin tiles
+  // Narrow margin so the platform edge drops into sky
+  const GM = 2;
   const items = [];
   for (let r = -GM; r < TD.rows + GM; r++) {
     for (let c = -GM; c < TD.cols + GM; c++) {
@@ -3721,26 +3763,88 @@ function td_render() {
   }
 }
 
+function td_initClouds(W, H) {
+  const clouds = [];
+  for (let i = 0; i < 14; i++) {
+    const w = 70 + Math.random() * 150;
+    clouds.push({
+      x:     Math.random() * (W + 300) - 100,
+      y:     H * (0.04 + Math.random() * 0.52),
+      w,
+      h:     22 + Math.random() * 38,
+      speed: -(10 + Math.random() * 22),
+      alpha: 0.08 + Math.random() * 0.12,
+    });
+  }
+  return clouds;
+}
+
 function td_drawAmbient(ctx, W, H) {
   const z = TD.zone || ZONES[0];
+
+  // Sky gradient
   const sky = ctx.createLinearGradient(0, 0, 0, H);
   sky.addColorStop(0,   z.sky[0]);
-  sky.addColorStop(0.5, z.sky[1]);
+  sky.addColorStop(0.55, z.sky[1]);
   sky.addColorStop(1,   z.sky[2]);
   ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
 
+  // Horizon haze
   const [ar,ag,ab] = z.atmRgb;
-  const gx = W * 0.5, gy = H * 0.2;
-  const atm = ctx.createRadialGradient(gx, gy, 0, gx, gy, W * 0.55);
-  atm.addColorStop(0,   `rgba(${ar},${ag},${ab},0.028)`);
-  atm.addColorStop(0.6, `rgba(${ar},${ag},${ab},0.008)`);
-  atm.addColorStop(1,   `rgba(${ar},${ag},${ab},0)`);
-  ctx.fillStyle = atm; ctx.fillRect(0, 0, W, H);
+  const haze = ctx.createLinearGradient(0, H * 0.55, 0, H);
+  haze.addColorStop(0, `rgba(${ar},${ag},${ab},0)`);
+  haze.addColorStop(1, `rgba(${ar},${ag},${ab},0.06)`);
+  ctx.fillStyle = haze; ctx.fillRect(0, 0, W, H);
 
-  ctx.strokeStyle = `rgba(${ar},${ag},${ab},0.016)`;
-  ctx.lineWidth = 1;
-  for (let x = 0; x < W; x += 56) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
-  for (let y = 0; y < H; y += 56) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+  // Clouds
+  if (TD.clouds) {
+    const [cr,cg,cb] = z.cloudRgb || [210,218,228];
+    TD.clouds.forEach(cl => td_drawCloud(ctx, cl.x, cl.y, cl.w, cl.h, cl.alpha, cr, cg, cb));
+  }
+
+  // Birds
+  if (TD.birds && TD.birds.length) td_drawBirds(ctx);
+}
+
+function td_drawCloud(ctx, x, y, w, h, alpha, cr, cg, cb) {
+  // Puffy blobs — each cloud is ~9 overlapping circles
+  const blobs = [
+    [0,        0,         h * 0.55],
+    [ w * 0.22, -h * 0.20, h * 0.42],
+    [-w * 0.22, -h * 0.14, h * 0.38],
+    [ w * 0.40,  h * 0.06, h * 0.31],
+    [-w * 0.40,  h * 0.08, h * 0.29],
+    [ w * 0.11, -h * 0.38, h * 0.23],
+    [-w * 0.09, -h * 0.32, h * 0.21],
+    [ w * 0.56,  h * 0.12, h * 0.20],
+    [-w * 0.54,  h * 0.10, h * 0.19],
+  ];
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = `rgb(${cr},${cg},${cb})`;
+  blobs.forEach(([dx, dy, r]) => {
+    ctx.beginPath();
+    ctx.arc(x + dx, y + dy, r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.restore();
+}
+
+function td_drawBirds(ctx) {
+  TD.birds.forEach(b => {
+    const flap = Math.sin(b.flapPh) * b.size * 0.48;
+    ctx.save();
+    ctx.strokeStyle = `rgba(0,0,0,${b.opacity})`;
+    ctx.lineWidth = Math.max(1.2, b.size * 0.11);
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    // Single W stroke: left tip → left wing peak → body center → right wing peak → right tip
+    ctx.moveTo(b.x - b.size,       b.y + flap * 0.28);
+    ctx.quadraticCurveTo(b.x - b.size * 0.46, b.y - flap, b.x, b.y);
+    ctx.quadraticCurveTo(b.x + b.size * 0.46, b.y - flap, b.x + b.size, b.y + flap * 0.28);
+    ctx.stroke();
+    ctx.restore();
+  });
 }
 
 function td_drawGroundTile(ctx, c, r) {
@@ -3751,6 +3855,10 @@ function td_drawGroundTile(ctx, c, r) {
   const distR = Math.min(r < 0 ? -r : (r >= TD.rows ? r - TD.rows + 1 : 0), 4);
   const dist  = Math.max(distC, distR);
 
+  // Fade to nothing quickly so the platform edge drops into sky
+  const alpha = Math.max(0, 0.55 - (dist - 1) * 0.55);
+  if (alpha <= 0) return;
+
   const z = TD.zone || ZONES[0];
   const hash = ((c * 7 + r * 13) & 0xf) / 15;
   const [br,bg,bb] = z.groundRgb;
@@ -3758,7 +3866,6 @@ function td_drawGroundTile(ctx, c, r) {
   const gr = Math.round(br + hash * (hr - br));
   const gg = Math.round(bg + hash * (hg - bg));
   const gb = Math.round(bb + hash * (hb - bb));
-  const alpha = Math.max(0.2, 1 - (dist - 1) * 0.22);
 
   ctx.beginPath();
   ctx.moveTo(nx, ny);
