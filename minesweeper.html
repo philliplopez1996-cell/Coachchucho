@@ -1308,7 +1308,7 @@
         <button class="btn btn-lime" onclick="launch3D()">Enter 3D World</button>
       </div>
       <div style="text-align:center; font-size:.72rem; color:var(--txt3); letter-spacing:.1em; margin-top:8px;">
-        Walk the minefield · WASD / Arrows to move · Space to reveal · F to flag
+        Walk the minefield · Tap any tile to move · Space to reveal · F to flag
       </div>
     </div>
 
@@ -1375,7 +1375,7 @@
          onmousedown="tdFlag()">FLAG</div>
   </div>
 
-  <div class="td-hint" id="td-hint">WASD / Arrows — Move &nbsp;&#183;&nbsp; Space — Reveal &nbsp;&#183;&nbsp; F — Flag</div>
+  <div class="td-hint" id="td-hint">Tap any tile to walk there &nbsp;&#183;&nbsp; Space — Reveal &nbsp;&#183;&nbsp; F — Flag</div>
 
   <!-- Result overlay -->
   <div class="td-overlay" id="td-overlay">
@@ -3115,9 +3115,9 @@ syncRegSetup();
 // 3D WORLD — ISOMETRIC MINESWEEPER
 // ══════════════════════════════════════════
 
-const ISO = { HW: 34, HH: 17, BH: 13 }; // half-width, half-height, block-height
+const ISO = { HW: 34, HH: 17, BH: 13 };
 
-let TD = null; // 3D game state
+let TD = null;
 
 function launch3D() {
   if (TD && TD.raf) { cancelAnimationFrame(TD.raf); TD = null; }
@@ -3135,9 +3135,11 @@ function launch3D() {
     charCol: 0, charRow: 0,
     charTCol: 0, charTRow: 0,
     charAnimT: 1, walkPhase: 0,
+    path: [],               // queued tile steps for tap-to-move
     camOX: 0, camOY: 0, camTOX: 0, camTOY: 0,
     canvas: null, ctx: null, raf: null,
     boom: null,
+    decorations: [],
     lastTs: 0,
   };
 
@@ -3146,6 +3148,8 @@ function launch3D() {
     for (let c = 0; c < COLS; c++)
       TD.board[r][c] = { mine:false, revealed:false, flagged:false, adj:0 };
   }
+
+  TD.decorations = td_genDecorations();
 
   goTo('3d');
   document.getElementById('td-mines').textContent = NMINES;
@@ -3165,7 +3169,12 @@ function launch3D() {
   TD._resizeFn = resize;
   window.addEventListener('resize', resize);
 
-  document.addEventListener('keydown', td_keydown);
+  TD._onKeydown = td_keydown;
+  document.addEventListener('keydown', TD._onKeydown);
+
+  TD._onClick = td_onCanvasTap;
+  canvas.addEventListener('click', TD._onClick);
+  canvas.addEventListener('touchend', td_onCanvasTouch, { passive: false });
 
   TD.raf = requestAnimationFrame(td_loop);
 }
@@ -3173,16 +3182,36 @@ function launch3D() {
 function quit3D() {
   if (!TD) return;
   if (TD.raf) cancelAnimationFrame(TD.raf);
-  document.removeEventListener('keydown', td_keydown);
-  if (TD._resizeFn) window.removeEventListener('resize', TD._resizeFn);
+  if (TD._onKeydown) document.removeEventListener('keydown', TD._onKeydown);
+  if (TD._resizeFn)  window.removeEventListener('resize', TD._resizeFn);
+  if (TD._onClick)   TD.canvas.removeEventListener('click', TD._onClick);
+  TD.canvas.removeEventListener('touchend', td_onCanvasTouch);
   TD = null;
   goTo('setup');
 }
 
-// ── ISO MATH ──────────────────────────────
+// ── DECORATIONS ───────────────────────────
 
-function iso_gridX(c, r) { return TD.camOX + (c - r) * ISO.HW; }
-function iso_gridY(c, r) { return TD.camOY + (c + r) * ISO.HH; }
+function td_genDecorations() {
+  const decos = [];
+  const { rows: R, cols: C } = TD;
+  const rnd = () => Math.random();
+  const tree = (c, r) => ({ c, r, type: 'tree', h: 0.7 + rnd()*0.6, shade: rnd() > 0.45 });
+
+  for (let c = -2; c <= C+1; c++) {
+    if (rnd() < 0.62) decos.push(tree(c, -1));
+    if (rnd() < 0.62) decos.push(tree(c, R));
+  }
+  for (let r = 0; r < R; r++) {
+    if (rnd() < 0.55) decos.push(tree(-1, r));
+    if (rnd() < 0.55) decos.push(tree(C, r));
+  }
+  // Sort by painter order (same key used in render)
+  decos.sort((a, b) => (a.c + a.r) - (b.c + b.r));
+  return decos;
+}
+
+// ── ISO MATH ──────────────────────────────
 
 function td_snapCamera() {
   const canvas = TD.canvas;
@@ -3201,6 +3230,28 @@ function td_targetCamera() {
   TD.camTOY = canvas.height * 0.38 - (aC + aR + 1) * ISO.HH;
 }
 
+// Screen (px,py) → nearest tile (col, row)
+function td_screenToTile(px, py) {
+  const { HW, HH } = ISO;
+  const adjX = px - TD.camOX;
+  const adjY = py - TD.camOY - HH;
+  const c = Math.round((adjX / HW + adjY / HH) / 2);
+  const r = Math.round((adjY / HH - adjX / HW) / 2);
+  return [c, r];
+}
+
+// Build a path (diagonal steps allowed) from (fc,fr) to (tc,tr)
+function td_computePath(fc, fr, tc, tr) {
+  const steps = [];
+  let c = fc, r = fr;
+  while (c !== tc || r !== tr) {
+    const dc = Math.sign(tc - c), dr = Math.sign(tr - r);
+    c += dc; r += dr;
+    steps.push([c, r]);
+  }
+  return steps;
+}
+
 // ── GAME LOOP ─────────────────────────────
 
 function td_loop(ts) {
@@ -3209,7 +3260,18 @@ function td_loop(ts) {
   const dt = Math.min(0.08, (ts - TD.lastTs) / 1000);
   TD.lastTs = ts;
 
-  // Animate character movement
+  // Advance path when near end of current step
+  if (TD.path.length > 0 && TD.charAnimT > 0.72) {
+    const [nc, nr] = TD.path.shift();
+    if (nc >= 0 && nc < TD.cols && nr >= 0 && nr < TD.rows) {
+      TD.charCol = TD.charTCol; TD.charRow = TD.charTRow;
+      TD.charTCol = nc; TD.charTRow = nr;
+      TD.charAnimT = 0;
+      playSound('click');
+    }
+  }
+
+  // Animate character
   if (TD.charAnimT < 1) {
     TD.charAnimT = Math.min(1, TD.charAnimT + dt * 9);
     TD.walkPhase += dt * 14;
@@ -3221,44 +3283,68 @@ function td_loop(ts) {
   TD.camOX += (TD.camTOX - TD.camOX) * lk;
   TD.camOY += (TD.camTOY - TD.camOY) * lk;
 
-  // Explosion timer
-  if (TD.boom) { TD.boom.t = Math.min(1, TD.boom.t + dt * 1.8); }
+  if (TD.boom) TD.boom.t = Math.min(1, TD.boom.t + dt * 1.8);
 
   td_render();
 }
 
 // ── INPUT ─────────────────────────────────
 
+function td_onCanvasTap(e) {
+  if (!TD || TD.dead || TD.won) return;
+  const rect = TD.canvas.getBoundingClientRect();
+  const px = e.clientX - rect.left, py = e.clientY - rect.top;
+  td_tapAt(px, py);
+}
+
+function td_onCanvasTouch(e) {
+  if (!TD || TD.dead || TD.won) return;
+  e.preventDefault();
+  const t = e.changedTouches[0];
+  const rect = TD.canvas.getBoundingClientRect();
+  const px = t.clientX - rect.left, py = t.clientY - rect.top;
+  td_tapAt(px, py);
+}
+
+function td_tapAt(px, py) {
+  const [tc, tr] = td_screenToTile(px, py);
+  if (tc < 0 || tc >= TD.cols || tr < 0 || tr >= TD.rows) return;
+  // Build path from current target position
+  TD.path = td_computePath(TD.charTCol, TD.charTRow, tc, tr);
+}
+
 function td_keydown(e) {
   if (!TD) return;
   switch (e.key) {
-    case 'ArrowUp':    case 'w': case 'W': e.preventDefault(); tdMove( 0,-1); break;
-    case 'ArrowDown':  case 's': case 'S': e.preventDefault(); tdMove( 0, 1); break;
-    case 'ArrowLeft':  case 'a': case 'A': e.preventDefault(); tdMove(-1, 0); break;
-    case 'ArrowRight': case 'd': case 'D': e.preventDefault(); tdMove( 1, 0); break;
+    case 'ArrowUp':    case 'w': case 'W': e.preventDefault(); td_stepOnce( 0,-1); break;
+    case 'ArrowDown':  case 's': case 'S': e.preventDefault(); td_stepOnce( 0, 1); break;
+    case 'ArrowLeft':  case 'a': case 'A': e.preventDefault(); td_stepOnce(-1, 0); break;
+    case 'ArrowRight': case 'd': case 'D': e.preventDefault(); td_stepOnce( 1, 0); break;
     case ' ': case 'Enter': e.preventDefault(); tdReveal(); break;
     case 'f': case 'F': e.preventDefault(); tdFlag(); break;
   }
 }
 
-let _dpadTimer = null;
-function dpadStart(dc, dr) {
-  if (!TD) return;
-  tdMove(dc, dr);
-  _dpadTimer = setInterval(() => tdMove(dc, dr), 260);
-}
-function dpadEnd() {
-  if (_dpadTimer) { clearInterval(_dpadTimer); _dpadTimer = null; }
-}
-
-function tdMove(dc, dr) {
+function td_stepOnce(dc, dr) {
   if (!TD || TD.dead || TD.won || TD.charAnimT < 0.55) return;
   const nc = TD.charTCol + dc, nr = TD.charTRow + dr;
   if (nc < 0 || nc >= TD.cols || nr < 0 || nr >= TD.rows) return;
+  TD.path = [];
   TD.charCol = TD.charTCol; TD.charRow = TD.charTRow;
   TD.charTCol = nc; TD.charTRow = nr;
   TD.charAnimT = 0;
   playSound('click');
+}
+
+let _dpadTimer = null;
+function dpadStart(dc, dr) {
+  if (!TD) return;
+  TD.path = [];
+  td_stepOnce(dc, dr);
+  _dpadTimer = setInterval(() => td_stepOnce(dc, dr), 260);
+}
+function dpadEnd() {
+  if (_dpadTimer) { clearInterval(_dpadTimer); _dpadTimer = null; }
 }
 
 function tdReveal() {
@@ -3298,7 +3384,7 @@ function td_placeMines(sr, sc) {
       let n = 0;
       for (let dr = -1; dr <= 1; dr++)
         for (let dc = -1; dc <= 1; dc++) {
-          const nr = r+dr, nc = c+dc;
+          const nr=r+dr, nc=c+dc;
           if (nr>=0 && nr<TD.rows && nc>=0 && nc<TD.cols && TD.board[nr][nc].mine) n++;
         }
       TD.board[r][c].adj = n;
@@ -3313,6 +3399,7 @@ function td_reveal(r, c) {
 
   if (cell.mine) {
     TD.dead = true;
+    TD.path = [];
     TD.boom = { col: c, row: r, t: 0 };
     playSound('mine');
     for (let rr = 0; rr < TD.rows; rr++)
@@ -3364,24 +3451,34 @@ function td_render() {
   ctx.fillStyle = '#060d09';
   ctx.fillRect(0, 0, W, H);
 
-  // Subtle background grid
-  ctx.strokeStyle = 'rgba(74,255,63,0.025)';
+  // Background grid lines
+  ctx.strokeStyle = 'rgba(74,255,63,0.022)';
   ctx.lineWidth = 1;
   for (let x = 0; x < W; x += 56) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
   for (let y = 0; y < H; y += 56) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
 
-  // Painter's order: col+row ascending = back to front
-  const order = [];
+  // Build render order: tiles + decorations sorted back-to-front
+  const items = [];
   for (let r = 0; r < TD.rows; r++)
     for (let c = 0; c < TD.cols; c++)
-      order.push([c, r]);
-  order.sort((a,b) => (a[0]+a[1]) - (b[0]+b[1]));
+      items.push({ kind: 'tile', c, r, key: c + r });
+  for (const d of TD.decorations)
+    items.push({ kind: 'tree', c: d.c, r: d.r, d, key: d.c + d.r });
+  items.sort((a, b) => a.key - b.key);
 
-  for (const [c, r] of order) td_drawTile(ctx, c, r);
+  for (const item of items) {
+    if (item.kind === 'tile') td_drawTile(ctx, item.c, item.r);
+    else                      td_drawTree(ctx, item.d);
+  }
 
   td_drawChar(ctx);
-
   if (TD.boom) td_drawBoom(ctx);
+
+  // Tap-target indicator: last tile in queued path
+  if (TD.path.length > 0 && !TD.dead && !TD.won) {
+    const [tc, tr] = TD.path[TD.path.length - 1];
+    td_drawMoveTarget(ctx, tc, tr);
+  }
 }
 
 function td_drawTile(ctx, c, r) {
@@ -3389,140 +3486,201 @@ function td_drawTile(ctx, c, r) {
   const cell = TD.board[r][c];
   const isHere = (c === TD.charTCol && r === TD.charTRow);
 
-  // Top-face corners (N/E/S/W of the rhombus)
-  const ox = TD.camOX, oy = TD.camOY;
-  const nx = ox + (c - r) * HW, ny = oy + (c + r) * HH;
-  // N = (nx, ny), E = (nx+HW, ny+HH), S = (nx, ny+2*HH), W = (nx-HW, ny+HH)
+  const nx = TD.camOX + (c - r) * HW, ny = TD.camOY + (c + r) * HH;
 
   let top, sideR, sideL;
   if (cell.mine && cell.revealed) {
     const pulse = 0.5 + 0.5 * Math.sin(Date.now() * 0.007);
     top   = `rgba(${Math.round(160+pulse*60)},24,24,1)`;
-    sideR = '#5a0808';
-    sideL = '#3e0505';
+    sideR = '#5a0808'; sideL = '#3e0505';
   } else if (cell.revealed) {
-    top   = '#0d1e11';
-    sideR = '#070f08';
-    sideL = '#050c06';
+    top = '#0d1e11'; sideR = '#070f08'; sideL = '#050c06';
   } else if (isHere) {
-    top   = 'rgba(74,255,63,0.13)';
-    sideR = 'rgba(30,100,35,0.9)';
-    sideL = 'rgba(20,70,25,0.9)';
+    top = 'rgba(74,255,63,0.14)'; sideR = 'rgba(30,100,35,0.9)'; sideL = 'rgba(20,70,25,0.9)';
   } else {
-    top   = '#0b1810';
-    sideR = '#071009';
-    sideL = '#060d07';
+    top = '#0b1810'; sideR = '#071009'; sideL = '#060d07';
   }
 
-  // Right side face
+  // Right side
   ctx.beginPath();
-  ctx.moveTo(nx+HW, ny+HH); ctx.lineTo(nx, ny+2*HH);
-  ctx.lineTo(nx, ny+2*HH+BH); ctx.lineTo(nx+HW, ny+HH+BH);
-  ctx.closePath();
-  ctx.fillStyle = sideR; ctx.fill();
+  ctx.moveTo(nx+HW,ny+HH); ctx.lineTo(nx,ny+2*HH);
+  ctx.lineTo(nx,ny+2*HH+BH); ctx.lineTo(nx+HW,ny+HH+BH);
+  ctx.closePath(); ctx.fillStyle=sideR; ctx.fill();
 
-  // Left side face
+  // Left side
   ctx.beginPath();
-  ctx.moveTo(nx-HW, ny+HH); ctx.lineTo(nx, ny+2*HH);
-  ctx.lineTo(nx, ny+2*HH+BH); ctx.lineTo(nx-HW, ny+HH+BH);
-  ctx.closePath();
-  ctx.fillStyle = sideL; ctx.fill();
+  ctx.moveTo(nx-HW,ny+HH); ctx.lineTo(nx,ny+2*HH);
+  ctx.lineTo(nx,ny+2*HH+BH); ctx.lineTo(nx-HW,ny+HH+BH);
+  ctx.closePath(); ctx.fillStyle=sideL; ctx.fill();
 
   // Top face
   ctx.beginPath();
-  ctx.moveTo(nx, ny); ctx.lineTo(nx+HW, ny+HH); ctx.lineTo(nx, ny+2*HH); ctx.lineTo(nx-HW, ny+HH);
-  ctx.closePath();
-  ctx.fillStyle = top; ctx.fill();
-  ctx.strokeStyle = isHere ? 'rgba(74,255,63,0.65)' : 'rgba(74,255,63,0.06)';
-  ctx.lineWidth = isHere ? 1.5 : 0.5;
+  ctx.moveTo(nx,ny); ctx.lineTo(nx+HW,ny+HH); ctx.lineTo(nx,ny+2*HH); ctx.lineTo(nx-HW,ny+HH);
+  ctx.closePath(); ctx.fillStyle=top; ctx.fill();
+  ctx.strokeStyle = isHere ? 'rgba(74,255,63,0.65)' : 'rgba(74,255,63,0.055)';
+  ctx.lineWidth   = isHere ? 1.5 : 0.5;
   ctx.stroke();
 
   // Content
-  const fcx = nx, fcy = ny + HH; // center of top face
+  const fcx = nx, fcy = ny + HH;
   if (cell.flagged && !cell.revealed) {
     td_drawFlag(ctx, fcx, fcy - HH * 0.5);
   } else if (cell.mine && cell.revealed) {
     ctx.save();
     ctx.font = `${HH}px serif`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText('\u{1F4A5}', fcx, fcy);
     ctx.restore();
   } else if (cell.revealed && cell.adj > 0) {
     ctx.save();
-    ctx.font = `bold ${Math.round(HH * 0.92)}px JetBrains Mono, monospace`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = `bold ${Math.round(HH*0.92)}px JetBrains Mono, monospace`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillStyle = NUM_CLR[cell.adj] || '#fff';
     ctx.shadowColor = NUM_CLR[cell.adj] || '#fff';
     ctx.shadowBlur = 5;
-    ctx.fillText(cell.adj, fcx, fcy - 1);
+    ctx.fillText(cell.adj, fcx, fcy-1);
     ctx.restore();
   }
+}
+
+function td_drawTree(ctx, deco) {
+  const { HW, HH, BH } = ISO;
+  const { c, r, h, shade } = deco;
+  const nx = TD.camOX + (c - r) * HW;
+  const ny = TD.camOY + (c + r) * HH;
+
+  // Position: center of tile top face
+  const cx = nx, cy = ny + HH;
+  const scale = h; // 0.7 – 1.3
+  const TW = HW * 0.28 * scale, TH = HH * 0.28 * scale;
+  const trunkH = BH * 1.6 * scale;
+  const canopyR = HW * 0.62 * scale;
+
+  // Trunk — right face
+  ctx.beginPath();
+  ctx.moveTo(cx+TW, cy+TH); ctx.lineTo(cx, cy+2*TH);
+  ctx.lineTo(cx, cy+2*TH+trunkH); ctx.lineTo(cx+TW, cy+TH+trunkH);
+  ctx.closePath();
+  ctx.fillStyle = shade ? '#2e1804' : '#3a1f07'; ctx.fill();
+
+  // Trunk — left face
+  ctx.beginPath();
+  ctx.moveTo(cx-TW, cy+TH); ctx.lineTo(cx, cy+2*TH);
+  ctx.lineTo(cx, cy+2*TH+trunkH); ctx.lineTo(cx-TW, cy+TH+trunkH);
+  ctx.closePath();
+  ctx.fillStyle = shade ? '#200f02' : '#2a1504'; ctx.fill();
+
+  // Canopy base layer (wide, dark)
+  const treeBase = cy - trunkH * 0.2;
+  ctx.beginPath();
+  ctx.moveTo(cx, treeBase - canopyR * 1.0);
+  ctx.lineTo(cx + canopyR * 0.88, treeBase - canopyR * 0.1);
+  ctx.lineTo(cx, treeBase + canopyR * 0.55);
+  ctx.lineTo(cx - canopyR * 0.88, treeBase - canopyR * 0.1);
+  ctx.closePath();
+  ctx.fillStyle = shade ? '#0e3a18' : '#133e1e'; ctx.fill();
+
+  // Canopy mid layer
+  ctx.beginPath();
+  ctx.moveTo(cx, treeBase - canopyR * 1.35);
+  ctx.lineTo(cx + canopyR * 0.68, treeBase - canopyR * 0.3);
+  ctx.lineTo(cx, treeBase + canopyR * 0.15);
+  ctx.lineTo(cx - canopyR * 0.68, treeBase - canopyR * 0.3);
+  ctx.closePath();
+  ctx.fillStyle = shade ? '#165228' : '#1c6630'; ctx.fill();
+
+  // Canopy top highlight
+  ctx.beginPath();
+  ctx.moveTo(cx, treeBase - canopyR * 1.55);
+  ctx.lineTo(cx + canopyR * 0.44, treeBase - canopyR * 0.7);
+  ctx.lineTo(cx, treeBase - canopyR * 0.15);
+  ctx.lineTo(cx - canopyR * 0.44, treeBase - canopyR * 0.7);
+  ctx.closePath();
+  ctx.fillStyle = shade ? '#1f7038' : '#267a42'; ctx.fill();
 }
 
 function td_drawFlag(ctx, cx, cy) {
   const h = 15;
   ctx.save();
-  ctx.strokeStyle = '#C9A84C'; ctx.lineWidth = 1.5; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx, cy - h); ctx.stroke();
-  ctx.fillStyle = '#C9A84C';
+  ctx.strokeStyle='#C9A84C'; ctx.lineWidth=1.5; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx,cy-h); ctx.stroke();
+  ctx.fillStyle='#C9A84C';
   ctx.beginPath();
-  ctx.moveTo(cx, cy - h); ctx.lineTo(cx + 9, cy - h + 4); ctx.lineTo(cx, cy - h + 8);
+  ctx.moveTo(cx,cy-h); ctx.lineTo(cx+9,cy-h+4); ctx.lineTo(cx,cy-h+8);
   ctx.closePath(); ctx.fill();
   ctx.restore();
 }
 
+function td_drawMoveTarget(ctx, tc, tr) {
+  const { HW, HH } = ISO;
+  const nx = TD.camOX + (tc - tr) * HW, ny = TD.camOY + (tc + tr) * HH;
+  const fcx = nx, fcy = ny + HH;
+  const pulse = 0.55 + 0.45 * Math.sin(Date.now() * 0.006);
+
+  ctx.save();
+  ctx.strokeStyle = `rgba(74,255,63,${pulse * 0.55})`;
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  ctx.moveTo(nx,ny); ctx.lineTo(nx+HW,ny+HH); ctx.lineTo(nx,ny+2*HH); ctx.lineTo(nx-HW,ny+HH);
+  ctx.closePath(); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Small crosshair at center
+  ctx.strokeStyle = `rgba(74,255,63,${pulse * 0.7})`;
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(fcx-5,fcy); ctx.lineTo(fcx+5,fcy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(fcx,fcy-4); ctx.lineTo(fcx,fcy+4); ctx.stroke();
+  ctx.restore();
+}
+
 function td_drawChar(ctx) {
-  const { HW, HH, BH } = ISO;
+  const { HW, HH } = ISO;
   const t = TD.charAnimT;
   const aC = TD.charCol + (TD.charTCol - TD.charCol) * t;
   const aR = TD.charRow + (TD.charTRow - TD.charRow) * t;
 
-  // Character sits on top of current tile's N vertex
   const nx = TD.camOX + (aC - aR) * HW;
   const ny = TD.camOY + (aC + aR) * HH;
-  // Top face center is at (nx, ny+HH) — put char feet there
   const cx = nx, cy = ny + HH;
 
-  const phase = TD.charAnimT < 1 ? TD.walkPhase : 0;
-  const swing = Math.sin(phase) * 3.5;
-  const bob   = Math.abs(Math.sin(phase)) * 1.5;
-  const by    = cy - bob; // base y (feet level)
+  const phase  = TD.charAnimT < 1 ? TD.walkPhase : 0;
+  const swing  = Math.sin(phase) * 3.5;
+  const bob    = Math.abs(Math.sin(phase)) * 1.5;
+  const by     = cy - bob;
 
   ctx.save();
 
-  // Drop shadow
-  ctx.beginPath();
-  ctx.ellipse(cx, by + 1, 9, 3.5, 0, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(0,0,0,0.4)';
-  ctx.fill();
+  // Shadow
+  ctx.beginPath(); ctx.ellipse(cx, by+1, 9, 3.5, 0, 0, Math.PI*2);
+  ctx.fillStyle='rgba(0,0,0,0.38)'; ctx.fill();
 
   // Legs
-  ctx.strokeStyle = '#2d7a38'; ctx.lineWidth = 3; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(cx-2.5, by+8); ctx.lineTo(cx-2.5+swing, by+16); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(cx+2.5, by+8); ctx.lineTo(cx+2.5-swing, by+16); ctx.stroke();
+  ctx.strokeStyle='#2d7a38'; ctx.lineWidth=3; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(cx-2.5,by+8); ctx.lineTo(cx-2.5+swing,by+16); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx+2.5,by+8); ctx.lineTo(cx+2.5-swing,by+16); ctx.stroke();
 
   // Body
-  ctx.fillStyle = '#1a5c28'; ctx.strokeStyle = 'rgba(74,255,63,0.7)'; ctx.lineWidth = 1.2;
+  ctx.fillStyle='#1a5c28'; ctx.strokeStyle='rgba(74,255,63,0.7)'; ctx.lineWidth=1.2;
   ctx.beginPath();
-  ctx.moveTo(cx-5.5, by-1); ctx.lineTo(cx+5.5, by-1);
-  ctx.lineTo(cx+5.5, by+8); ctx.lineTo(cx-5.5, by+8); ctx.closePath();
+  ctx.moveTo(cx-5.5,by-1); ctx.lineTo(cx+5.5,by-1);
+  ctx.lineTo(cx+5.5,by+8); ctx.lineTo(cx-5.5,by+8); ctx.closePath();
   ctx.fill(); ctx.stroke();
 
   // Arms
-  ctx.strokeStyle = 'rgba(74,255,63,0.6)'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(cx-5.5, by+2); ctx.lineTo(cx-11, by+5+swing*0.4); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(cx+5.5, by+2); ctx.lineTo(cx+11, by+5-swing*0.4); ctx.stroke();
+  ctx.strokeStyle='rgba(74,255,63,0.6)'; ctx.lineWidth=2.5; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(cx-5.5,by+2); ctx.lineTo(cx-11,by+5+swing*0.4); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx+5.5,by+2); ctx.lineTo(cx+11,by+5-swing*0.4); ctx.stroke();
 
   // Head
-  ctx.fillStyle = '#2d8a40'; ctx.strokeStyle = 'rgba(74,255,63,0.85)'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.arc(cx, by-7, 6.5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#2d8a40'; ctx.strokeStyle='rgba(74,255,63,0.85)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.arc(cx,by-7,6.5,0,Math.PI*2); ctx.fill(); ctx.stroke();
 
-  // Eyes (glowing dots)
-  ctx.fillStyle = '#4AFF3F';
-  ctx.shadowColor = '#4AFF3F'; ctx.shadowBlur = 6;
-  ctx.beginPath(); ctx.arc(cx-2.2, by-8, 1.3, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(cx+2.2, by-8, 1.3, 0, Math.PI*2); ctx.fill();
-  ctx.shadowBlur = 0;
+  // Eyes
+  ctx.fillStyle='#4AFF3F'; ctx.shadowColor='#4AFF3F'; ctx.shadowBlur=6;
+  ctx.beginPath(); ctx.arc(cx-2.2,by-8,1.3,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx+2.2,by-8,1.3,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur=0;
 
   ctx.restore();
 }
@@ -3533,39 +3691,25 @@ function td_drawBoom(ctx) {
   const nx = TD.camOX + (boom.col - boom.row) * HW;
   const ny = TD.camOY + (boom.col + boom.row) * HH;
   const cx = nx, cy = ny + HH;
-
-  const t = boom.t, alpha = 1 - t, radius = t * 55;
+  const t = boom.t, alpha = 1-t, radius = t*55;
 
   ctx.save();
-
-  // Shockwave ring
-  ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI*2);
-  ctx.strokeStyle = `rgba(255,110,20,${alpha * 0.9})`; ctx.lineWidth = 2.5; ctx.stroke();
-
-  // Inner glow
+  ctx.beginPath(); ctx.arc(cx,cy,radius,0,Math.PI*2);
+  ctx.strokeStyle=`rgba(255,110,20,${alpha*0.9})`; ctx.lineWidth=2.5; ctx.stroke();
   if (t < 0.4) {
-    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius * 0.65);
-    g.addColorStop(0, `rgba(255,240,180,${alpha * 1.8})`);
-    g.addColorStop(0.5, `rgba(255,80,10,${alpha})`);
-    g.addColorStop(1, 'rgba(255,0,0,0)');
-    ctx.beginPath(); ctx.arc(cx, cy, radius * 0.65, 0, Math.PI*2);
-    ctx.fillStyle = g; ctx.fill();
+    const g=ctx.createRadialGradient(cx,cy,0,cx,cy,radius*0.65);
+    g.addColorStop(0,`rgba(255,240,180,${alpha*1.8})`);
+    g.addColorStop(0.5,`rgba(255,80,10,${alpha})`);
+    g.addColorStop(1,'rgba(255,0,0,0)');
+    ctx.beginPath(); ctx.arc(cx,cy,radius*0.65,0,Math.PI*2);
+    ctx.fillStyle=g; ctx.fill();
   }
-
-  // Debris particles
-  for (let i = 0; i < 10; i++) {
-    const ang = (i / 10) * Math.PI * 2;
-    const pr  = radius * (0.3 + (i % 3) * 0.22);
-    const px  = cx + Math.cos(ang) * pr;
-    const py  = cy + Math.sin(ang) * pr * 0.55;
-    const ps  = (1 - t) * 3.5;
-    ctx.beginPath(); ctx.arc(px, py, ps, 0, Math.PI*2);
-    ctx.fillStyle = `rgba(255,${60+i*18},0,${alpha})`; ctx.fill();
+  for (let i=0;i<10;i++) {
+    const ang=(i/10)*Math.PI*2, pr=radius*(0.3+(i%3)*0.22);
+    ctx.beginPath(); ctx.arc(cx+Math.cos(ang)*pr, cy+Math.sin(ang)*pr*0.55, (1-t)*3.5, 0, Math.PI*2);
+    ctx.fillStyle=`rgba(255,${60+i*18},0,${alpha})`; ctx.fill();
   }
-
   ctx.restore();
 }
 
 </script>
-</body>
-</html>
