@@ -3783,6 +3783,9 @@ function td_render() {
     else                             td_drawGroundTile(ctx, item.c, item.r);
   }
 
+  // Numbers drawn after all tiles so terrain never covers them
+  td_drawNumbers(ctx);
+
   td_drawChar(ctx);
   if (TD.boom) td_drawBoom(ctx);
 
@@ -3960,7 +3963,7 @@ function td_drawTile(ctx, c, r) {
   ctx.lineWidth   = isHere ? 1.5 : 0.5;
   ctx.stroke();
 
-  // Content — center of top face
+  // Content — center of top face (flags + mine emoji only; numbers handled in td_drawNumbers)
   const fcx = nx, fcy = ny + HH - eH;
   if (cell.flagged && !cell.revealed) {
     td_drawFlag(ctx, fcx, fcy - HH * 0.5);
@@ -3969,15 +3972,6 @@ function td_drawTile(ctx, c, r) {
     ctx.font = `${HH}px serif`;
     ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText('\u{1F4A5}', fcx, fcy);
-    ctx.restore();
-  } else if (cell.revealed && cell.adj > 0) {
-    ctx.save();
-    ctx.font = `bold ${Math.round(HH*0.92)}px JetBrains Mono, monospace`;
-    ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillStyle = NUM_CLR[cell.adj] || '#fff';
-    ctx.shadowColor = NUM_CLR[cell.adj] || '#fff';
-    ctx.shadowBlur = 5;
-    ctx.fillText(cell.adj, fcx, fcy-1);
     ctx.restore();
   }
 }
@@ -4237,6 +4231,47 @@ function td_drawMoveTarget(ctx, tc, tr) {
   ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(fcx-5,fcy); ctx.lineTo(fcx+5,fcy); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(fcx,fcy-4); ctx.lineTo(fcx,fcy+4); ctx.stroke();
+  ctx.restore();
+}
+
+function td_drawNumbers(ctx) {
+  const { HW, HH } = ISO;
+  const fontSize = Math.round(HH * 0.88);
+
+  ctx.save();
+  ctx.font = `bold ${fontSize}px JetBrains Mono, monospace`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  for (let r = 0; r < TD.rows; r++) {
+    for (let c = 0; c < TD.cols; c++) {
+      const cell = TD.board[r][c];
+      if (!cell.revealed || cell.mine || !cell.adj) continue;
+
+      const nx = TD.camOX + (c - r) * HW;
+      const ny = TD.camOY + (c + r) * HH;
+      const eH = (TD.heightMap && TD.heightMap[r]) ? (TD.heightMap[r][c] || 0) : 0;
+
+      // Float 6px above the centre of the tile top face
+      const fx = nx;
+      const fy = ny + HH - eH - 6;
+      const col = NUM_CLR[cell.adj] || '#fff';
+      const pad = fontSize * 0.52;
+
+      // Dark pill background
+      ctx.beginPath();
+      ctx.arc(fx, fy, pad, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,0,0,0.58)';
+      ctx.fill();
+
+      // Number
+      ctx.shadowColor = col;
+      ctx.shadowBlur  = 7;
+      ctx.fillStyle   = col;
+      ctx.fillText(cell.adj, fx, fy);
+      ctx.shadowBlur  = 0;
+    }
+  }
   ctx.restore();
 }
 
