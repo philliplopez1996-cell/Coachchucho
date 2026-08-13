@@ -4036,27 +4036,31 @@ function td_drawChar(ctx) {
   const ny = TD.camOY + (aC + aR) * HH;
   const cx = nx, cy = ny + HH;
 
-  const phase  = TD.charAnimT < 1 ? TD.walkPhase : 0;
-  const bob    = Math.abs(Math.sin(phase)) * 1.8;
-  const lean   = TD.charAnimT < 1 ? Math.sin(phase) * 0.07 : 0;
-  const by     = cy - bob;
+  const moving = t < 1;
+  const arc    = moving ? Math.sin(t * Math.PI) : 0; // 0→1→0 over the step
+  const hopH   = arc * 14;                            // peak 14px above tile
+  const lean   = moving ? (0.5 - t) * 0.15 : 0;     // forward on takeoff, back on land
+  const phase  = moving ? TD.walkPhase : 0;
+  const by     = cy - hopH;
+
+  // Shadow shrinks and fades as character rises
+  const sScale = 1 - arc * 0.38;
 
   ctx.save();
 
-  // Ground shadow (ellipse fixed on tile surface)
+  // Ground shadow (fixed on tile surface)
   ctx.beginPath();
-  ctx.ellipse(cx, cy + 2, 11, 4, 0, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(0,0,0,0.42)'; ctx.fill();
+  ctx.ellipse(cx, cy + 2, 11 * sScale, 4 * sScale, 0, 0, Math.PI * 2);
+  ctx.fillStyle = `rgba(0,0,0,${(0.42 * (1 - arc * 0.35)).toFixed(2)})`; ctx.fill();
 
   if (TD_CHAR_BITMAP) {
-    // Sprite: 36px tall, keeping aspect ratio; feet bob above tile surface
     const sprH = 36;
     const sprW = Math.round(sprH * TD_CHAR_BITMAP.width / TD_CHAR_BITMAP.height);
     ctx.translate(cx, by + 2 - sprH / 2);
     ctx.rotate(lean);
     ctx.drawImage(TD_CHAR_BITMAP, -sprW / 2, -sprH / 2, sprW, sprH);
   } else {
-    // Fallback procedural character while sprite loads
+    // Fallback procedural character
     const swing = Math.sin(phase) * 3.5;
     ctx.strokeStyle='#2d7a38'; ctx.lineWidth=3; ctx.lineCap='round';
     ctx.beginPath(); ctx.moveTo(cx-2.5,by+8); ctx.lineTo(cx-2.5+swing,by+16); ctx.stroke();
