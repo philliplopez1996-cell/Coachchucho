@@ -3448,36 +3448,95 @@ function td_render() {
   const W = canvas.width, H = canvas.height;
 
   ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = '#060d09';
-  ctx.fillRect(0, 0, W, H);
 
-  // Background grid lines
-  ctx.strokeStyle = 'rgba(74,255,63,0.022)';
-  ctx.lineWidth = 1;
-  for (let x = 0; x < W; x += 56) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
-  for (let y = 0; y < H; y += 56) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+  // ── Ambient sky & atmosphere ──
+  td_drawAmbient(ctx, W, H);
 
-  // Build render order: tiles + decorations sorted back-to-front
+  // ── Build painter-sorted render list ──
+  // Ground plane: flat grass tiles surrounding the minefield
+  const GM = 4; // margin tiles
   const items = [];
-  for (let r = 0; r < TD.rows; r++)
-    for (let c = 0; c < TD.cols; c++)
-      items.push({ kind: 'tile', c, r, key: c + r });
+  for (let r = -GM; r < TD.rows + GM; r++) {
+    for (let c = -GM; c < TD.cols + GM; c++) {
+      const onGrid = c >= 0 && c < TD.cols && r >= 0 && r < TD.rows;
+      if (onGrid)
+        items.push({ kind: 'tile',   c, r, key: c + r });
+      else
+        items.push({ kind: 'ground', c, r, key: c + r - 0.01 }); // just behind same-sum tile
+    }
+  }
   for (const d of TD.decorations)
     items.push({ kind: 'tree', c: d.c, r: d.r, d, key: d.c + d.r });
   items.sort((a, b) => a.key - b.key);
 
   for (const item of items) {
-    if (item.kind === 'tile') td_drawTile(ctx, item.c, item.r);
-    else                      td_drawTree(ctx, item.d);
+    if      (item.kind === 'tile')   td_drawTile(ctx, item.c, item.r);
+    else if (item.kind === 'tree')   td_drawTree(ctx, item.d);
+    else                             td_drawGroundTile(ctx, item.c, item.r);
   }
 
   td_drawChar(ctx);
   if (TD.boom) td_drawBoom(ctx);
 
-  // Tap-target indicator: last tile in queued path
   if (TD.path.length > 0 && !TD.dead && !TD.won) {
     const [tc, tr] = TD.path[TD.path.length - 1];
     td_drawMoveTarget(ctx, tc, tr);
+  }
+}
+
+function td_drawAmbient(ctx, W, H) {
+  // Sky gradient: very dark at top, barely warmer dark-green at base
+  const sky = ctx.createLinearGradient(0, 0, 0, H);
+  sky.addColorStop(0,   '#020704');
+  sky.addColorStop(0.5, '#050c07');
+  sky.addColorStop(1,   '#071009');
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
+
+  // Subtle atmospheric glow behind the back of the grid (upper-center)
+  const gx = W * 0.5, gy = H * 0.2;
+  const atm = ctx.createRadialGradient(gx, gy, 0, gx, gy, W * 0.55);
+  atm.addColorStop(0,   'rgba(74,255,63,0.028)');
+  atm.addColorStop(0.6, 'rgba(74,255,63,0.008)');
+  atm.addColorStop(1,   'rgba(74,255,63,0)');
+  ctx.fillStyle = atm; ctx.fillRect(0, 0, W, H);
+
+  // Faint structural grid (part of the game's UI language)
+  ctx.strokeStyle = 'rgba(74,255,63,0.016)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 56) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y = 0; y < H; y += 56) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+}
+
+function td_drawGroundTile(ctx, c, r) {
+  const { HW, HH } = ISO;
+  const nx = TD.camOX + (c - r) * HW, ny = TD.camOY + (c + r) * HH;
+
+  // Distance from grid edge — fade ground tiles at outer margin
+  const distC = Math.min(c < 0 ? -c : (c >= TD.cols ? c - TD.cols + 1 : 0), 4);
+  const distR = Math.min(r < 0 ? -r : (r >= TD.rows ? r - TD.rows + 1 : 0), 4);
+  const dist  = Math.max(distC, distR); // 1 = adjacent, 4 = outer edge
+
+  // Earthy dark-green ground: slightly warmer/darker than minefield tiles
+  // Vary lightly by position for a natural, non-uniform look
+  const hash  = ((c * 7 + r * 13) & 0xf) / 15; // deterministic 0..1
+  const base  = Math.round(8 + hash * 4);        // 8–12
+  const alpha = Math.max(0.12, 1 - (dist - 1) * 0.22); // fade near outer edge
+
+  // Flat top face (no sides — it's ground level, not a raised tile)
+  ctx.beginPath();
+  ctx.moveTo(nx, ny);
+  ctx.lineTo(nx + HW, ny + HH);
+  ctx.lineTo(nx,      ny + 2 * HH);
+  ctx.lineTo(nx - HW, ny + HH);
+  ctx.closePath();
+  ctx.fillStyle = `rgba(${base},${base + 6},${base},${alpha})`;
+  ctx.fill();
+
+  // Very faint edge — helps show the tile structure
+  if (dist <= 2) {
+    ctx.strokeStyle = `rgba(74,255,63,${0.025 * alpha})`;
+    ctx.lineWidth = 0.4;
+    ctx.stroke();
   }
 }
 
