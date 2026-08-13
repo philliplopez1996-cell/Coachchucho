@@ -1122,6 +1122,88 @@
       letter-spacing: .08em; text-transform: uppercase; cursor: pointer; transition: all .14s;
     }
     .dr-lb-tab.act { background: var(--surf2); color: var(--lime); box-shadow: inset 0 1px 0 rgba(255,255,255,.05); }
+
+    /* ── 3D WORLD ──────────────────────────────────────────── */
+    #screen-3d.active {
+      height: 100dvh; overflow: hidden;
+      display: flex; flex-direction: column; align-items: stretch;
+    }
+    #iso-canvas { display: block; width: 100%; flex: 1; touch-action: none; cursor: crosshair; }
+
+    .td-hud {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px;
+      background: linear-gradient(to bottom, rgba(6,13,9,.92) 0%, transparent 100%);
+      z-index: 10; pointer-events: none;
+    }
+    .td-hud-back {
+      pointer-events: all;
+      background: transparent; border: 1px solid var(--brd);
+      color: var(--txt); font-family: var(--font-u); font-size: .78rem;
+      padding: 6px 14px; border-radius: 5px; cursor: pointer;
+      letter-spacing: .08em;
+    }
+    .td-hud-back:hover { background: rgba(74,255,63,.08); border-color: var(--lime); }
+    .td-hud-stat { font-family: var(--font-m); font-size: .82rem; color: var(--txt2); }
+    .td-hud-stat span { color: var(--lime); }
+    .td-hud-stat.flag span { color: var(--gold); }
+
+    .td-hint {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      font-family: var(--font-u); font-size: .66rem; color: var(--txt3);
+      letter-spacing: .1em; text-align: center; pointer-events: none; z-index: 10;
+      white-space: nowrap;
+    }
+
+    /* D-pad */
+    .td-dpad {
+      position: fixed; bottom: 60px; left: 20px;
+      display: grid; grid-template-columns: repeat(3, 46px); grid-template-rows: repeat(3, 46px);
+      gap: 3px; z-index: 10;
+    }
+    .td-dp {
+      background: rgba(11,24,16,.82); border: 1px solid var(--brd2);
+      border-radius: 7px; color: var(--txt2); font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; user-select: none; -webkit-user-select: none;
+      transition: background .08s;
+    }
+    .td-dp:active, .td-dp.pressed { background: rgba(74,255,63,.18); color: var(--lime); }
+
+    /* Action buttons */
+    .td-act-btns {
+      position: fixed; bottom: 66px; right: 20px;
+      display: flex; flex-direction: column; gap: 8px; z-index: 10;
+    }
+    .td-act-btn {
+      background: rgba(11,24,16,.88); border: 1px solid var(--brd2);
+      border-radius: 8px; color: var(--txt); font-family: var(--font-u);
+      font-size: .68rem; font-weight: 600; letter-spacing: .1em;
+      padding: 12px 16px; cursor: pointer; text-align: center;
+      user-select: none; -webkit-user-select: none;
+    }
+    .td-act-btn.reveal { border-color: rgba(74,255,63,.4); color: var(--lime); }
+    .td-act-btn.flag   { border-color: rgba(201,168,76,.4); color: var(--gold); }
+
+    /* Result overlay */
+    .td-overlay {
+      position: fixed; inset: 0;
+      background: rgba(6,13,9,.88);
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 20;
+    }
+    .td-overlay.show { display: flex; }
+    .td-ov-title {
+      font-family: var(--font-d); font-size: clamp(2.2rem,8vw,3.5rem); font-weight: 300;
+      letter-spacing: .22em; text-transform: uppercase; color: var(--lime); margin-bottom: 6px;
+    }
+    .td-ov-title.dead { color: var(--red); }
+    .td-ov-sub {
+      font-family: var(--font-u); font-size: .88rem; color: var(--txt2);
+      letter-spacing: .1em; margin-bottom: 36px;
+    }
+    .td-ov-btns { display: flex; gap: 12px; }
   </style>
 </head>
 <body>
@@ -1159,7 +1241,8 @@
     <!-- Mode switcher -->
     <div class="mode-tabs" role="tablist">
       <button class="mode-tab act-lime" id="tab-regular"   onclick="switchMode('regular')">Regular Mode</button>
-      <button class="mode-tab"          id="tab-challenge" onclick="switchMode('challenge')">Timing Challenge</button>
+      <button class="mode-tab"          id="tab-challenge" onclick="switchMode('challenge')">Challenge</button>
+      <button class="mode-tab"          id="tab-3d"        onclick="switchMode('3d')">3D World</button>
     </div>
 
     <!-- ── Regular Mode panel ── -->
@@ -1210,6 +1293,26 @@
     </div>
 
   </div>
+
+    <!-- ── 3D World panel ── -->
+    <div id="panel-3d" style="width:100%; display:none">
+      <div class="opt-group">
+        <div class="opt-label">Difficulty</div>
+        <div class="pills" id="pills-3d-diff">
+          <div class="pill act" data-val="easy"   onclick="pickPill(this,'3d-diff')">Easy</div>
+          <div class="pill"     data-val="medium" onclick="pickPill(this,'3d-diff')">Medium</div>
+          <div class="pill"     data-val="hard"   onclick="pickPill(this,'3d-diff')">Hard</div>
+        </div>
+      </div>
+      <div class="setup-go">
+        <button class="btn btn-lime" onclick="launch3D()">Enter 3D World</button>
+      </div>
+      <div style="text-align:center; font-size:.72rem; color:var(--txt3); letter-spacing:.1em; margin-top:8px;">
+        Walk the minefield · WASD / Arrows to move · Space to reveal · F to flag
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <!-- ══════════════════════════════════════════
@@ -1225,6 +1328,62 @@
       <button class="flag-btn" id="flag-btn" onclick="toggleFlagMode()">Flag Mode</button>
       <div class="pup-hud" id="pup-hud"></div>
       <div class="board-hint" id="board-hint">Click to reveal &nbsp;·&nbsp; Right-click to flag</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN: 3D WORLD
+══════════════════════════════════════════ -->
+<div id="screen-3d" class="screen">
+  <canvas id="iso-canvas"></canvas>
+
+  <div class="td-hud">
+    <button class="td-hud-back" onclick="quit3D()">&#8592; Exit</button>
+    <div class="td-hud-stat">Mines&nbsp;<span id="td-mines">0</span></div>
+    <div class="td-hud-stat flag">Flags&nbsp;<span id="td-flags">0</span></div>
+  </div>
+
+  <!-- D-pad (mobile) -->
+  <div class="td-dpad" id="td-dpad">
+    <div></div>
+    <div class="td-dp" id="dp-up"
+         ontouchstart="event.preventDefault();dpadStart(0,-1)"
+         ontouchend="dpadEnd()" onmousedown="dpadStart(0,-1)" onmouseup="dpadEnd()">&#9650;</div>
+    <div></div>
+    <div class="td-dp" id="dp-left"
+         ontouchstart="event.preventDefault();dpadStart(-1,0)"
+         ontouchend="dpadEnd()" onmousedown="dpadStart(-1,0)" onmouseup="dpadEnd()">&#9664;</div>
+    <div></div>
+    <div class="td-dp" id="dp-right"
+         ontouchstart="event.preventDefault();dpadStart(1,0)"
+         ontouchend="dpadEnd()" onmousedown="dpadStart(1,0)" onmouseup="dpadEnd()">&#9654;</div>
+    <div></div>
+    <div class="td-dp" id="dp-down"
+         ontouchstart="event.preventDefault();dpadStart(0,1)"
+         ontouchend="dpadEnd()" onmousedown="dpadStart(0,1)" onmouseup="dpadEnd()">&#9660;</div>
+    <div></div>
+  </div>
+
+  <!-- Action buttons (mobile) -->
+  <div class="td-act-btns">
+    <div class="td-act-btn reveal"
+         ontouchstart="event.preventDefault();tdReveal()"
+         onmousedown="tdReveal()">REVEAL</div>
+    <div class="td-act-btn flag"
+         ontouchstart="event.preventDefault();tdFlag()"
+         onmousedown="tdFlag()">FLAG</div>
+  </div>
+
+  <div class="td-hint" id="td-hint">WASD / Arrows — Move &nbsp;&#183;&nbsp; Space — Reveal &nbsp;&#183;&nbsp; F — Flag</div>
+
+  <!-- Result overlay -->
+  <div class="td-overlay" id="td-overlay">
+    <div class="td-ov-title" id="td-ov-title">YOU WIN</div>
+    <div class="td-ov-sub"   id="td-ov-sub">All clear!</div>
+    <div class="td-ov-btns">
+      <button class="btn btn-lime" onclick="launch3D()">Play Again</button>
+      <button class="btn" style="border:1px solid var(--brd)" onclick="quit3D()">Exit</button>
     </div>
   </div>
 </div>
@@ -1978,11 +2137,15 @@ function closeOverlay() {
 // ══════════════════════════════════════════
 
 function switchMode(mode) {
-  const isReg = mode === 'regular';
+  const isReg  = mode === 'regular';
+  const isChal = mode === 'challenge';
+  const is3d   = mode === '3d';
   document.getElementById('tab-regular').className   = 'mode-tab' + (isReg  ? ' act-lime' : '');
-  document.getElementById('tab-challenge').className = 'mode-tab' + (!isReg ? ' act-gold' : '');
+  document.getElementById('tab-challenge').className = 'mode-tab' + (isChal ? ' act-gold' : '');
+  document.getElementById('tab-3d').className        = 'mode-tab' + (is3d   ? ' act-lime' : '');
   document.getElementById('panel-regular').style.display   = isReg  ? '' : 'none';
-  document.getElementById('panel-challenge').style.display = !isReg ? '' : 'none';
+  document.getElementById('panel-challenge').style.display = isChal ? '' : 'none';
+  document.getElementById('panel-3d').style.display        = is3d   ? '' : 'none';
 }
 
 function quitGame() {
@@ -2946,6 +3109,463 @@ renderProfileCorner();
 buildPupSelector('regular');
 buildPupSelector('challenge');
 syncRegSetup();
+
+
+// ══════════════════════════════════════════
+// 3D WORLD — ISOMETRIC MINESWEEPER
+// ══════════════════════════════════════════
+
+const ISO = { HW: 34, HH: 17, BH: 13 }; // half-width, half-height, block-height
+
+let TD = null; // 3D game state
+
+function launch3D() {
+  if (TD && TD.raf) { cancelAnimationFrame(TD.raf); TD = null; }
+
+  const diff   = getPill('3d-diff') || 'easy';
+  const preset = PRESETS[diff] || PRESETS.easy;
+  const ROWS = preset.sz, COLS = preset.sz, NMINES = preset.mines;
+
+  TD = {
+    rows: ROWS, cols: COLS, mineCount: NMINES,
+    board: [],
+    started: false,
+    flagCount: 0,
+    dead: false, won: false,
+    charCol: 0, charRow: 0,
+    charTCol: 0, charTRow: 0,
+    charAnimT: 1, walkPhase: 0,
+    camOX: 0, camOY: 0, camTOX: 0, camTOY: 0,
+    canvas: null, ctx: null, raf: null,
+    boom: null,
+    lastTs: 0,
+  };
+
+  for (let r = 0; r < ROWS; r++) {
+    TD.board[r] = [];
+    for (let c = 0; c < COLS; c++)
+      TD.board[r][c] = { mine:false, revealed:false, flagged:false, adj:0 };
+  }
+
+  goTo('3d');
+  document.getElementById('td-mines').textContent = NMINES;
+  document.getElementById('td-flags').textContent = '0';
+  document.getElementById('td-overlay').classList.remove('show');
+
+  const canvas = document.getElementById('iso-canvas');
+  TD.canvas = canvas;
+  TD.ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    td_snapCamera();
+  }
+  resize();
+  TD._resizeFn = resize;
+  window.addEventListener('resize', resize);
+
+  document.addEventListener('keydown', td_keydown);
+
+  TD.raf = requestAnimationFrame(td_loop);
+}
+
+function quit3D() {
+  if (!TD) return;
+  if (TD.raf) cancelAnimationFrame(TD.raf);
+  document.removeEventListener('keydown', td_keydown);
+  if (TD._resizeFn) window.removeEventListener('resize', TD._resizeFn);
+  TD = null;
+  goTo('setup');
+}
+
+// ── ISO MATH ──────────────────────────────
+
+function iso_gridX(c, r) { return TD.camOX + (c - r) * ISO.HW; }
+function iso_gridY(c, r) { return TD.camOY + (c + r) * ISO.HH; }
+
+function td_snapCamera() {
+  const canvas = TD.canvas;
+  const aC = TD.charCol + (TD.charTCol - TD.charCol) * TD.charAnimT;
+  const aR = TD.charRow + (TD.charTRow - TD.charRow) * TD.charAnimT;
+  TD.camOX = canvas.width  * 0.5  - (aC - aR) * ISO.HW;
+  TD.camOY = canvas.height * 0.38 - (aC + aR + 1) * ISO.HH;
+  TD.camTOX = TD.camOX; TD.camTOY = TD.camOY;
+}
+
+function td_targetCamera() {
+  const canvas = TD.canvas;
+  const aC = TD.charCol + (TD.charTCol - TD.charCol) * TD.charAnimT;
+  const aR = TD.charRow + (TD.charTRow - TD.charRow) * TD.charAnimT;
+  TD.camTOX = canvas.width  * 0.5  - (aC - aR) * ISO.HW;
+  TD.camTOY = canvas.height * 0.38 - (aC + aR + 1) * ISO.HH;
+}
+
+// ── GAME LOOP ─────────────────────────────
+
+function td_loop(ts) {
+  if (!TD) return;
+  TD.raf = requestAnimationFrame(td_loop);
+  const dt = Math.min(0.08, (ts - TD.lastTs) / 1000);
+  TD.lastTs = ts;
+
+  // Animate character movement
+  if (TD.charAnimT < 1) {
+    TD.charAnimT = Math.min(1, TD.charAnimT + dt * 9);
+    TD.walkPhase += dt * 14;
+  }
+
+  // Smooth camera
+  td_targetCamera();
+  const lk = Math.min(1, dt * 7);
+  TD.camOX += (TD.camTOX - TD.camOX) * lk;
+  TD.camOY += (TD.camTOY - TD.camOY) * lk;
+
+  // Explosion timer
+  if (TD.boom) { TD.boom.t = Math.min(1, TD.boom.t + dt * 1.8); }
+
+  td_render();
+}
+
+// ── INPUT ─────────────────────────────────
+
+function td_keydown(e) {
+  if (!TD) return;
+  switch (e.key) {
+    case 'ArrowUp':    case 'w': case 'W': e.preventDefault(); tdMove( 0,-1); break;
+    case 'ArrowDown':  case 's': case 'S': e.preventDefault(); tdMove( 0, 1); break;
+    case 'ArrowLeft':  case 'a': case 'A': e.preventDefault(); tdMove(-1, 0); break;
+    case 'ArrowRight': case 'd': case 'D': e.preventDefault(); tdMove( 1, 0); break;
+    case ' ': case 'Enter': e.preventDefault(); tdReveal(); break;
+    case 'f': case 'F': e.preventDefault(); tdFlag(); break;
+  }
+}
+
+let _dpadTimer = null;
+function dpadStart(dc, dr) {
+  if (!TD) return;
+  tdMove(dc, dr);
+  _dpadTimer = setInterval(() => tdMove(dc, dr), 260);
+}
+function dpadEnd() {
+  if (_dpadTimer) { clearInterval(_dpadTimer); _dpadTimer = null; }
+}
+
+function tdMove(dc, dr) {
+  if (!TD || TD.dead || TD.won || TD.charAnimT < 0.55) return;
+  const nc = TD.charTCol + dc, nr = TD.charTRow + dr;
+  if (nc < 0 || nc >= TD.cols || nr < 0 || nr >= TD.rows) return;
+  TD.charCol = TD.charTCol; TD.charRow = TD.charTRow;
+  TD.charTCol = nc; TD.charTRow = nr;
+  TD.charAnimT = 0;
+  playSound('click');
+}
+
+function tdReveal() {
+  if (!TD || TD.dead || TD.won) return;
+  const c = TD.charTCol, r = TD.charTRow;
+  const cell = TD.board[r][c];
+  if (cell.revealed || cell.flagged) return;
+  if (!TD.started) { td_placeMines(r, c); TD.started = true; }
+  td_reveal(r, c);
+}
+
+function tdFlag() {
+  if (!TD || TD.dead || TD.won) return;
+  const cell = TD.board[TD.charTRow][TD.charTCol];
+  if (cell.revealed) return;
+  cell.flagged = !cell.flagged;
+  TD.flagCount += cell.flagged ? 1 : -1;
+  document.getElementById('td-flags').textContent = Math.max(0, TD.flagCount);
+  playSound('flag');
+}
+
+// ── MINE LOGIC ────────────────────────────
+
+function td_placeMines(sr, sc) {
+  let placed = 0;
+  while (placed < TD.mineCount) {
+    const r = Math.floor(Math.random() * TD.rows);
+    const c = Math.floor(Math.random() * TD.cols);
+    if (TD.board[r][c].mine) continue;
+    if (Math.abs(r - sr) <= 1 && Math.abs(c - sc) <= 1) continue;
+    TD.board[r][c].mine = true;
+    placed++;
+  }
+  for (let r = 0; r < TD.rows; r++) {
+    for (let c = 0; c < TD.cols; c++) {
+      if (TD.board[r][c].mine) continue;
+      let n = 0;
+      for (let dr = -1; dr <= 1; dr++)
+        for (let dc = -1; dc <= 1; dc++) {
+          const nr = r+dr, nc = c+dc;
+          if (nr>=0 && nr<TD.rows && nc>=0 && nc<TD.cols && TD.board[nr][nc].mine) n++;
+        }
+      TD.board[r][c].adj = n;
+    }
+  }
+}
+
+function td_reveal(r, c) {
+  const cell = TD.board[r][c];
+  if (cell.revealed || cell.flagged) return;
+  cell.revealed = true;
+
+  if (cell.mine) {
+    TD.dead = true;
+    TD.boom = { col: c, row: r, t: 0 };
+    playSound('mine');
+    for (let rr = 0; rr < TD.rows; rr++)
+      for (let cc = 0; cc < TD.cols; cc++)
+        if (TD.board[rr][cc].mine) TD.board[rr][cc].revealed = true;
+    setTimeout(() => {
+      document.getElementById('td-ov-title').textContent = 'GAME OVER';
+      document.getElementById('td-ov-title').className   = 'td-ov-title dead';
+      document.getElementById('td-ov-sub').textContent   = 'Stepped on a mine';
+      document.getElementById('td-overlay').classList.add('show');
+    }, 900);
+    return;
+  }
+
+  if (cell.adj === 0) {
+    for (let dr = -1; dr <= 1; dr++)
+      for (let dc = -1; dc <= 1; dc++) {
+        const nr=r+dr, nc=c+dc;
+        if (nr>=0 && nr<TD.rows && nc>=0 && nc<TD.cols) td_reveal(nr, nc);
+      }
+  }
+  td_checkWin();
+}
+
+function td_checkWin() {
+  for (let r = 0; r < TD.rows; r++)
+    for (let c = 0; c < TD.cols; c++)
+      if (!TD.board[r][c].mine && !TD.board[r][c].revealed) return;
+  TD.won = true;
+  playSound('win');
+  awardXP(60);
+  setTimeout(() => {
+    document.getElementById('td-ov-title').textContent = 'YOU WIN';
+    document.getElementById('td-ov-title').className   = 'td-ov-title';
+    document.getElementById('td-ov-sub').textContent   = 'Minefield cleared';
+    document.getElementById('td-overlay').classList.add('show');
+  }, 600);
+}
+
+// ── RENDERER ──────────────────────────────
+
+const NUM_CLR = ['','#4EBDC9','#4AFF3F','#d9713a','#C9A84C','#e05050','#cc88cc','#c8c8c8','#5a7a60'];
+
+function td_render() {
+  const { canvas, ctx } = TD;
+  const W = canvas.width, H = canvas.height;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#060d09';
+  ctx.fillRect(0, 0, W, H);
+
+  // Subtle background grid
+  ctx.strokeStyle = 'rgba(74,255,63,0.025)';
+  ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 56) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y = 0; y < H; y += 56) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+  // Painter's order: col+row ascending = back to front
+  const order = [];
+  for (let r = 0; r < TD.rows; r++)
+    for (let c = 0; c < TD.cols; c++)
+      order.push([c, r]);
+  order.sort((a,b) => (a[0]+a[1]) - (b[0]+b[1]));
+
+  for (const [c, r] of order) td_drawTile(ctx, c, r);
+
+  td_drawChar(ctx);
+
+  if (TD.boom) td_drawBoom(ctx);
+}
+
+function td_drawTile(ctx, c, r) {
+  const { HW, HH, BH } = ISO;
+  const cell = TD.board[r][c];
+  const isHere = (c === TD.charTCol && r === TD.charTRow);
+
+  // Top-face corners (N/E/S/W of the rhombus)
+  const ox = TD.camOX, oy = TD.camOY;
+  const nx = ox + (c - r) * HW, ny = oy + (c + r) * HH;
+  // N = (nx, ny), E = (nx+HW, ny+HH), S = (nx, ny+2*HH), W = (nx-HW, ny+HH)
+
+  let top, sideR, sideL;
+  if (cell.mine && cell.revealed) {
+    const pulse = 0.5 + 0.5 * Math.sin(Date.now() * 0.007);
+    top   = `rgba(${Math.round(160+pulse*60)},24,24,1)`;
+    sideR = '#5a0808';
+    sideL = '#3e0505';
+  } else if (cell.revealed) {
+    top   = '#0d1e11';
+    sideR = '#070f08';
+    sideL = '#050c06';
+  } else if (isHere) {
+    top   = 'rgba(74,255,63,0.13)';
+    sideR = 'rgba(30,100,35,0.9)';
+    sideL = 'rgba(20,70,25,0.9)';
+  } else {
+    top   = '#0b1810';
+    sideR = '#071009';
+    sideL = '#060d07';
+  }
+
+  // Right side face
+  ctx.beginPath();
+  ctx.moveTo(nx+HW, ny+HH); ctx.lineTo(nx, ny+2*HH);
+  ctx.lineTo(nx, ny+2*HH+BH); ctx.lineTo(nx+HW, ny+HH+BH);
+  ctx.closePath();
+  ctx.fillStyle = sideR; ctx.fill();
+
+  // Left side face
+  ctx.beginPath();
+  ctx.moveTo(nx-HW, ny+HH); ctx.lineTo(nx, ny+2*HH);
+  ctx.lineTo(nx, ny+2*HH+BH); ctx.lineTo(nx-HW, ny+HH+BH);
+  ctx.closePath();
+  ctx.fillStyle = sideL; ctx.fill();
+
+  // Top face
+  ctx.beginPath();
+  ctx.moveTo(nx, ny); ctx.lineTo(nx+HW, ny+HH); ctx.lineTo(nx, ny+2*HH); ctx.lineTo(nx-HW, ny+HH);
+  ctx.closePath();
+  ctx.fillStyle = top; ctx.fill();
+  ctx.strokeStyle = isHere ? 'rgba(74,255,63,0.65)' : 'rgba(74,255,63,0.06)';
+  ctx.lineWidth = isHere ? 1.5 : 0.5;
+  ctx.stroke();
+
+  // Content
+  const fcx = nx, fcy = ny + HH; // center of top face
+  if (cell.flagged && !cell.revealed) {
+    td_drawFlag(ctx, fcx, fcy - HH * 0.5);
+  } else if (cell.mine && cell.revealed) {
+    ctx.save();
+    ctx.font = `${HH}px serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('\u{1F4A5}', fcx, fcy);
+    ctx.restore();
+  } else if (cell.revealed && cell.adj > 0) {
+    ctx.save();
+    ctx.font = `bold ${Math.round(HH * 0.92)}px JetBrains Mono, monospace`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = NUM_CLR[cell.adj] || '#fff';
+    ctx.shadowColor = NUM_CLR[cell.adj] || '#fff';
+    ctx.shadowBlur = 5;
+    ctx.fillText(cell.adj, fcx, fcy - 1);
+    ctx.restore();
+  }
+}
+
+function td_drawFlag(ctx, cx, cy) {
+  const h = 15;
+  ctx.save();
+  ctx.strokeStyle = '#C9A84C'; ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx, cy - h); ctx.stroke();
+  ctx.fillStyle = '#C9A84C';
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - h); ctx.lineTo(cx + 9, cy - h + 4); ctx.lineTo(cx, cy - h + 8);
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+function td_drawChar(ctx) {
+  const { HW, HH, BH } = ISO;
+  const t = TD.charAnimT;
+  const aC = TD.charCol + (TD.charTCol - TD.charCol) * t;
+  const aR = TD.charRow + (TD.charTRow - TD.charRow) * t;
+
+  // Character sits on top of current tile's N vertex
+  const nx = TD.camOX + (aC - aR) * HW;
+  const ny = TD.camOY + (aC + aR) * HH;
+  // Top face center is at (nx, ny+HH) — put char feet there
+  const cx = nx, cy = ny + HH;
+
+  const phase = TD.charAnimT < 1 ? TD.walkPhase : 0;
+  const swing = Math.sin(phase) * 3.5;
+  const bob   = Math.abs(Math.sin(phase)) * 1.5;
+  const by    = cy - bob; // base y (feet level)
+
+  ctx.save();
+
+  // Drop shadow
+  ctx.beginPath();
+  ctx.ellipse(cx, by + 1, 9, 3.5, 0, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.fill();
+
+  // Legs
+  ctx.strokeStyle = '#2d7a38'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(cx-2.5, by+8); ctx.lineTo(cx-2.5+swing, by+16); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx+2.5, by+8); ctx.lineTo(cx+2.5-swing, by+16); ctx.stroke();
+
+  // Body
+  ctx.fillStyle = '#1a5c28'; ctx.strokeStyle = 'rgba(74,255,63,0.7)'; ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(cx-5.5, by-1); ctx.lineTo(cx+5.5, by-1);
+  ctx.lineTo(cx+5.5, by+8); ctx.lineTo(cx-5.5, by+8); ctx.closePath();
+  ctx.fill(); ctx.stroke();
+
+  // Arms
+  ctx.strokeStyle = 'rgba(74,255,63,0.6)'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(cx-5.5, by+2); ctx.lineTo(cx-11, by+5+swing*0.4); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx+5.5, by+2); ctx.lineTo(cx+11, by+5-swing*0.4); ctx.stroke();
+
+  // Head
+  ctx.fillStyle = '#2d8a40'; ctx.strokeStyle = 'rgba(74,255,63,0.85)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(cx, by-7, 6.5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+
+  // Eyes (glowing dots)
+  ctx.fillStyle = '#4AFF3F';
+  ctx.shadowColor = '#4AFF3F'; ctx.shadowBlur = 6;
+  ctx.beginPath(); ctx.arc(cx-2.2, by-8, 1.3, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx+2.2, by-8, 1.3, 0, Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+
+  ctx.restore();
+}
+
+function td_drawBoom(ctx) {
+  const { boom } = TD;
+  const { HW, HH } = ISO;
+  const nx = TD.camOX + (boom.col - boom.row) * HW;
+  const ny = TD.camOY + (boom.col + boom.row) * HH;
+  const cx = nx, cy = ny + HH;
+
+  const t = boom.t, alpha = 1 - t, radius = t * 55;
+
+  ctx.save();
+
+  // Shockwave ring
+  ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI*2);
+  ctx.strokeStyle = `rgba(255,110,20,${alpha * 0.9})`; ctx.lineWidth = 2.5; ctx.stroke();
+
+  // Inner glow
+  if (t < 0.4) {
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius * 0.65);
+    g.addColorStop(0, `rgba(255,240,180,${alpha * 1.8})`);
+    g.addColorStop(0.5, `rgba(255,80,10,${alpha})`);
+    g.addColorStop(1, 'rgba(255,0,0,0)');
+    ctx.beginPath(); ctx.arc(cx, cy, radius * 0.65, 0, Math.PI*2);
+    ctx.fillStyle = g; ctx.fill();
+  }
+
+  // Debris particles
+  for (let i = 0; i < 10; i++) {
+    const ang = (i / 10) * Math.PI * 2;
+    const pr  = radius * (0.3 + (i % 3) * 0.22);
+    const px  = cx + Math.cos(ang) * pr;
+    const py  = cy + Math.sin(ang) * pr * 0.55;
+    const ps  = (1 - t) * 3.5;
+    ctx.beginPath(); ctx.arc(px, py, ps, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,${60+i*18},0,${alpha})`; ctx.fill();
+  }
+
+  ctx.restore();
+}
+
 </script>
 </body>
 </html>
