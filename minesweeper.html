@@ -1204,6 +1204,36 @@
       letter-spacing: .1em; margin-bottom: 36px;
     }
     .td-ov-btns { display: flex; gap: 12px; }
+
+    /* Zone Campaign Map */
+    .zone-cards { display: flex; flex-direction: column; gap: 8px; padding: 2px 0 12px; }
+    .zone-card {
+      border: 1px solid var(--brd);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: border-color .15s, background .15s;
+      background: rgba(11,24,16,.45);
+    }
+    .zone-card.zc-open  { cursor: pointer; }
+    .zone-card.zc-open:hover  { border-color: rgba(74,255,63,.3); background: rgba(11,24,16,.75); }
+    .zone-card.zc-locked { opacity: 0.38; cursor: default; }
+    .zone-card.zc-done   { border-color: rgba(74,255,63,.16); }
+    .zone-icon {
+      width: 38px; height: 38px; border-radius: 7px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .95rem; font-weight: 700; font-family: var(--font-m);
+    }
+    .zone-body { flex: 1; min-width: 0; }
+    .zone-num  { font-family: var(--font-m); font-size: .52rem; color: var(--txt3); letter-spacing: .18em; }
+    .zone-name { font-family: var(--font-d); font-size: 1.08rem; font-weight: 500; color: var(--txt); line-height: 1.1; }
+    .zone-desc { font-size: .58rem; color: var(--txt2); letter-spacing: .05em; margin-top: 1px; }
+    .zone-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; font-family: var(--font-m); font-size: .54rem; color: var(--txt3); }
+    .zone-xp   { color: var(--gold); }
+    .zone-clrd { color: rgba(74,255,63,.6); }
+    .td-zone-label { font-family: var(--font-m); font-size: .6rem; color: var(--txt3); letter-spacing: .1em; }
   </style>
 </head>
 <body>
@@ -1296,19 +1326,11 @@
 
     <!-- ── 3D World panel ── -->
     <div id="panel-3d" style="width:100%; display:none">
-      <div class="opt-group">
-        <div class="opt-label">Difficulty</div>
-        <div class="pills" id="pills-3d-diff">
-          <div class="pill act" data-val="easy"   onclick="pickPill(this,'3d-diff')">Easy</div>
-          <div class="pill"     data-val="medium" onclick="pickPill(this,'3d-diff')">Medium</div>
-          <div class="pill"     data-val="hard"   onclick="pickPill(this,'3d-diff')">Hard</div>
-        </div>
+      <div class="zone-cards" id="zone-cards">
+        <!-- populated by buildWorldMap() -->
       </div>
-      <div class="setup-go">
-        <button class="btn btn-lime" onclick="launch3D()">Enter 3D World</button>
-      </div>
-      <div style="text-align:center; font-size:.72rem; color:var(--txt3); letter-spacing:.1em; margin-top:8px;">
-        Walk the minefield · Tap any tile to move · Space to reveal · F to flag
+      <div style="text-align:center; font-size:.58rem; color:var(--txt3); letter-spacing:.1em; padding-bottom:16px;">
+        Clear each zone to unlock the next · Tap any tile to walk
       </div>
     </div>
 
@@ -1340,6 +1362,7 @@
 
   <div class="td-hud">
     <button class="td-hud-back" onclick="quit3D()">&#8592; Exit</button>
+    <div class="td-zone-label" id="td-zone-label"></div>
     <div class="td-hud-stat">Mines&nbsp;<span id="td-mines">0</span></div>
     <div class="td-hud-stat flag">Flags&nbsp;<span id="td-flags">0</span></div>
   </div>
@@ -1461,6 +1484,64 @@ const POWERUPS = {
   shield: { id:'shield', name:'Shield', icon:'◈', unlock:1000, desc:'Absorb one mine',       modes:['regular','challenge'] },
   blitz:  { id:'blitz',  name:'+30s',   icon:'◷', unlock:1500, desc:'Add 30 sec (Challenge)',modes:['challenge'] },
 };
+
+const ZONES = [
+  {
+    id:'grasslands', num:1, name:'Grasslands',
+    desc:'Where every soldier begins',
+    rows:6, cols:6, mines:6, xpReward:80,
+    sky:['#020704','#050c07','#071009'],
+    atmRgb:[74,255,63], accent:'#4AFF3F',
+    groundRgb:[20,42,20], groundHiRgb:[30,58,26],
+    tile:{ top:'#0b1810', sideR:'#071009', sideL:'#060d07',
+           revTop:'#0d1e11', revR:'#070f08', revL:'#050c06' },
+    decoType:'tree',
+  },
+  {
+    id:'highlands', num:2, name:'Highlands',
+    desc:'Rocky cliffs and cold skies',
+    rows:8, cols:8, mines:12, xpReward:130,
+    sky:['#030408','#06080e','#0a0c18'],
+    atmRgb:[120,140,220], accent:'#8899CC',
+    groundRgb:[30,32,48], groundHiRgb:[46,50,70],
+    tile:{ top:'#141825', sideR:'#0a0c18', sideL:'#080a14',
+           revTop:'#111520', revR:'#080a12', revL:'#06080e' },
+    decoType:'rock',
+  },
+  {
+    id:'ruins', num:3, name:'Ruins',
+    desc:'Crumbling stone, forgotten traps',
+    rows:10, cols:10, mines:18, xpReward:200,
+    sky:['#080402','#100804','#180c05'],
+    atmRgb:[210,140,50], accent:'#C9A84C',
+    groundRgb:[34,20,10], groundHiRgb:[52,32,14],
+    tile:{ top:'#1c1008', sideR:'#110a05', sideL:'#0e0804',
+           revTop:'#181008', revR:'#0e0905', revL:'#0a0703' },
+    decoType:'pillar',
+  },
+  {
+    id:'swamp', num:4, name:'Swamp',
+    desc:'Murky waters hide the danger',
+    rows:12, cols:12, mines:25, xpReward:300,
+    sky:['#020508','#030a0c','#040e12'],
+    atmRgb:[40,160,130], accent:'#4EBDC9',
+    groundRgb:[10,28,24], groundHiRgb:[16,42,34],
+    tile:{ top:'#081812', sideR:'#040f0c', sideL:'#030b09',
+           revTop:'#061510', revR:'#030d0a', revL:'#020a07' },
+    decoType:'deadTree',
+  },
+  {
+    id:'summit', num:5, name:'Summit',
+    desc:'The final peak. No mercy.',
+    rows:15, cols:15, mines:38, xpReward:500,
+    sky:['#040508','#06091a','#0c1028'],
+    atmRgb:[180,200,255], accent:'#b0c8f0',
+    groundRgb:[54,58,74], groundHiRgb:[80,86,110],
+    tile:{ top:'#1e2038', sideR:'#141628', sideL:'#10121e',
+           revTop:'#1a1c2a', revR:'#10121a', revL:'#0c0e14' },
+    decoType:'snowPeak',
+  },
+];
 
 const XP_THRESHOLDS = [0, 200, 500, 1000, 2000, 4000, 8000, 15000];
 const LEVEL_NAMES   = ['Rookie','Operator','Specialist','Agent','Commander','Elite','Phantom','Legend'];
@@ -2146,6 +2227,7 @@ function switchMode(mode) {
   document.getElementById('panel-regular').style.display   = isReg  ? '' : 'none';
   document.getElementById('panel-challenge').style.display = isChal ? '' : 'none';
   document.getElementById('panel-3d').style.display        = is3d   ? '' : 'none';
+  if (is3d) buildWorldMap();
 }
 
 function quitGame() {
@@ -2192,6 +2274,8 @@ function defaultProfile() {
     bestTimes: { easy: null, medium: null, hard: null, custom: null },
     colorblind: false,
     soundsOn: true,
+    worldCompleted: [],
+    worldUnlocked: 1,
   };
 }
 function loadProfile() {
@@ -2214,6 +2298,8 @@ function loadProfile() {
     if (p.soundsOn == null)   p.soundsOn   = true;
     if (p.colorblind == null) p.colorblind = false;
     if (!THEMES[p.theme]) p.theme = 'hiigh';
+    if (!Array.isArray(p.worldCompleted)) p.worldCompleted = [];
+    if (p.worldUnlocked == null) p.worldUnlocked = 1;
     return p;
   } catch { return defaultProfile(); }
 }
@@ -3119,41 +3205,80 @@ const ISO = { HW: 34, HH: 17, BH: 13 };
 
 let TD = null;
 
+function hexToRgba(hex, a) {
+  const n = parseInt(hex.replace('#',''), 16);
+  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+}
+
+function buildWorldMap() {
+  const cont = document.getElementById('zone-cards');
+  if (!cont) return;
+  const done    = Array.isArray(profile.worldCompleted) ? profile.worldCompleted : [];
+  const maxOpen = profile.worldUnlocked || 1;
+
+  cont.innerHTML = ZONES.map((z, i) => {
+    const num    = i + 1;
+    const isDone = done.includes(z.id);
+    const isOpen = num <= maxOpen;
+    const cls    = !isOpen ? 'zone-card zc-locked' : isDone ? 'zone-card zc-done' : 'zone-card zc-open';
+    const onClick = isOpen ? `onclick="launchZone(${i})"` : '';
+    const statusChar = isDone ? '✓' : isOpen ? '▶' : '—';
+    const iconBg  = hexToRgba(z.accent, isOpen ? 0.15 : 0.05);
+
+    return `<div class="${cls}" ${onClick}>
+      <div class="zone-icon" style="background:${iconBg};color:${z.accent};">${statusChar}</div>
+      <div class="zone-body">
+        <div class="zone-num">ZONE ${num}</div>
+        <div class="zone-name">${z.name}</div>
+        <div class="zone-desc">${z.desc}</div>
+        <div class="zone-meta">
+          <span>${z.cols}×${z.rows}</span><span>·</span>
+          <span>${z.mines} mines</span><span>·</span>
+          <span class="zone-xp">+${z.xpReward} XP</span>
+          ${isDone ? '<span class="zone-clrd">· CLEARED</span>' : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function launch3D() {
+  const zIdx = (TD && TD.zoneIndex != null) ? TD.zoneIndex : 0;
+  launchZone(zIdx);
+}
+
+function launchZone(zoneIndex) {
+  const zone = ZONES[zoneIndex];
+  if (!zone) return;
   if (TD && TD.raf) { cancelAnimationFrame(TD.raf); TD = null; }
 
-  const diff   = getPill('3d-diff') || 'easy';
-  const preset = PRESETS[diff] || PRESETS.easy;
-  const ROWS = preset.sz, COLS = preset.sz, NMINES = preset.mines;
-
   TD = {
-    rows: ROWS, cols: COLS, mineCount: NMINES,
+    zone, zoneIndex,
+    rows: zone.rows, cols: zone.cols, mineCount: zone.mines,
     board: [],
-    started: false,
-    flagCount: 0,
+    started: false, flagCount: 0,
     dead: false, won: false,
     charCol: 0, charRow: 0,
     charTCol: 0, charTRow: 0,
     charAnimT: 1, walkPhase: 0,
-    path: [],               // queued tile steps for tap-to-move
+    path: [],
     camOX: 0, camOY: 0, camTOX: 0, camTOY: 0,
     canvas: null, ctx: null, raf: null,
-    boom: null,
-    decorations: [],
-    lastTs: 0,
+    boom: null, decorations: [], lastTs: 0,
   };
 
-  for (let r = 0; r < ROWS; r++) {
+  for (let r = 0; r < zone.rows; r++) {
     TD.board[r] = [];
-    for (let c = 0; c < COLS; c++)
+    for (let c = 0; c < zone.cols; c++)
       TD.board[r][c] = { mine:false, revealed:false, flagged:false, adj:0 };
   }
 
   TD.decorations = td_genDecorations();
 
   goTo('3d');
-  document.getElementById('td-mines').textContent = NMINES;
+  document.getElementById('td-mines').textContent = zone.mines;
   document.getElementById('td-flags').textContent = '0';
+  document.getElementById('td-zone-label').textContent = `ZONE ${zone.num} · ${zone.name.toUpperCase()}`;
   document.getElementById('td-overlay').classList.remove('show');
 
   const canvas = document.getElementById('iso-canvas');
@@ -3194,19 +3319,19 @@ function quit3D() {
 
 function td_genDecorations() {
   const decos = [];
-  const { rows: R, cols: C } = TD;
+  const { rows: R, cols: C, zone } = TD;
+  const decoType = zone ? zone.decoType : 'tree';
   const rnd = () => Math.random();
-  const tree = (c, r) => ({ c, r, type: 'tree', h: 0.7 + rnd()*0.6, shade: rnd() > 0.45 });
+  const mkDeco = (c, r) => ({ c, r, type: decoType, h: 0.7 + rnd()*0.6, shade: rnd() > 0.45 });
 
   for (let c = -2; c <= C+1; c++) {
-    if (rnd() < 0.62) decos.push(tree(c, -1));
-    if (rnd() < 0.62) decos.push(tree(c, R));
+    if (rnd() < 0.62) decos.push(mkDeco(c, -1));
+    if (rnd() < 0.62) decos.push(mkDeco(c, R));
   }
   for (let r = 0; r < R; r++) {
-    if (rnd() < 0.55) decos.push(tree(-1, r));
-    if (rnd() < 0.55) decos.push(tree(C, r));
+    if (rnd() < 0.55) decos.push(mkDeco(-1, r));
+    if (rnd() < 0.55) decos.push(mkDeco(C, r));
   }
-  // Sort by painter order (same key used in render)
   decos.sort((a, b) => (a.c + a.r) - (b.c + b.r));
   return decos;
 }
@@ -3430,11 +3555,35 @@ function td_checkWin() {
       if (!TD.board[r][c].mine && !TD.board[r][c].revealed) return;
   TD.won = true;
   playSound('win');
-  awardXP(60);
+  td_completeZone();
+}
+
+function td_completeZone() {
+  const z = TD.zone;
+  if (!z) { awardXP(60); return; }
+
+  const completed   = Array.isArray(profile.worldCompleted) ? profile.worldCompleted : [];
+  const alreadyDone = completed.includes(z.id);
+
+  if (!alreadyDone) {
+    profile.worldCompleted = [...completed, z.id];
+    const nextNum = TD.zoneIndex + 2;
+    if (nextNum > (profile.worldUnlocked || 1)) profile.worldUnlocked = nextNum;
+    awardXP(z.xpReward);
+    saveProfile();
+  }
+
+  const nextZone = ZONES[TD.zoneIndex + 1];
+  const sub = alreadyDone
+    ? z.name + ' revisited'
+    : nextZone
+      ? `${z.name} cleared · +${z.xpReward} XP · ${nextZone.name} unlocked`
+      : `All zones cleared · +${z.xpReward} XP · Campaign complete!`;
+
   setTimeout(() => {
-    document.getElementById('td-ov-title').textContent = 'YOU WIN';
+    document.getElementById('td-ov-title').textContent = 'ZONE CLEARED';
     document.getElementById('td-ov-title').className   = 'td-ov-title';
-    document.getElementById('td-ov-sub').textContent   = 'Minefield cleared';
+    document.getElementById('td-ov-sub').textContent   = sub;
     document.getElementById('td-overlay').classList.add('show');
   }, 600);
 }
@@ -3466,12 +3615,12 @@ function td_render() {
     }
   }
   for (const d of TD.decorations)
-    items.push({ kind: 'tree', c: d.c, r: d.r, d, key: d.c + d.r });
+    items.push({ kind: 'deco', c: d.c, r: d.r, d, key: d.c + d.r });
   items.sort((a, b) => a.key - b.key);
 
   for (const item of items) {
     if      (item.kind === 'tile')   td_drawTile(ctx, item.c, item.r);
-    else if (item.kind === 'tree')   td_drawTree(ctx, item.d);
+    else if (item.kind === 'deco')   td_drawDeco(ctx, item.d);
     else                             td_drawGroundTile(ctx, item.c, item.r);
   }
 
@@ -3485,23 +3634,22 @@ function td_render() {
 }
 
 function td_drawAmbient(ctx, W, H) {
-  // Sky gradient: very dark at top, barely warmer dark-green at base
+  const z = TD.zone || ZONES[0];
   const sky = ctx.createLinearGradient(0, 0, 0, H);
-  sky.addColorStop(0,   '#020704');
-  sky.addColorStop(0.5, '#050c07');
-  sky.addColorStop(1,   '#071009');
+  sky.addColorStop(0,   z.sky[0]);
+  sky.addColorStop(0.5, z.sky[1]);
+  sky.addColorStop(1,   z.sky[2]);
   ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
 
-  // Subtle atmospheric glow behind the back of the grid (upper-center)
+  const [ar,ag,ab] = z.atmRgb;
   const gx = W * 0.5, gy = H * 0.2;
   const atm = ctx.createRadialGradient(gx, gy, 0, gx, gy, W * 0.55);
-  atm.addColorStop(0,   'rgba(74,255,63,0.028)');
-  atm.addColorStop(0.6, 'rgba(74,255,63,0.008)');
-  atm.addColorStop(1,   'rgba(74,255,63,0)');
+  atm.addColorStop(0,   `rgba(${ar},${ag},${ab},0.028)`);
+  atm.addColorStop(0.6, `rgba(${ar},${ag},${ab},0.008)`);
+  atm.addColorStop(1,   `rgba(${ar},${ag},${ab},0)`);
   ctx.fillStyle = atm; ctx.fillRect(0, 0, W, H);
 
-  // Faint structural grid (part of the game's UI language)
-  ctx.strokeStyle = 'rgba(74,255,63,0.016)';
+  ctx.strokeStyle = `rgba(${ar},${ag},${ab},0.016)`;
   ctx.lineWidth = 1;
   for (let x = 0; x < W; x += 56) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
   for (let y = 0; y < H; y += 56) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
@@ -3511,30 +3659,31 @@ function td_drawGroundTile(ctx, c, r) {
   const { HW, HH } = ISO;
   const nx = TD.camOX + (c - r) * HW, ny = TD.camOY + (c + r) * HH;
 
-  // Distance from grid edge — fade ground tiles at outer margin
   const distC = Math.min(c < 0 ? -c : (c >= TD.cols ? c - TD.cols + 1 : 0), 4);
   const distR = Math.min(r < 0 ? -r : (r >= TD.rows ? r - TD.rows + 1 : 0), 4);
-  const dist  = Math.max(distC, distR); // 1 = adjacent, 4 = outer edge
+  const dist  = Math.max(distC, distR);
 
-  // Earthy dark-green ground: slightly warmer/darker than minefield tiles
-  // Vary lightly by position for a natural, non-uniform look
-  const hash  = ((c * 7 + r * 13) & 0xf) / 15; // deterministic 0..1
-  const base  = Math.round(8 + hash * 4);        // 8–12
-  const alpha = Math.max(0.12, 1 - (dist - 1) * 0.22); // fade near outer edge
+  const z = TD.zone || ZONES[0];
+  const hash = ((c * 7 + r * 13) & 0xf) / 15;
+  const [br,bg,bb] = z.groundRgb;
+  const [hr,hg,hb] = z.groundHiRgb;
+  const gr = Math.round(br + hash * (hr - br));
+  const gg = Math.round(bg + hash * (hg - bg));
+  const gb = Math.round(bb + hash * (hb - bb));
+  const alpha = Math.max(0.2, 1 - (dist - 1) * 0.22);
 
-  // Flat top face (no sides — it's ground level, not a raised tile)
   ctx.beginPath();
   ctx.moveTo(nx, ny);
   ctx.lineTo(nx + HW, ny + HH);
   ctx.lineTo(nx,      ny + 2 * HH);
   ctx.lineTo(nx - HW, ny + HH);
   ctx.closePath();
-  ctx.fillStyle = `rgba(${base},${base + 6},${base},${alpha})`;
+  ctx.fillStyle = `rgba(${gr},${gg},${gb},${alpha})`;
   ctx.fill();
 
-  // Very faint edge — helps show the tile structure
   if (dist <= 2) {
-    ctx.strokeStyle = `rgba(74,255,63,${0.025 * alpha})`;
+    const [ar,ag,ab] = z.atmRgb;
+    ctx.strokeStyle = `rgba(${ar},${ag},${ab},${0.04 * alpha})`;
     ctx.lineWidth = 0.4;
     ctx.stroke();
   }
@@ -3547,17 +3696,22 @@ function td_drawTile(ctx, c, r) {
 
   const nx = TD.camOX + (c - r) * HW, ny = TD.camOY + (c + r) * HH;
 
+  const z  = TD.zone || ZONES[0];
+  const zt = z.tile;
+  const [ar,ag,ab] = z.atmRgb;
   let top, sideR, sideL;
   if (cell.mine && cell.revealed) {
     const pulse = 0.5 + 0.5 * Math.sin(Date.now() * 0.007);
     top   = `rgba(${Math.round(160+pulse*60)},24,24,1)`;
     sideR = '#5a0808'; sideL = '#3e0505';
   } else if (cell.revealed) {
-    top = '#0d1e11'; sideR = '#070f08'; sideL = '#050c06';
+    top = zt.revTop; sideR = zt.revR; sideL = zt.revL;
   } else if (isHere) {
-    top = 'rgba(74,255,63,0.14)'; sideR = 'rgba(30,100,35,0.9)'; sideL = 'rgba(20,70,25,0.9)';
+    top   = `rgba(${ar},${ag},${ab},0.14)`;
+    sideR = `rgba(${Math.round(ar*.4)},${Math.round(ag*.4)},${Math.round(ab*.4)},0.9)`;
+    sideL = `rgba(${Math.round(ar*.28)},${Math.round(ag*.28)},${Math.round(ab*.28)},0.9)`;
   } else {
-    top = '#0b1810'; sideR = '#071009'; sideL = '#060d07';
+    top = zt.top; sideR = zt.sideR; sideL = zt.sideL;
   }
 
   // Right side
@@ -3576,7 +3730,7 @@ function td_drawTile(ctx, c, r) {
   ctx.beginPath();
   ctx.moveTo(nx,ny); ctx.lineTo(nx+HW,ny+HH); ctx.lineTo(nx,ny+2*HH); ctx.lineTo(nx-HW,ny+HH);
   ctx.closePath(); ctx.fillStyle=top; ctx.fill();
-  ctx.strokeStyle = isHere ? 'rgba(74,255,63,0.65)' : 'rgba(74,255,63,0.055)';
+  ctx.strokeStyle = isHere ? `rgba(${ar},${ag},${ab},0.65)` : `rgba(${ar},${ag},${ab},0.055)`;
   ctx.lineWidth   = isHere ? 1.5 : 0.5;
   ctx.stroke();
 
@@ -3658,6 +3812,171 @@ function td_drawTree(ctx, deco) {
   ctx.fillStyle = shade ? '#1f7038' : '#267a42'; ctx.fill();
 }
 
+function td_drawDeco(ctx, deco) {
+  switch (deco.type) {
+    case 'tree':     td_drawTree(ctx, deco); break;
+    case 'rock':     td_drawDecoRock(ctx, deco); break;
+    case 'pillar':   td_drawDecoPillar(ctx, deco); break;
+    case 'deadTree': td_drawDecoDeadTree(ctx, deco); break;
+    case 'snowPeak': td_drawDecoSnowPeak(ctx, deco); break;
+  }
+}
+
+function td_drawDecoRock(ctx, deco) {
+  const { HW, HH } = ISO;
+  const { c, r, h, shade } = deco;
+  const nx = TD.camOX + (c - r) * HW;
+  const ny = TD.camOY + (c + r) * HH;
+  const cx = nx, cy = ny + HH;
+  const sc = h * 0.85;
+  const W = HW * 0.55 * sc, H = HH * 0.72 * sc;
+
+  // Front-left face (darker)
+  ctx.beginPath();
+  ctx.moveTo(cx - W * 0.55, cy + H * 0.25);
+  ctx.lineTo(cx, cy + H * 0.62);
+  ctx.lineTo(cx, cy + H * 0.95);
+  ctx.lineTo(cx - W * 0.55, cy + H * 0.62);
+  ctx.closePath();
+  ctx.fillStyle = shade ? '#1c1e2e' : '#222436'; ctx.fill();
+
+  // Front-right face (mid)
+  ctx.beginPath();
+  ctx.moveTo(cx + W * 0.55, cy + H * 0.25);
+  ctx.lineTo(cx, cy + H * 0.62);
+  ctx.lineTo(cx, cy + H * 0.95);
+  ctx.lineTo(cx + W * 0.55, cy + H * 0.62);
+  ctx.closePath();
+  ctx.fillStyle = shade ? '#262840' : '#2e3050'; ctx.fill();
+
+  // Top face (lightest)
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - H);
+  ctx.lineTo(cx + W * 0.55, cy + H * 0.25);
+  ctx.lineTo(cx, cy + H * 0.62);
+  ctx.lineTo(cx - W * 0.55, cy + H * 0.25);
+  ctx.closePath();
+  ctx.fillStyle = shade ? '#353860' : '#3e4275'; ctx.fill();
+}
+
+function td_drawDecoPillar(ctx, deco) {
+  const { HW, HH, BH } = ISO;
+  const { c, r, h, shade } = deco;
+  const nx = TD.camOX + (c - r) * HW;
+  const ny = TD.camOY + (c + r) * HH;
+  const cx = nx, cy = ny + HH;
+  const sc  = h;
+  const PW  = HW * 0.20 * sc, PH = HH * 0.20 * sc;
+  const pH  = BH * 3.8 * sc;
+  const capW = PW * 1.5, capH = HH * 0.35 * sc;
+  const baseY = cy + PH * 2;
+  const topY  = baseY - pH;
+
+  // Right face shaft
+  ctx.beginPath();
+  ctx.moveTo(cx + PW, baseY - PH); ctx.lineTo(cx, baseY);
+  ctx.lineTo(cx, topY + PH * 2);  ctx.lineTo(cx + PW, topY + PH);
+  ctx.closePath();
+  ctx.fillStyle = shade ? '#2e2612' : '#3a3018'; ctx.fill();
+
+  // Left face shaft
+  ctx.beginPath();
+  ctx.moveTo(cx - PW, baseY - PH); ctx.lineTo(cx, baseY);
+  ctx.lineTo(cx, topY + PH * 2);  ctx.lineTo(cx - PW, topY + PH);
+  ctx.closePath();
+  ctx.fillStyle = shade ? '#201b0d' : '#2a220e'; ctx.fill();
+
+  // Capital top (right)
+  ctx.beginPath();
+  ctx.moveTo(cx + capW, topY); ctx.lineTo(cx, topY + capH);
+  ctx.lineTo(cx, topY + capH + pH * 0.04); ctx.lineTo(cx + capW, topY + pH * 0.04);
+  ctx.closePath();
+  ctx.fillStyle = shade ? '#4a3a1c' : '#5c4a24'; ctx.fill();
+
+  // Capital top (left)
+  ctx.beginPath();
+  ctx.moveTo(cx - capW, topY); ctx.lineTo(cx, topY + capH);
+  ctx.lineTo(cx, topY + capH + pH * 0.04); ctx.lineTo(cx - capW, topY + pH * 0.04);
+  ctx.closePath();
+  ctx.fillStyle = shade ? '#38290e' : '#48341a'; ctx.fill();
+
+  // Top face of capital
+  ctx.beginPath();
+  ctx.moveTo(cx, topY - capH);
+  ctx.lineTo(cx + capW, topY); ctx.lineTo(cx, topY + capH); ctx.lineTo(cx - capW, topY);
+  ctx.closePath();
+  ctx.fillStyle = shade ? '#6a5430' : '#7e6438'; ctx.fill();
+}
+
+function td_drawDecoDeadTree(ctx, deco) {
+  const { HW, HH, BH } = ISO;
+  const { c, r, h, shade } = deco;
+  const nx = TD.camOX + (c - r) * HW;
+  const ny = TD.camOY + (c + r) * HH;
+  const cx = nx, cy = ny + HH;
+  const sc = h;
+  const trunkH = BH * 2.8 * sc;
+  const col = shade ? '#1a1e18' : '#222618';
+
+  ctx.save();
+  ctx.strokeStyle = col;
+  ctx.lineCap = 'round';
+
+  // Trunk
+  ctx.lineWidth = 3.2 * sc;
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx, cy - trunkH); ctx.stroke();
+
+  // Branches
+  ctx.lineWidth = 1.6 * sc;
+  ctx.beginPath(); ctx.moveTo(cx, cy - trunkH * 0.6);
+  ctx.lineTo(cx + HW * 0.42 * sc, cy - trunkH * 0.82); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, cy - trunkH * 0.5);
+  ctx.lineTo(cx - HW * 0.36 * sc, cy - trunkH * 0.7); ctx.stroke();
+  ctx.lineWidth = 1 * sc;
+  ctx.beginPath(); ctx.moveTo(cx, cy - trunkH * 0.82);
+  ctx.lineTo(cx + HW * 0.22 * sc, cy - trunkH * 0.98); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, cy - trunkH * 0.78);
+  ctx.lineTo(cx - HW * 0.18 * sc, cy - trunkH * 0.92); ctx.stroke();
+  ctx.restore();
+}
+
+function td_drawDecoSnowPeak(ctx, deco) {
+  const { HW, HH, BH } = ISO;
+  const { c, r, h, shade } = deco;
+  const nx = TD.camOX + (c - r) * HW;
+  const ny = TD.camOY + (c + r) * HH;
+  const cx = nx, cy = ny + HH;
+  const sc = h;
+  const peakH = BH * 3.8 * sc;
+  const baseW = HW * 0.85 * sc;
+  const snowLine = peakH * 0.48;
+
+  // Mountain body — right face
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - peakH);
+  ctx.lineTo(cx + baseW, cy + HH * 0.18);
+  ctx.lineTo(cx, cy + HH * 0.18);
+  ctx.closePath();
+  ctx.fillStyle = shade ? '#252836' : '#2c3040'; ctx.fill();
+
+  // Mountain body — left face
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - peakH);
+  ctx.lineTo(cx - baseW, cy + HH * 0.18);
+  ctx.lineTo(cx, cy + HH * 0.18);
+  ctx.closePath();
+  ctx.fillStyle = shade ? '#1c1e2c' : '#222438'; ctx.fill();
+
+  // Snow cap
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - peakH);
+  ctx.lineTo(cx + baseW * 0.38, cy - snowLine);
+  ctx.lineTo(cx, cy - snowLine + HH * 0.12 * sc);
+  ctx.lineTo(cx - baseW * 0.38, cy - snowLine);
+  ctx.closePath();
+  ctx.fillStyle = shade ? '#c8d4ec' : '#dce8f8'; ctx.fill();
+}
+
 function td_drawFlag(ctx, cx, cy) {
   const h = 15;
   ctx.save();
@@ -3675,9 +3994,10 @@ function td_drawMoveTarget(ctx, tc, tr) {
   const nx = TD.camOX + (tc - tr) * HW, ny = TD.camOY + (tc + tr) * HH;
   const fcx = nx, fcy = ny + HH;
   const pulse = 0.55 + 0.45 * Math.sin(Date.now() * 0.006);
+  const [ar,ag,ab] = (TD.zone || ZONES[0]).atmRgb;
 
   ctx.save();
-  ctx.strokeStyle = `rgba(74,255,63,${pulse * 0.55})`;
+  ctx.strokeStyle = `rgba(${ar},${ag},${ab},${pulse * 0.55})`;
   ctx.lineWidth = 1.5;
   ctx.setLineDash([4, 4]);
   ctx.beginPath();
@@ -3685,8 +4005,7 @@ function td_drawMoveTarget(ctx, tc, tr) {
   ctx.closePath(); ctx.stroke();
   ctx.setLineDash([]);
 
-  // Small crosshair at center
-  ctx.strokeStyle = `rgba(74,255,63,${pulse * 0.7})`;
+  ctx.strokeStyle = `rgba(${ar},${ag},${ab},${pulse * 0.7})`;
   ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(fcx-5,fcy); ctx.lineTo(fcx+5,fcy); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(fcx,fcy-4); ctx.lineTo(fcx,fcy+4); ctx.stroke();
