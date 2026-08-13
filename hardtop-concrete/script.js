@@ -158,3 +158,16 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 
 // Run once on load
 onScroll();
+
+// ── ACTIVE NAV PAGE HIGHLIGHT ────────────────────────────
+// Marks the nav link that matches the current page filename.
+// Scroll-based highlighting only runs on pages with anchor sections.
+(function markActivePage() {
+  const page = window.location.pathname.split('/').pop() || 'index.html';
+  document.querySelectorAll('.nav-links a, .mobile-menu a').forEach(link => {
+    const href = link.getAttribute('href') || '';
+    if (href.startsWith('#') || href.startsWith('tel:') || href.startsWith('mailto:')) return;
+    const linkPage = href.split('#')[0].split('/').pop();
+    if (linkPage === page) link.classList.add('active');
+  });
+})();

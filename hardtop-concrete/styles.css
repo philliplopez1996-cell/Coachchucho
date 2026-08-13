@@ -1237,4 +1237,190 @@ a.ci-value:hover { color: var(--orange); }
   .hero-ctas,
   .cta-actions { flex-direction: column; }
   .btn-full { width: 100%; }
+  .footer-grid { grid-template-columns: 1fr; }
+}
+
+/* ── SERVICES PREVIEW (homepage compact) ─────────────────── */
+.services-preview {
+  background: var(--dark-slate);
+  padding-block: clamp(2.5rem, 5vw, 4rem);
+}
+
+.sp-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-md);
+  margin-bottom: var(--sp-lg);
+  flex-wrap: wrap;
+}
+
+.sp-title {
+  font-size: var(--fs-5xl);
+  margin-top: .35rem;
+  line-height: 1.1;
+}
+
+.sp-all-link {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--concrete-gray);
+  border-bottom: 1px solid var(--rule-strong);
+  padding-bottom: .15rem;
+  transition: color var(--ease), border-color var(--ease);
+  white-space: nowrap;
+  align-self: center;
+}
+.sp-all-link:hover { color: var(--white); border-color: var(--white); }
+
+.sp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid var(--rule-strong);
+}
+
+.sp-col {
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.sp-col + .sp-col {
+  border-left: 1px solid var(--rule-strong);
+}
+
+.sp-label {
+  font-family: 'Oswald', Impact, 'Arial Narrow', sans-serif;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  margin-bottom: 1.1rem;
+  padding-bottom: .7rem;
+  border-bottom: 2px solid currentColor;
+}
+
+.sp-label--orange { color: var(--orange); }
+.sp-label--red    { color: var(--red); }
+
+.sp-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: .8rem;
+}
+
+.sp-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  font-size: var(--fs-base);
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.sp-list li::before {
+  content: '';
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: .48em;
+}
+
+.sp-list--orange li::before { background: var(--orange); }
+.sp-list--red    li::before { background: var(--red); }
+
+/* ── PAGE HERO (inner pages) ──────────────────────────────── */
+.page-hero {
+  background: var(--dark-slate);
+  padding-top: calc(var(--nav-h) + clamp(2rem, 4vw, 3rem));
+  padding-bottom: clamp(2rem, 4vw, 3rem);
+  border-bottom: 3px solid var(--red);
+  position: relative;
+  overflow: hidden;
+}
+
+.page-hero::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; right: 20%;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, var(--red) 40%, var(--red) 60%, transparent);
+  opacity: .12;
+  transform: skewX(-6deg);
+  pointer-events: none;
+}
+
+.page-hero .eyebrow { color: var(--orange); }
+
+.page-hero h1 {
+  font-family: 'Oswald', Impact, 'Arial Narrow', sans-serif;
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 1.05;
+  margin-top: .5rem;
+}
+
+.page-hero-desc {
+  font-size: var(--fs-lg);
+  color: var(--text-muted);
+  max-width: 58ch;
+  margin-top: var(--sp-sm);
+  line-height: 1.65;
+}
+
+/* ── STATS STANDALONE (about page) ───────────────────────── */
+.stats-bar--standalone {
+  border-top: none;
+  border-bottom: 1px solid var(--rule);
+  background: var(--black);
+  position: relative;
+  z-index: 1;
+}
+
+/* ── INNER PAGE FOOTER ────────────────────────────────────── */
+.footer-grid--inner {
+  grid-template-columns: 1.6fr 1fr 1fr;
+}
+
+@media (max-width: 768px) {
+  .footer-grid--inner {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer-grid--inner {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── MOBILE: services preview ─────────────────────────────── */
+@media (max-width: 640px) {
+  .sp-grid {
+    grid-template-columns: 1fr;
+  }
+  .sp-col + .sp-col {
+    border-left: none;
+    border-top: 1px solid var(--rule-strong);
+  }
+  .sp-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-sm);
+  }
+}
+
+/* ── MOBILE: hero photo portrait crop ────────────────────── */
+@media (max-width: 768px) and (orientation: portrait) {
+  .hero-photo { object-position: 28% center; }
+}
+
+/* ── MOBILE: min touch target for buttons ────────────────── */
+@media (max-width: 768px) {
+  .btn { min-height: 48px; }
+  .hero-headline { font-size: clamp(3rem, 12vw, 9rem); }
 }
