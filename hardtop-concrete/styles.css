@@ -1424,3 +1424,54 @@ a.ci-value:hover { color: var(--orange); }
   .btn { min-height: 48px; }
   .hero-headline { font-size: clamp(3rem, 12vw, 9rem); }
 }
+
+/* ── HERO PROCESS STRIP ──────────────────────────────────── */
+.hero-process {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-top: var(--sp-xl);
+  padding-top: var(--sp-lg);
+  border-top: 1px solid rgba(255,255,255,.15);
+}
+
+.hp-step {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+}
+
+.hp-num {
+  font-family: 'Oswald', Impact, 'Arial Narrow', sans-serif;
+  font-size: var(--fs-2xl);
+  font-weight: 700;
+  color: var(--orange);
+  line-height: 1;
+}
+
+.hp-label {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: rgba(255,255,255,.75);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  line-height: 1.3;
+  max-width: 10ch;
+}
+
+.hp-divider {
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,.2);
+  margin-inline: var(--sp-md);
+}
+
+@media (max-width: 480px) {
+  .hero-process {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-md);
+  }
+  .hp-divider { display: none; }
+  .hp-label { max-width: none; }
+}
