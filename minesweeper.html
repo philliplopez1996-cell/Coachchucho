@@ -3347,6 +3347,7 @@ function launchZone(zoneIndex) {
   }
 
   TD.decorations = td_genDecorations();
+  TD.heightMap   = td_genHeightMap(zone.rows, zone.cols, zoneIndex);
 
   goTo('3d');
   document.getElementById('td-mines').textContent = zone.mines;
@@ -3423,23 +3424,51 @@ function td_genDecorations() {
   return decos;
 }
 
+function td_genHeightMap(rows, cols, zoneIndex) {
+  const s = zoneIndex * 2.41 + 1.3;
+  const map = [];
+  for (let r = 0; r < rows; r++) {
+    map[r] = [];
+    for (let c = 0; c < cols; c++) {
+      const v = Math.sin(c * 1.3 + s)       * 0.50
+              + Math.sin(r * 1.7 + s * 1.4) * 0.50
+              + Math.sin((c + r) * 0.9 + s * 0.7) * 0.35
+              + Math.sin((c - r) * 0.8 + s * 1.2) * 0.20;
+      // v in roughly [-1.55, 1.55] → normalize to [0,1] → 0, 1, or 2 block heights
+      const norm = (v + 1.55) / 3.1;
+      map[r][c] = Math.round(norm * 2) * ISO.BH;
+    }
+  }
+  return map;
+}
+
 // ── ISO MATH ──────────────────────────────
 
 function td_snapCamera() {
   const canvas = TD.canvas;
-  const aC = TD.charCol + (TD.charTCol - TD.charCol) * TD.charAnimT;
-  const aR = TD.charRow + (TD.charTRow - TD.charRow) * TD.charAnimT;
+  const t = TD.charAnimT;
+  const aC = TD.charCol + (TD.charTCol - TD.charCol) * t;
+  const aR = TD.charRow + (TD.charTRow - TD.charRow) * t;
+  const hm = TD.heightMap;
+  const fromH = (hm && hm[TD.charRow])  ? (hm[TD.charRow][TD.charCol]   || 0) : 0;
+  const toH   = (hm && hm[TD.charTRow]) ? (hm[TD.charTRow][TD.charTCol] || 0) : 0;
+  const tileH = fromH + (toH - fromH) * t;
   TD.camOX = canvas.width  * 0.5  - (aC - aR) * ISO.HW;
-  TD.camOY = canvas.height * 0.38 - (aC + aR + 1) * ISO.HH;
+  TD.camOY = canvas.height * 0.38 - (aC + aR + 1) * ISO.HH + tileH * 0.6;
   TD.camTOX = TD.camOX; TD.camTOY = TD.camOY;
 }
 
 function td_targetCamera() {
   const canvas = TD.canvas;
-  const aC = TD.charCol + (TD.charTCol - TD.charCol) * TD.charAnimT;
-  const aR = TD.charRow + (TD.charTRow - TD.charRow) * TD.charAnimT;
+  const t = TD.charAnimT;
+  const aC = TD.charCol + (TD.charTCol - TD.charCol) * t;
+  const aR = TD.charRow + (TD.charTRow - TD.charRow) * t;
+  const hm = TD.heightMap;
+  const fromH = (hm && hm[TD.charRow])  ? (hm[TD.charRow][TD.charCol]   || 0) : 0;
+  const toH   = (hm && hm[TD.charTRow]) ? (hm[TD.charTRow][TD.charTCol] || 0) : 0;
+  const tileH = fromH + (toH - fromH) * t;
   TD.camTOX = canvas.width  * 0.5  - (aC - aR) * ISO.HW;
-  TD.camTOY = canvas.height * 0.38 - (aC + aR + 1) * ISO.HH;
+  TD.camTOY = canvas.height * 0.38 - (aC + aR + 1) * ISO.HH + tileH * 0.6;
 }
 
 // Screen (px,py) → nearest tile (col, row)
@@ -3890,6 +3919,8 @@ function td_drawTile(ctx, c, r) {
   const isHere = (c === TD.charTCol && r === TD.charTRow);
 
   const nx = TD.camOX + (c - r) * HW, ny = TD.camOY + (c + r) * HH;
+  // Extra upward shift for terrain height — bottom of block stays at ny+2*HH+BH
+  const eH = (TD.heightMap && TD.heightMap[r]) ? (TD.heightMap[r][c] || 0) : 0;
 
   const z  = TD.zone || ZONES[0];
   const zt = z.tile;
@@ -3909,28 +3940,28 @@ function td_drawTile(ctx, c, r) {
     top = zt.top; sideR = zt.sideR; sideL = zt.sideL;
   }
 
-  // Right side
+  // Right side — top edge rises with eH, bottom stays fixed
   ctx.beginPath();
-  ctx.moveTo(nx+HW,ny+HH); ctx.lineTo(nx,ny+2*HH);
-  ctx.lineTo(nx,ny+2*HH+BH); ctx.lineTo(nx+HW,ny+HH+BH);
+  ctx.moveTo(nx+HW, ny+HH-eH); ctx.lineTo(nx, ny+2*HH-eH);
+  ctx.lineTo(nx, ny+2*HH+BH);  ctx.lineTo(nx+HW, ny+HH+BH);
   ctx.closePath(); ctx.fillStyle=sideR; ctx.fill();
 
   // Left side
   ctx.beginPath();
-  ctx.moveTo(nx-HW,ny+HH); ctx.lineTo(nx,ny+2*HH);
-  ctx.lineTo(nx,ny+2*HH+BH); ctx.lineTo(nx-HW,ny+HH+BH);
+  ctx.moveTo(nx-HW, ny+HH-eH); ctx.lineTo(nx, ny+2*HH-eH);
+  ctx.lineTo(nx, ny+2*HH+BH);  ctx.lineTo(nx-HW, ny+HH+BH);
   ctx.closePath(); ctx.fillStyle=sideL; ctx.fill();
 
-  // Top face
+  // Top face (shifted up by eH)
   ctx.beginPath();
-  ctx.moveTo(nx,ny); ctx.lineTo(nx+HW,ny+HH); ctx.lineTo(nx,ny+2*HH); ctx.lineTo(nx-HW,ny+HH);
+  ctx.moveTo(nx, ny-eH); ctx.lineTo(nx+HW, ny+HH-eH); ctx.lineTo(nx, ny+2*HH-eH); ctx.lineTo(nx-HW, ny+HH-eH);
   ctx.closePath(); ctx.fillStyle=top; ctx.fill();
   ctx.strokeStyle = isHere ? `rgba(${ar},${ag},${ab},0.65)` : `rgba(${ar},${ag},${ab},0.055)`;
   ctx.lineWidth   = isHere ? 1.5 : 0.5;
   ctx.stroke();
 
-  // Content
-  const fcx = nx, fcy = ny + HH;
+  // Content — center of top face
+  const fcx = nx, fcy = ny + HH - eH;
   if (cell.flagged && !cell.revealed) {
     td_drawFlag(ctx, fcx, fcy - HH * 0.5);
   } else if (cell.mine && cell.revealed) {
@@ -4187,7 +4218,9 @@ function td_drawFlag(ctx, cx, cy) {
 function td_drawMoveTarget(ctx, tc, tr) {
   const { HW, HH } = ISO;
   const nx = TD.camOX + (tc - tr) * HW, ny = TD.camOY + (tc + tr) * HH;
-  const fcx = nx, fcy = ny + HH;
+  const hm = TD.heightMap;
+  const eH = (hm && hm[tr]) ? (hm[tr][tc] || 0) : 0;
+  const fcx = nx, fcy = ny + HH - eH;
   const pulse = 0.55 + 0.45 * Math.sin(Date.now() * 0.006);
   const [ar,ag,ab] = (TD.zone || ZONES[0]).atmRgb;
 
@@ -4196,7 +4229,7 @@ function td_drawMoveTarget(ctx, tc, tr) {
   ctx.lineWidth = 1.5;
   ctx.setLineDash([4, 4]);
   ctx.beginPath();
-  ctx.moveTo(nx,ny); ctx.lineTo(nx+HW,ny+HH); ctx.lineTo(nx,ny+2*HH); ctx.lineTo(nx-HW,ny+HH);
+  ctx.moveTo(nx, ny-eH); ctx.lineTo(nx+HW, ny+HH-eH); ctx.lineTo(nx, ny+2*HH-eH); ctx.lineTo(nx-HW, ny+HH-eH);
   ctx.closePath(); ctx.stroke();
   ctx.setLineDash([]);
 
@@ -4215,7 +4248,14 @@ function td_drawChar(ctx) {
 
   const nx = TD.camOX + (aC - aR) * HW;
   const ny = TD.camOY + (aC + aR) * HH;
-  const cx = nx, cy = ny + HH;
+
+  // Interpolate tile height between source and target
+  const hm = TD.heightMap;
+  const fromH = (hm && hm[TD.charRow])  ? (hm[TD.charRow][TD.charCol]   || 0) : 0;
+  const toH   = (hm && hm[TD.charTRow]) ? (hm[TD.charTRow][TD.charTCol] || 0) : 0;
+  const tileH = fromH + (toH - fromH) * t;
+
+  const cx = nx, cy = ny + HH - tileH;
 
   const moving = t < 1;
   const arc    = moving ? Math.sin(t * Math.PI) : 0; // 0→1→0 over the step
