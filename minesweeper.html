@@ -1148,6 +1148,22 @@
     .td-hud-stat { font-family: var(--font-m); font-size: .82rem; color: var(--txt2); }
     .td-hud-stat span { color: var(--lime); }
     .td-hud-stat.flag span { color: var(--gold); }
+    .td-pup-hud {
+      position: fixed; bottom: 56px; right: 16px;
+      display: flex; flex-direction: column; gap: 6px; z-index: 10;
+    }
+    .td-pup-btn {
+      pointer-events: all;
+      background: rgba(11,24,16,.88); border: 1px solid var(--brd2);
+      border-radius: 8px; padding: 7px 13px;
+      display: flex; align-items: center; gap: 7px;
+      font-family: var(--font-u); font-size: .72rem;
+      color: var(--txt2); letter-spacing: .07em; white-space: nowrap;
+      transition: background .1s, border-color .1s; cursor: default;
+    }
+    .td-pup-btn.active { border-color: rgba(74,255,63,.45); color: var(--lime); background: rgba(74,255,63,.07); cursor: pointer; }
+    .td-pup-btn.active:active { background: rgba(74,255,63,.14); }
+    .td-pup-btn.spent { opacity: 0.3; }
 
     .td-hint {
       position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
@@ -1398,6 +1414,8 @@
          onmousedown="tdFlag()">FLAG</div>
   </div>
 
+  <div class="td-pup-hud" id="td-pup-hud"></div>
+
   <div class="td-hint" id="td-hint">Tap any tile to walk there &nbsp;&#183;&nbsp; Space — Reveal &nbsp;&#183;&nbsp; F — Flag</div>
 
   <!-- Result overlay -->
@@ -1480,9 +1498,9 @@ const THEMES = {
 };
 
 const POWERUPS = {
-  scan:   { id:'scan',   name:'Scan',   icon:'◎', unlock:300,  desc:'Reveal a safe cell',   modes:['regular','challenge'] },
-  shield: { id:'shield', name:'Shield', icon:'◈', unlock:1000, desc:'Absorb one mine',       modes:['regular','challenge'] },
-  blitz:  { id:'blitz',  name:'+30s',   icon:'◷', unlock:1500, desc:'Add 30 sec (Challenge)',modes:['challenge'] },
+  scan:   { id:'scan',   name:'Scan',   icon:'◎', unlock:200, desc:'Reveal a safe cell',    modes:['regular','challenge','3d'] },
+  shield: { id:'shield', name:'Shield', icon:'◈', unlock:200, desc:'Absorb one mine',        modes:['regular','challenge','3d'] },
+  blitz:  { id:'blitz',  name:'+30s',   icon:'◷', unlock:200, desc:'Add 30 sec (Challenge)', modes:['challenge'] },
 };
 
 const ZONES = [
@@ -2555,6 +2573,43 @@ function useBlitz() {
   haptic([15, 10, 15, 10, 15]);
 }
 
+function updateTdPupHud() {
+  const hud = document.getElementById('td-pup-hud');
+  if (!hud) return;
+  if (!TD || !TD.powerups) { hud.innerHTML = ''; return; }
+  const entries = Object.keys(TD.powerups).map(id => POWERUPS[id]).filter(Boolean);
+  if (!entries.length) { hud.innerHTML = ''; return; }
+  hud.innerHTML = entries.map(p => {
+    const avail    = TD.powerups[p.id];
+    const passive  = p.id === 'shield';
+    const cls      = avail ? 'active' : 'spent';
+    const click    = avail && !passive ? `onclick="td_usePowerup('${p.id}')"` : '';
+    return `<button class="td-pup-btn ${cls}" ${click}>
+      <span>${p.icon}</span>${p.name}${passive && avail ? ' ON' : ''}
+    </button>`;
+  }).join('');
+}
+function td_usePowerup(id) {
+  if (!TD || !TD.powerups || !TD.powerups[id]) return;
+  if (id === 'scan') td_3dScan();
+}
+function td_3dScan() {
+  if (!TD.powerups.scan || TD.dead || TD.won || !TD.started) return;
+  const pool = [];
+  for (let r = 0; r < TD.rows; r++)
+    for (let c = 0; c < TD.cols; c++) {
+      const cell = TD.board[r][c];
+      if (!cell.revealed && !cell.flagged && !cell.mine) pool.push({ r, c, adj: cell.adj });
+    }
+  if (!pool.length) return;
+  pool.sort((a, b) => a.adj - b.adj);
+  const target = pool[Math.floor(Math.random() * Math.min(3, pool.length))];
+  TD.powerups.scan = false;
+  td_reveal(target.r, target.c);
+  updateTdPupHud();
+  playSound('click');
+}
+
 // ══════════════════════════════════════════
 // LEADERBOARD
 // ══════════════════════════════════════════
@@ -3314,6 +3369,14 @@ function launchZone(zoneIndex) {
   canvas.addEventListener('click', TD._onClick);
   canvas.addEventListener('touchend', td_onCanvasTouch, { passive: false });
 
+  // Init powerups for this zone
+  TD.powerups = {};
+  profile.selectedPups.forEach(id => {
+    const p = POWERUPS[id];
+    if (p && isUnlocked(id) && p.modes.includes('3d')) TD.powerups[id] = true;
+  });
+  updateTdPupHud();
+
   TD.raf = requestAnimationFrame(td_loop);
 }
 
@@ -3537,6 +3600,17 @@ function td_reveal(r, c) {
   cell.revealed = true;
 
   if (cell.mine) {
+    // Shield absorbs the hit
+    if (TD.powerups && TD.powerups.shield) {
+      cell.revealed = false;
+      cell.flagged  = true;
+      TD.flagCount++;
+      document.getElementById('td-flags').textContent = Math.max(0, TD.flagCount);
+      TD.powerups.shield = false;
+      updateTdPupHud();
+      playSound('flag');
+      return;
+    }
     TD.dead = true;
     TD.path = [];
     TD.boom = { col: c, row: r, t: 0 };
