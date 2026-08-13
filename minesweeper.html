@@ -3377,6 +3377,7 @@ function launchZone(zoneIndex) {
 
   // Clouds and birds (init after resize so we have W/H)
   TD.clouds    = td_initClouds(canvas.width, canvas.height);
+  TD.bgRocks   = td_initBgRocks(canvas.width, canvas.height);
   TD.birds     = [];
   TD.birdTimer = 3 + Math.random() * 6;
 
@@ -3760,6 +3761,12 @@ function td_render() {
   // ── Ambient sky & atmosphere ──
   td_drawAmbient(ctx, W, H);
 
+  // ── Background floating rocks (in the sky, before main platform) ──
+  if (TD.bgRocks) td_drawBgRocks(ctx);
+
+  // ── Rock underside of main platform ──
+  td_drawRockBase(ctx);
+
   // ── Build painter-sorted render list ──
   // Narrow margin so the platform edge drops into sky
   const GM = 2;
@@ -3793,6 +3800,140 @@ function td_render() {
     const [tc, tr] = TD.path[TD.path.length - 1];
     td_drawMoveTarget(ctx, tc, tr);
   }
+}
+
+// ── FLOATING ROCKS ────────────────────────
+
+function td_initBgRocks(W, H) {
+  return [
+    { x: W*0.12, y: H*0.37, scale: 0.42, alpha: 0.52, cols: 3, rows: 3, bobAmp: 4.5, bobSpd: 0.38, bobPh: 0.0 },
+    { x: W*0.84, y: H*0.27, scale: 0.28, alpha: 0.40, cols: 2, rows: 2, bobAmp: 3.0, bobSpd: 0.51, bobPh: 1.4 },
+    { x: W*0.76, y: H*0.53, scale: 0.20, alpha: 0.30, cols: 2, rows: 3, bobAmp: 2.0, bobSpd: 0.34, bobPh: 2.7 },
+  ];
+}
+
+function td_drawBgRocks(ctx) {
+  const t = Date.now() * 0.001;
+  TD.bgRocks.forEach(rock => td_drawBgRock(ctx, rock, t));
+}
+
+function td_drawBgRock(ctx, rock, t) {
+  const { HW, HH, BH } = ISO;
+  const z = TD.zone || ZONES[0];
+  const [ar, ag, ab] = z.atmRgb;
+  const { x, y, scale, alpha, cols, rows, bobAmp, bobSpd, bobPh } = rock;
+
+  const bob = Math.sin(t * bobSpd + bobPh) * bobAmp;
+  const rHW = HW * scale, rHH = HH * scale, rBH = BH * 1.6 * scale;
+  const ox = x - (cols - rows) * rHW * 0.5;
+  const oy = y + bob;
+
+  const tone = (base, atm, f) => Math.round(Math.min(255, base + atm * f));
+  const topC  = `rgb(${tone(24,ar,.06)},${tone(18,ag,.05)},${tone(11,ab,.09)})`;
+  const sideR = `rgb(${tone(32,ar,.07)},${tone(24,ag,.05)},${tone(15,ab,.10)})`;
+  const sideL = `rgb(${tone(16,ar,.04)},${tone(12,ag,.03)},${tone(7, ab,.06)})`;
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+
+  // Tiles in painter order
+  for (let sum = 0; sum < cols + rows - 1; sum++) {
+    for (let c = 0; c < cols; c++) {
+      const r = sum - c;
+      if (r < 0 || r >= rows) continue;
+      const nx = ox + (c - r) * rHW, ny = oy + (c + r) * rHH;
+      ctx.beginPath();
+      ctx.moveTo(nx+rHW,ny+rHH); ctx.lineTo(nx,ny+2*rHH);
+      ctx.lineTo(nx,ny+2*rHH+rBH); ctx.lineTo(nx+rHW,ny+rHH+rBH);
+      ctx.closePath(); ctx.fillStyle=sideR; ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(nx-rHW,ny+rHH); ctx.lineTo(nx,ny+2*rHH);
+      ctx.lineTo(nx,ny+2*rHH+rBH); ctx.lineTo(nx-rHW,ny+rHH+rBH);
+      ctx.closePath(); ctx.fillStyle=sideL; ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(nx,ny); ctx.lineTo(nx+rHW,ny+rHH); ctx.lineTo(nx,ny+2*rHH); ctx.lineTo(nx-rHW,ny+rHH);
+      ctx.closePath(); ctx.fillStyle=topC; ctx.fill();
+    }
+  }
+
+  // Rock bottom hanging below mini-platform
+  const ll = { x: ox-(rows-1)*rHW, y: oy+(rows-1)*rHH+2*rHH+rBH };
+  const rl = { x: ox+(cols-1)*rHW, y: oy+(cols-1)*rHH+2*rHH+rBH };
+  const bl = { x: ox+(cols-rows)*rHW, y: oy+(cols+rows-2)*rHH+2*rHH+rBH };
+  const D = rBH * 2.2;
+
+  ctx.beginPath();
+  ctx.moveTo(ll.x,ll.y); ctx.lineTo(bl.x,bl.y);
+  ctx.lineTo(bl.x-rHW*0.10, bl.y+D); ctx.lineTo(ll.x+rHW*0.10, ll.y+D*0.75);
+  ctx.closePath(); ctx.fillStyle=sideL; ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(rl.x,rl.y); ctx.lineTo(bl.x,bl.y);
+  ctx.lineTo(bl.x+rHW*0.10, bl.y+D); ctx.lineTo(rl.x-rHW*0.10, rl.y+D*0.75);
+  ctx.closePath(); ctx.fillStyle=sideR; ctx.fill();
+
+  ctx.restore();
+}
+
+function td_drawRockBase(ctx) {
+  const { HW, HH, BH } = ISO;
+  const { rows: R, cols: C } = TD;
+  const ox = TD.camOX, oy = TD.camOY;
+  const z = TD.zone || ZONES[0];
+  const [ar, ag, ab] = z.atmRgb;
+
+  const bOf = (c, r) => ({ x: ox+(c-r)*HW, y: oy+(c+r)*HH+2*HH+BH });
+  const tp = bOf(0,   0);    // back/top of diamond
+  const ll = bOf(0,   R-1);  // left corner
+  const rl = bOf(C-1, 0);    // right corner
+  const bl = bOf(C-1, R-1);  // front/bottom corner (closest to viewer)
+
+  const D = 72;
+  const tone = (base, atm, f) => Math.round(Math.min(255, base + atm * f));
+
+  const faceL  = `rgb(${tone(16,ar,.04)},${tone(11,ag,.03)},${tone(6, ab,.07)})`;
+  const faceR  = `rgb(${tone(26,ar,.05)},${tone(18,ag,.04)},${tone(11,ab,.08)})`;
+  const faceD  = `rgb(${tone(9, ar,.02)},${tone(6, ag,.02)},${tone(3, ab,.04)})`;
+
+  // Back-left face (tp → ll) — least visible, darkest
+  ctx.beginPath();
+  ctx.moveTo(tp.x,tp.y); ctx.lineTo(ll.x,ll.y);
+  ctx.lineTo(ll.x+HW*0.20, ll.y+D*0.68); ctx.lineTo(tp.x-HW*0.08, tp.y+D*0.50);
+  ctx.closePath(); ctx.fillStyle=faceD; ctx.fill();
+
+  // Back-right face (tp → rl)
+  ctx.beginPath();
+  ctx.moveTo(tp.x,tp.y); ctx.lineTo(rl.x,rl.y);
+  ctx.lineTo(rl.x-HW*0.20, rl.y+D*0.68); ctx.lineTo(tp.x+HW*0.08, tp.y+D*0.50);
+  ctx.closePath(); ctx.fillStyle=faceD; ctx.fill();
+
+  // Front-left face (ll → bl) — most visible
+  ctx.beginPath();
+  ctx.moveTo(ll.x,ll.y); ctx.lineTo(bl.x,bl.y);
+  ctx.lineTo(bl.x-HW*0.10, bl.y+D*1.12);
+  ctx.lineTo(bl.x-HW*0.02, bl.y+D*1.30); // jag
+  ctx.lineTo(ll.x+HW*0.08, ll.y+D*1.08);
+  ctx.lineTo(ll.x+HW*0.20, ll.y+D*0.68);
+  ctx.closePath(); ctx.fillStyle=faceL; ctx.fill();
+
+  // Front-right face (rl → bl)
+  ctx.beginPath();
+  ctx.moveTo(rl.x,rl.y); ctx.lineTo(bl.x,bl.y);
+  ctx.lineTo(bl.x+HW*0.10, bl.y+D*1.12);
+  ctx.lineTo(bl.x+HW*0.02, bl.y+D*1.30); // jag
+  ctx.lineTo(rl.x-HW*0.08, rl.y+D*1.08);
+  ctx.lineTo(rl.x-HW*0.20, rl.y+D*0.68);
+  ctx.closePath(); ctx.fillStyle=faceR; ctx.fill();
+
+  // Soft atmospheric shadow below rock
+  const cx = (ll.x + rl.x) * 0.5;
+  const cy = bl.y + D * 1.1;
+  const rW = (rl.x - ll.x) * 0.52;
+  const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, rW);
+  grad.addColorStop(0, 'rgba(0,0,0,0.18)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(cx-rW, cy-rW*0.4, rW*2, rW*0.85);
 }
 
 function td_initClouds(W, H) {
