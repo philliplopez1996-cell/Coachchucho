@@ -491,14 +491,22 @@ html{height:-webkit-fill-available}
 }
 .cal-view-right .cal-event-item:last-child{border:1px solid rgba(255,255,255,.07)}
 @media(max-width:768px){
-  .cal-view-wrap{padding:12px 12px 32px}
+  .cal-view-wrap{padding:10px 10px 32px}
   .cal-view-body{grid-template-columns:1fr}
-  .cal-view-left{padding:14px 12px 12px;border-radius:16px}
+  .cal-view-left{padding:12px 10px 10px;border-radius:16px}
   .cal-view-right{max-height:none;position:static;border-radius:16px}
-  #view-calendar .cal-day{min-height:56px;padding:7px 7px 14px;font-size:11px;border-radius:9px;justify-content:flex-start}
-  #view-calendar .cal-day-num{font-size:12px;line-height:1;margin-bottom:auto}
+  #view-calendar .cal-grid{gap:3px}
+  #view-calendar .cal-day{min-height:46px;padding:5px 5px 10px;font-size:10px;border-radius:7px;justify-content:flex-start}
+  #view-calendar .cal-day-num{font-size:11px;line-height:1;margin-bottom:auto}
   #view-calendar .cal-day:hover{transform:none}
 }
+/* Team-color dot on pitch nav button */
+.bnav-pitch-wrap{position:relative;display:flex;align-items:center;justify-content:center}
+.bnav-team-dot{display:none;position:absolute;top:-2px;right:-4px;width:8px;height:8px;border-radius:50%;border:1.5px solid rgba(6,13,8,.98);box-shadow:0 0 4px currentColor}
+/* Progress charts in Radar */
+.prog-tabs{display:flex;gap:6px;margin:14px 0 12px}
+.prog-tab{flex:1;padding:7px 4px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:var(--muted);font-size:11px;font-weight:800;cursor:pointer;transition:all .15s}
+.prog-tab.active{background:rgba(0,229,100,.1);border-color:rgba(0,229,100,.3);color:var(--green)}
 
 /* ── Event modal ── */
 .ev-type-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px}
@@ -1032,6 +1040,28 @@ html{height:-webkit-fill-available}
       </div>
       <div class="radar-verdict" id="radarVerdict" style="display:none"></div>
       <div class="career-compare" id="careerStats"></div>
+      <!-- Progress Tracker -->
+      <div id="progressSection" style="margin-top:8px;padding-top:14px;border-top:1px solid rgba(255,255,255,.07)">
+        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#3D5845;margin-bottom:2px">Team Progress</div>
+        <div class="prog-tabs">
+          <button class="prog-tab active" data-ptab="juggles">Juggles</button>
+          <button class="prog-tab" data-ptab="laps">4-Lap Times</button>
+          <button class="prog-tab" data-ptab="attrs">Attributes</button>
+        </div>
+        <div id="progAttrPicker" style="display:none;margin-bottom:10px">
+          <select id="progAttrSel" style="width:100%;padding:9px 12px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--tx);font-size:12px;font-weight:700;outline:none">
+            <option value="ovr">Overall (OVR)</option>
+            <option value="pac">Pace (PAC)</option>
+            <option value="sho">Shooting (SHO)</option>
+            <option value="pas">Passing (PAS)</option>
+            <option value="dri">Dribbling (DRI)</option>
+            <option value="def">Defense (DEF)</option>
+            <option value="phy">Physical (PHY)</option>
+          </select>
+        </div>
+        <div id="progChartWrap" style="min-height:80px"></div>
+        <div id="progLegend" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;font-size:10px;font-weight:700"></div>
+      </div>
     </div>
 
     <!-- PITCH TAB -->
@@ -1195,7 +1225,10 @@ html{height:-webkit-fill-available}
       <span class="bnav-lbl">Radar</span>
     </button>
     <button class="bnav-btn" data-view="pitch">
-      <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M12 3v18M2 12h20"/></svg>
+      <div class="bnav-pitch-wrap">
+        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M12 3v18M2 12h20"/></svg>
+        <span class="bnav-team-dot" id="bnavPitchDot"></span>
+      </div>
       <span class="bnav-lbl">Pitch</span>
     </button>
   </nav>
@@ -1465,6 +1498,10 @@ html{height:-webkit-fill-available}
       <div class="ap-field"><div class="ap-label">Parent Phone</div><input class="ap-input" id="apParentPhone" type="tel" placeholder="555-123-4567"></div>
       <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin:14px 0 10px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06)">Juggle Test · Monthly Record</div>
       <div id="apJugglesWrap" style="display:flex;flex-direction:column;gap:9px;margin-bottom:4px"></div>
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin:14px 0 10px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06)">4-Lap Time · Monthly Record <span style="font-weight:500;text-transform:none;letter-spacing:0;font-size:9px">(m:ss)</span></div>
+      <div id="apLapsWrap" style="display:flex;flex-direction:column;gap:9px;margin-bottom:4px"></div>
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin:14px 0 10px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06)">Monthly Attribute Snapshot</div>
+      <div id="apAttrSnapWrap" style="margin-bottom:4px"></div>
       <button class="ap-submit-btn" id="apSubmit">Add to Roster</button>
     </div>
   </div>
@@ -1478,6 +1515,13 @@ html{height:-webkit-fill-available}
       <button class="addp-close" id="tmClose">✕</button>
     </div>
     <div class="addp-body">
+      <div style="text-align:center;margin-bottom:16px">
+        <input type="file" id="tmPhotoInput" accept="image/*" style="display:none">
+        <div id="tmPhotoPreview" style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.06);border:2px dashed rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;cursor:pointer;overflow:hidden;background-size:cover;background-position:center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.8" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </div>
+        <div style="font-size:10px;color:var(--muted)">Team photo (optional)</div>
+      </div>
       <div class="ap-field"><div class="ap-label">Team Name</div><input class="ap-input" id="tmName" type="text" placeholder="e.g. GSA United" maxlength="40"></div>
       <div class="ap-field"><div class="ap-label">Age Group</div><div class="tm-age-grid" id="tmAgeGrid"></div></div>
       <div class="ap-field"><div class="ap-label">Game Format</div><div class="tm-age-grid" id="tmFormatGrid"></div></div>
@@ -1727,7 +1771,7 @@ function switchView(v){
   document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
   const titles={roster:'Roster',radar:'Player Radar',pitch:'Pitch & Formation',calendar:'Calendar'};
   document.getElementById('topTitle').textContent=titles[v]||v;
-  if(v==='radar'){renderRadarSlots();}
+  if(v==='radar'){renderRadarSlots();renderProgressCharts();}
   if(v==='pitch'){renderPitchTokens();renderRegularBench();}
   if(v==='calendar'){buildCal();}
 }
@@ -1739,8 +1783,9 @@ function renderTeamChips(){
   const c=document.getElementById('teamChips');
   c.innerHTML=TEAMS.map((t,i)=>{
     const col=t.color||'#00E564';
+    const dotEl=t.photo?`<div class="tc-dot" style="background:url(${t.photo}) center/cover;border-radius:50%;width:18px;height:18px;flex-shrink:0"></div>`:`<div class="tc-dot" style="background:${col}"></div>`;
     return `<div class="team-chip${i===0?' active':''}" data-tid="${t.id}" style="border-color:${i===0?col+'55':'transparent'}">
-      <div class="tc-dot" style="background:${col}"></div>
+      ${dotEl}
       <div class="tc-name">${t.name}</div>
       <div class="tc-ovr">${t.ovr||'—'}</div>
     </div>`;
@@ -1882,6 +1927,7 @@ function showTeamPlayers(team){
   const lbl=formatCount===7?'Starting 7':formatCount===9?'Starting 9':'Starting XI';
   if(pfTitle)pfTitle.textContent=lbl;
   renderPitchTokens();renderRegularBench();
+  _updatePitchDot(team);
 }
 
 /* ══════════════════════════════════════════════
@@ -2011,6 +2057,32 @@ function openPlayerModal(p, subIndex=null, pitchIdx=null){
         }).join('')}
       </div>
     </div>`:''}
+    ${(p.laps&&p.laps.some(l=>l&&l.time!==null))?`<div style="padding:14px 18px;border-top:1px solid rgba(255,255,255,.06)">
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:#3D5845;margin-bottom:10px">4-Lap Time · Monthly</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+        ${(p.laps||[]).map((l,i)=>{
+          const hasVal=l&&l.time!==null;
+          const dateStr=(l&&l.date)?new Date(l.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
+          return `<div style="background:rgba(0,0,0,.3);border-radius:10px;padding:10px 6px;border:1px solid rgba(255,255,255,.06);text-align:center">
+            <div style="font-size:${hasVal?'15':'14'}px;font-family:'Impact',Arial,sans-serif;color:${hasVal?'#DFF0E3':'#2A4030'};letter-spacing:.5px">${hasVal?_fmtLapTime(l.time):'—'}</div>
+            <div style="font-size:8px;font-weight:800;color:#3D5845;text-transform:uppercase;letter-spacing:.6px;margin-top:3px">M${i+1}</div>
+            ${dateStr?`<div style="font-size:8px;color:#2A4030;margin-top:2px">${dateStr}</div>`:''}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`:''}
+    ${(p.attrHistory&&p.attrHistory.length)?`<div style="padding:14px 18px;border-top:1px solid rgba(255,255,255,.06)">
+      <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:#3D5845;margin-bottom:10px">Attribute History</div>
+      <div style="display:grid;grid-template-columns:repeat(${Math.min(p.attrHistory.length,4)},1fr);gap:6px">
+        ${p.attrHistory.map((h,i)=>`<div style="background:rgba(0,0,0,.3);border-radius:10px;padding:9px 5px;border:1px solid rgba(255,255,255,.06);text-align:center">
+          <div style="font-size:18px;font-family:'Impact',Arial,sans-serif;color:#DFF0E3">${h.ovr}</div>
+          <div style="font-size:7px;font-weight:800;color:#3D5845;text-transform:uppercase;letter-spacing:.6px;margin-top:2px">M${h.m||i+1} OVR</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:5px">
+            ${['pac','sho','pas','dri','def','phy'].map(k=>`<div style="font-size:9px;color:#6B9A78;font-weight:700">${k.toUpperCase()}<span style="color:#DFF0E3;margin-left:2px">${h[k]||'—'}</span></div>`).join('')}
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`:''}
     <div style="height:${(subIndex!==null||pitchIdx!==null)?4:20}px"></div>
   `;
   if(subIndex!==null){
@@ -2066,6 +2138,169 @@ function openPlayerModal(p, subIndex=null, pitchIdx=null){
   modal.classList.add('open');
 }
 
+/* ── Pitch nav team-color dot ── */
+function _updatePitchDot(team){
+  const dot=document.getElementById('bnavPitchDot');
+  if(!dot)return;
+  if(team){dot.style.background=team.color||'#00E564';dot.style.display='';}
+  else{dot.style.display='none';}
+}
+
+/* ── Lap time helpers ── */
+function _parseLapTime(s){
+  if(!s||!s.trim())return null;
+  const t=s.trim();
+  if(t.includes(':')){const[m,sec]=t.split(':');return parseFloat(m||0)*60+parseFloat(sec||0);}
+  return parseFloat(t)||null;
+}
+function _fmtLapTime(secs){
+  if(secs===null||secs===undefined)return '—';
+  const m=Math.floor(secs/60),s=Math.round(secs%60);
+  return m+':'+(s<10?'0':'')+s;
+}
+
+/* ── Laps edit rows ── */
+function _renderLapsEdit(laps){
+  const wrap=document.getElementById('apLapsWrap');
+  if(!wrap)return;
+  const labels=['Month 1','Month 2','Month 3','Month 4'];
+  wrap.innerHTML=labels.map((lbl,i)=>{
+    const j=(laps&&laps[i])||{time:null,date:null};
+    const dispVal=j.time!==null?_fmtLapTime(j.time):'';
+    const dateStr=j.date?new Date(j.date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}):'';
+    return `<div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:11px;color:var(--dim);width:58px;flex-shrink:0">${lbl}</span>
+      <input type="text" id="apLap${i}" value="${dispVal}" placeholder="0:00" style="width:68px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--tx);font-size:14px;font-weight:800;padding:6px 9px;text-align:center"/>
+      <span style="font-size:10px;color:var(--dim)">${dateStr}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ── Attribute snapshot section ── */
+function _renderAttrSnapEdit(p){
+  const wrap=document.getElementById('apAttrSnapWrap');
+  if(!wrap)return;
+  const hist=(p&&p.attrHistory)||[];
+  const nextM=hist.length+1;
+  if(nextM>4){
+    wrap.innerHTML=`<div style="font-size:11px;color:var(--dim)">All 4 months recorded ✓</div>`;
+    return;
+  }
+  wrap.innerHTML=`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.5">Months recorded: <strong style="color:var(--tx)">${hist.length}/4</strong>${hist.length?'<br>'+hist.map((h,i)=>`<span style="margin-right:6px;color:#6B9A78">M${i+1} OVR ${h.ovr}</span>`).join(''):''}</div>
+    <button id="apSnapBtn" style="width:100%;padding:10px;border-radius:9px;background:rgba(0,229,100,.08);border:1px solid rgba(0,229,100,.2);color:var(--green);font-size:12px;font-weight:800;cursor:pointer">Log Month ${nextM} Snapshot (current attributes)</button>`;
+  document.getElementById('apSnapBtn').addEventListener('click',()=>{
+    const pac=+document.getElementById('apPac').value;
+    const sho=+document.getElementById('apSho').value;
+    const pas=+document.getElementById('apPas').value;
+    const dri=+document.getElementById('apDri').value;
+    const def=+document.getElementById('apDef').value;
+    const phy=+document.getElementById('apPhy').value;
+    const ovr=Math.round((pac+sho+pas+dri+def+phy)/6);
+    if(!p)return;
+    if(!p.attrHistory)p.attrHistory=[];
+    p.attrHistory.push({m:nextM,pac,sho,pas,dri,def,phy,ovr,date:new Date().toISOString().slice(0,10)});
+    _renderAttrSnapEdit(p);
+    showToast('Month '+nextM+' snapshot saved!');
+  });
+}
+
+/* ── Progress line chart (SVG) ── */
+let _progTab='juggles';
+function _drawLineChart(datasets,xLabels,unit='',lowerBetter=false){
+  const allV=datasets.flatMap(d=>d.values.filter(v=>v!==null));
+  if(!allV.length)return'<div style="text-align:center;padding:28px 0;color:#2A4030;font-size:12px;font-weight:700">No data recorded yet</div>';
+  const W=320,H=150,PL=34,PR=8,PT=10,PB=22;
+  const cW=W-PL-PR,cH=H-PT-PB;
+  const minV=Math.min(...allV),maxV=Math.max(...allV);
+  const range=maxV-minV||1;
+  const toX=i=>PL+i*(cW/(xLabels.length-1));
+  const toY=v=>PT+cH-((v-minV)/range)*cH;
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;overflow:visible;display:block">`;
+  [0,.5,1].forEach(f=>{
+    const y=PT+cH*(1-f),v=minV+range*f;
+    s+=`<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="rgba(255,255,255,.06)" stroke-width=".8"/>`;
+    s+=`<text x="${PL-3}" y="${y+3}" text-anchor="end" font-size="8" fill="#2A4030">${unit==='m:ss'?_fmtLapTime(v):Math.round(v)}</text>`;
+  });
+  xLabels.forEach((lbl,i)=>{
+    s+=`<text x="${toX(i)}" y="${H-4}" text-anchor="middle" font-size="8" font-weight="800" fill="#3D5845">${lbl}</text>`;
+  });
+  datasets.forEach(ds=>{
+    let d='',hasPrev=false;
+    ds.values.forEach((v,i)=>{
+      if(v===null){hasPrev=false;return;}
+      const x=toX(i),y=toY(v);
+      d+=hasPrev?`L${x},${y} `:`M${x},${y} `;
+      hasPrev=true;
+    });
+    if(d)s+=`<path d="${d}" fill="none" stroke="${ds.color}" stroke-width="${ds.avg?2.2:1.4}" stroke-linecap="round" stroke-linejoin="round" opacity="${ds.avg?1:.65}"/>`;
+    ds.values.forEach((v,i)=>{
+      if(v===null)return;
+      s+=`<circle cx="${toX(i)}" cy="${toY(v)}" r="${ds.avg?3.5:2}" fill="${ds.color}" opacity="${ds.avg?1:.8}"/>`;
+      if(ds.avg)s+=`<text x="${toX(i)}" y="${toY(v)-6}" text-anchor="middle" font-size="7.5" font-weight="800" fill="${ds.color}">${unit==='m:ss'?_fmtLapTime(v):v}</text>`;
+    });
+  });
+  s+='</svg>';
+  return s;
+}
+
+function renderProgressCharts(){
+  if(!activeTeam)return;
+  const players=activeTeam.players.filter(p=>p&&p.name);
+  const xLabels=['M1','M2','M3','M4'];
+  const COLORS=['#00E564','#FF8C42','#4B9FFF','#FF4FB8','#FFD700','#A78BFA','#34D399','#F87171','#FB923C','#38BDF8','#E879F9','#FACC15'];
+  let datasets=[],legendHtml='';
+  if(_progTab==='juggles'){
+    const teamAvg=xLabels.map((_,i)=>{
+      const vals=players.map(p=>(p.juggles&&p.juggles[i]&&p.juggles[i].count!==null)?p.juggles[i].count:null).filter(v=>v!==null);
+      return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):null;
+    });
+    if(teamAvg.some(v=>v!==null))datasets.push({values:teamAvg,color:'#00E564',avg:true,label:'Team Avg'});
+    players.forEach((p,pi)=>{
+      const vals=xLabels.map((_,i)=>(p.juggles&&p.juggles[i]&&p.juggles[i].count!==null)?p.juggles[i].count:null);
+      if(vals.some(v=>v!==null)){
+        const c=COLORS[(pi+1)%COLORS.length];
+        datasets.push({values:vals,color:c,label:p.name.split(' ')[0]});
+        legendHtml+=`<span style="color:${c}">${p.name.split(' ')[0]}</span>`;
+      }
+    });
+    document.getElementById('progChartWrap').innerHTML=_drawLineChart(datasets,xLabels,'');
+  } else if(_progTab==='laps'){
+    const teamAvg=xLabels.map((_,i)=>{
+      const vals=players.map(p=>(p.laps&&p.laps[i]&&p.laps[i].time!==null)?p.laps[i].time:null).filter(v=>v!==null);
+      return vals.length?+(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1):null;
+    });
+    if(teamAvg.some(v=>v!==null))datasets.push({values:teamAvg,color:'#00E564',avg:true,label:'Team Avg'});
+    players.forEach((p,pi)=>{
+      const vals=xLabels.map((_,i)=>(p.laps&&p.laps[i]&&p.laps[i].time!==null)?p.laps[i].time:null);
+      if(vals.some(v=>v!==null)){
+        const c=COLORS[(pi+1)%COLORS.length];
+        datasets.push({values:vals,color:c,label:p.name.split(' ')[0]});
+        legendHtml+=`<span style="color:${c}">${p.name.split(' ')[0]}</span>`;
+      }
+    });
+    document.getElementById('progChartWrap').innerHTML=_drawLineChart(datasets,xLabels,'m:ss',true);
+  } else {
+    const attr=document.getElementById('progAttrSel')?document.getElementById('progAttrSel').value:'ovr';
+    const lbl={ovr:'OVR',pac:'PAC',sho:'SHO',pas:'PAS',dri:'DRI',def:'DEF',phy:'PHY'}[attr]||attr.toUpperCase();
+    const teamAvg=xLabels.map((_,i)=>{
+      const vals=players.map(p=>{const h=p.attrHistory&&p.attrHistory[i];return h?h[attr]:null;}).filter(v=>v!==null);
+      return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):null;
+    });
+    if(teamAvg.some(v=>v!==null))datasets.push({values:teamAvg,color:'#00E564',avg:true,label:'Team Avg '+lbl});
+    players.forEach((p,pi)=>{
+      const vals=xLabels.map((_,i)=>{const h=p.attrHistory&&p.attrHistory[i];return h?h[attr]:null;});
+      if(vals.some(v=>v!==null)){
+        const c=COLORS[(pi+1)%COLORS.length];
+        datasets.push({values:vals,color:c,label:p.name.split(' ')[0]});
+        legendHtml+=`<span style="color:${c}">${p.name.split(' ')[0]}</span>`;
+      }
+    });
+    document.getElementById('progChartWrap').innerHTML=_drawLineChart(datasets,xLabels,'');
+  }
+  legendHtml=`<span style="color:#00E564">▬ Team Avg</span>`+(legendHtml?'  '+legendHtml:'');
+  document.getElementById('progLegend').innerHTML=legendHtml;
+}
+
 function _renderJugglesEdit(juggles){
   const wrap=document.getElementById('apJugglesWrap');
   if(!wrap)return;
@@ -2112,6 +2347,8 @@ function openEditPlayer(p){
   document.querySelector('.addp-title').textContent='Edit Player';
   document.getElementById('apSubmit').textContent='Save Changes';
   _renderJugglesEdit(p.juggles||[]);
+  _renderLapsEdit(p.laps||[]);
+  _renderAttrSnapEdit(p);
   document.getElementById('addPlayerOverlay').classList.add('open');
 }
 
@@ -3064,6 +3301,8 @@ function openAddPlayer(){
   _apFoot='Right';
   document.querySelectorAll('#apFootPills .foot-pill').forEach(b=>b.classList.toggle('sel',b.dataset.foot==='Right'));
   _renderJugglesEdit([]);
+  _renderLapsEdit([]);
+  _renderAttrSnapEdit(null);
   document.querySelector('.addp-title').textContent='Add Player';
   document.getElementById('apSubmit').textContent='Add to Roster';
   document.getElementById('addPlayerOverlay').classList.add('open');
@@ -3081,7 +3320,7 @@ function closeAddPlayer(){
 /* ══════════════════════════════════════════════
    TEAM FOLDER MODAL
 ══════════════════════════════════════════════ */
-let _tmAge='U14',_tmForm='4-3-3',_tmColor='#00E564',_tmFormat='11v11';
+let _tmAge='U14',_tmForm='4-3-3',_tmColor='#00E564',_tmFormat='11v11',_tmPhoto='';
 const AGE_GROUPS=['U8','U9','U10','U11','U12','U13','U14','U15','U16','U17','U18','U19'];
 const GAME_FORMATS=['7v7','9v9','11v11'];
 const FORM_OPTIONS_BY_FORMAT={
@@ -3116,6 +3355,9 @@ function _renderTmPills(){
 function openTeamModal(){
   const inp=document.getElementById('tmName');if(inp)inp.value='';
   _tmAge='U14';_tmForm='4-3-3';_tmColor='#00E564';_tmFormat='11v11';
+  _tmPhoto='';
+  const tmPrev=document.getElementById('tmPhotoPreview');
+  if(tmPrev){tmPrev.style.backgroundImage='';tmPrev.innerHTML=`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="4"/><path d="M5 7h2l2-2h6l2 2h2a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z"/></svg>`;}
   _renderTmPills();
   document.getElementById('teamModalOverlay').classList.add('open');
   setTimeout(()=>{const inp=document.getElementById('tmName');if(inp)inp.focus();},140);
@@ -3467,7 +3709,9 @@ function initAuth(){
   if(tmSave)tmSave.addEventListener('click',()=>{
     const name=document.getElementById('tmName').value.trim();
     if(!name){showToast('Enter a team name');return;}
-    TEAMS.push({id:'team_'+(_teamNextId++),name,initial:name[0].toUpperCase(),color:_tmColor,formation:_tmForm,season:_tmAge,format:_tmFormat,ovr:0,players:[]});
+    TEAMS.push({id:'team_'+(_teamNextId++),name,initial:name[0].toUpperCase(),color:_tmColor,formation:_tmForm,season:_tmAge,format:_tmFormat,ovr:0,players:[],photo:_tmPhoto||''});
+    _tmPhoto='';
+    if(tmPhotoPreview){tmPhotoPreview.style.backgroundImage='';tmPhotoPreview.innerHTML=`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="4"/><path d="M5 7h2l2-2h6l2 2h2a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z"/></svg>`;}
     saveToStorage();showTeamsList();renderTeamChips();closeTeamModal();showToast('Team "'+name+'" created!');
   });
 
@@ -3567,15 +3811,30 @@ function initAuth(){
       }
       return {count:null,date:null};
     });
+    const existingLaps=(_editingPlayer&&_editingPlayer.laps)||[];
+    const laps=[0,1,2,3].map(i=>{
+      const inp=document.getElementById('apLap'+i);
+      const raw=inp?inp.value.trim():'';
+      const prev=existingLaps[i]||{time:null,date:null};
+      if(raw!==''&&raw!=='0:00'){
+        const time=_parseLapTime(raw);
+        if(time!==null){
+          const noDate=(prev.time===null||prev.time===undefined);
+          return {time,date:noDate?new Date().toISOString().slice(0,10):prev.date};
+        }
+      }
+      return {time:null,date:null};
+    });
+    const attrHistory=(_editingPlayer&&_editingPlayer.attrHistory)||[];
     if(_editingPlayer){
       const ownerTeam=TEAMS.find(t=>t.players.some(x=>x===_editingPlayer||x.name===_editingPlayer.name));
       if(ownerTeam){
         const pi=ownerTeam.players.findIndex(x=>x===_editingPlayer||x.name===_editingPlayer.name);
-        if(pi>-1)Object.assign(ownerTeam.players[pi],{name,pos,pos2,pos3,num,ovr,tier,init,flag,pac,sho,pas,dri,def,phy,parentEmail,parentPhone,photo,juggles});
+        if(pi>-1)Object.assign(ownerTeam.players[pi],{name,pos,pos2,pos3,num,ovr,tier,init,flag,pac,sho,pas,dri,def,phy,parentEmail,parentPhone,photo,juggles,laps,attrHistory});
       }
       saveToStorage();renderCards();closeAddPlayer();showToast(name+' updated!');
     } else {
-      const p={name,pos,pos2,pos3,num,ovr,tier,init,flag,pac,sho,pas,dri,def,phy,goals:0,assists:0,potm:0,cs:0,parentEmail,parentPhone,photo,juggles};
+      const p={name,pos,pos2,pos3,num,ovr,tier,init,flag,pac,sho,pas,dri,def,phy,goals:0,assists:0,potm:0,cs:0,parentEmail,parentPhone,photo,juggles,laps:[],attrHistory:[]};
       activeTeam.players.push(p);
       saveToStorage();renderCards();closeAddPlayer();showToast(name+' added to roster!');
     }
@@ -3974,6 +4233,34 @@ function initAuth(){
     });
     e.target.value='';
   });
+
+  /* Team photo upload */
+  const tmPhotoInput=document.getElementById('tmPhotoInput');
+  const tmPhotoPreview=document.getElementById('tmPhotoPreview');
+  if(tmPhotoPreview){
+    tmPhotoPreview.addEventListener('click',()=>{if(tmPhotoInput)tmPhotoInput.click();});
+  }
+  if(tmPhotoInput)tmPhotoInput.addEventListener('change',e=>{
+    const f=e.target.files[0];if(!f)return;
+    _resizeImg(f,200,dataUrl=>{
+      _tmPhoto=dataUrl;
+      if(tmPhotoPreview){tmPhotoPreview.style.backgroundImage='url('+dataUrl+')';tmPhotoPreview.innerHTML='';}
+    });
+    e.target.value='';
+  });
+
+  /* Progress tab buttons */
+  document.querySelectorAll('.prog-tab').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      _progTab=btn.dataset.ptab||'juggles';
+      document.querySelectorAll('.prog-tab').forEach(b=>b.classList.toggle('active',b===btn));
+      const attrPicker=document.getElementById('progAttrPicker');
+      if(attrPicker)attrPicker.style.display=_progTab==='attrs'?'':'none';
+      renderProgressCharts();
+    });
+  });
+  const progAttrSel=document.getElementById('progAttrSel');
+  if(progAttrSel)progAttrSel.addEventListener('change',()=>renderProgressCharts());
 
   /* Sidebar calendar button */
   const sbCalBtn=document.getElementById('sbCalBtn');
