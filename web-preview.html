@@ -1837,14 +1837,43 @@ function showTeamPlayers(team){
   /* Sync pitch, bench & radar with selected team */
   const formatCount=getFormatCount(team.format);
   const formPos=getFormPositions(team.format);
-  const pos=SAVED_FORMATIONS[activeSlot]||formPos[activeSlot];
-  PITCH_PLAYERS.length=0;
-  BENCH_PLAYERS.length=0;
-  team.players.forEach((p,i)=>{
-    const slot=pos[i];
-    if(i<formatCount&&slot){PITCH_PLAYERS.push({...p,cx:slot.cx,cy:slot.cy});}
-    else{BENCH_PLAYERS.push(p);}
-  });
+  const savedPitchRaw=localStorage.getItem(_sk('pitch_'+team.id));
+  const savedBenchRaw=localStorage.getItem(_sk('bench_'+team.id));
+  const savedFormRaw=localStorage.getItem(_sk('formations_'+team.id));
+  if(savedPitchRaw&&savedBenchRaw){
+    /* Restore the coach's saved arrangement for this team */
+    const pitchData=JSON.parse(savedPitchRaw);
+    const benchData=JSON.parse(savedBenchRaw);
+    PITCH_PLAYERS.length=0;
+    BENCH_PLAYERS.length=0;
+    /* Sync fresh player data (stats/name changes) but keep saved cx/cy */
+    pitchData.forEach(pp=>{
+      const fresh=team.players.find(p=>p.name===pp.name);
+      if(fresh)PITCH_PLAYERS.push({...fresh,cx:pp.cx,cy:pp.cy});
+    });
+    benchData.forEach(bp=>{
+      const fresh=team.players.find(p=>p.name===bp.name);
+      if(fresh)BENCH_PLAYERS.push({...fresh});
+    });
+    /* Any player added to the team since the last save goes to bench */
+    team.players.forEach(p=>{
+      const onPitch=PITCH_PLAYERS.some(pp=>pp.name===p.name);
+      const onBench=BENCH_PLAYERS.some(bp=>bp.name===p.name);
+      if(!onPitch&&!onBench)BENCH_PLAYERS.push(p);
+    });
+    /* Load this team's saved formations */
+    if(savedFormRaw)Object.assign(SAVED_FORMATIONS,JSON.parse(savedFormRaw));
+  } else {
+    /* No saved pitch for this team yet — build default layout */
+    const pos=SAVED_FORMATIONS[activeSlot]||formPos[activeSlot];
+    PITCH_PLAYERS.length=0;
+    BENCH_PLAYERS.length=0;
+    team.players.forEach((p,i)=>{
+      const slot=pos[i];
+      if(i<formatCount&&slot){PITCH_PLAYERS.push({...p,cx:slot.cx,cy:slot.cy});}
+      else{BENCH_PLAYERS.push(p);}
+    });
+  }
   radarA=team.players[0]||null;
   radarB=team.players[1]||null;
   const ptn=document.getElementById('pitchTeamNm');
@@ -3113,6 +3142,12 @@ function saveToStorage(){
     localStorage.setItem(_sk('pitch'),JSON.stringify(PITCH_PLAYERS));
     localStorage.setItem(_sk('bench'),JSON.stringify(BENCH_PLAYERS));
     localStorage.setItem(_sk('savedFormations'),JSON.stringify(SAVED_FORMATIONS));
+    /* Per-team pitch so switching team chips never scrambles positions */
+    if(activeTeam){
+      localStorage.setItem(_sk('pitch_'+activeTeam.id),JSON.stringify(PITCH_PLAYERS));
+      localStorage.setItem(_sk('bench_'+activeTeam.id),JSON.stringify(BENCH_PLAYERS));
+      localStorage.setItem(_sk('formations_'+activeTeam.id),JSON.stringify(SAVED_FORMATIONS));
+    }
     localStorage.setItem(_sk('nextId'),String(_teamNextId));
     localStorage.setItem(_sk('events'),JSON.stringify(EVENTS));
     localStorage.setItem(_sk('evNextId'),String(_evNextId));
