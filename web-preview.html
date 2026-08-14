@@ -843,10 +843,24 @@ html{height:-webkit-fill-available}
       <input class="auth-input" id="authPassword" type="password" placeholder="Password" autocomplete="current-password">
       <button class="auth-btn" id="authSubmit">Log In</button>
       <div class="auth-err" id="authError"></div>
-      <div style="margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.07);text-align:center">
+      <button class="auth-forgot" id="authForgotBtn">Forgot password?</button>
+      <div style="margin-top:12px;padding-top:14px;border-top:1px solid rgba(255,255,255,.07);text-align:center">
         <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Using a new browser or device?</div>
         <button id="authTransferBtn" style="font-size:12px;font-weight:700;color:var(--green);background:rgba(0,229,100,.07);border:1px solid rgba(0,229,100,.2);border-radius:10px;padding:9px 16px;cursor:pointer;width:100%">Transfer my data from another browser</button>
       </div>
+    </div>
+
+    <!-- Forgot Password panel -->
+    <div id="authForgotPanel" style="display:none">
+      <button id="authForgotBack" style="background:none;border:none;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;padding:0 0 14px;display:flex;align-items:center;gap:6px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>Back to Log In
+      </button>
+      <div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:6px">Recover password</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:16px;line-height:1.6">Enter the email you signed up with. This only works on the <strong style="color:var(--text)">same device</strong> where you created your account.</div>
+      <input class="auth-input" id="authForgotEmail" type="email" placeholder="Your email address" autocomplete="email">
+      <button class="auth-btn" id="authForgotSubmit">Find My Account</button>
+      <div class="auth-err" id="authForgotError"></div>
+      <div id="authForgotResult" style="display:none;margin-top:14px;background:rgba(0,229,100,.06);border:1px solid rgba(0,229,100,.18);border-radius:12px;padding:14px"></div>
     </div>
 
     <!-- Parent access panel -->
@@ -3293,6 +3307,8 @@ function _switchAuthTab(tab){
     if(tabEl)tabEl.classList.toggle('active',t===tab);
     if(panEl)panEl.style.display=t===tab?'block':'none';
   });
+  const fp=document.getElementById('authForgotPanel');
+  if(fp)fp.style.display='none';
 }
 
 function initAuth(){
@@ -3787,6 +3803,77 @@ function initAuth(){
     bootApp();
   });
   document.getElementById('authPassword').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('authSubmit').click();});
+
+  /* Forgot Password */
+  function _showForgotPanel(){
+    document.getElementById('authCoachPanel').style.display='none';
+    document.getElementById('authForgotPanel').style.display='';
+    document.getElementById('authForgotEmail').value=document.getElementById('authEmail').value||'';
+    document.getElementById('authForgotError').textContent='';
+    document.getElementById('authForgotResult').style.display='none';
+    document.getElementById('authForgotResult').innerHTML='';
+  }
+  function _hideForgotPanel(){
+    document.getElementById('authForgotPanel').style.display='none';
+    document.getElementById('authCoachPanel').style.display='';
+  }
+  document.getElementById('authForgotBtn').addEventListener('click',_showForgotPanel);
+  document.getElementById('authForgotBack').addEventListener('click',_hideForgotPanel);
+  document.getElementById('authForgotSubmit').addEventListener('click',()=>{
+    const email=document.getElementById('authForgotEmail').value.trim();
+    const errEl=document.getElementById('authForgotError');
+    const resultEl=document.getElementById('authForgotResult');
+    errEl.textContent='';
+    resultEl.style.display='none';
+    if(!email||!email.includes('@')){errEl.textContent='Enter a valid email address';return;}
+    const accs=_getAccounts()||{};
+    let foundNs=null,foundAcc=null;
+    Object.entries(accs).forEach(([ns,acc])=>{
+      if(acc.email&&acc.email.toLowerCase()===email.toLowerCase()){foundNs=ns;foundAcc=acc;}
+    });
+    if(!foundNs){errEl.textContent='No account with that email found on this device';return;}
+    /* Show password + reset option */
+    resultEl.style.display='';
+    resultEl.innerHTML=`
+      <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--green);margin-bottom:10px">Account found</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Your current password:</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+        <div id="fpPassDisplay" style="flex:1;font-size:15px;font-weight:800;color:var(--text);background:rgba(255,255,255,.06);border-radius:8px;padding:10px 12px;letter-spacing:.5px;font-family:monospace">••••••••</div>
+        <button id="fpRevealBtn" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:10px 12px;cursor:pointer;color:var(--muted);font-size:11px;font-weight:800;white-space:nowrap">Show</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Or set a new password:</div>
+      <input id="fpNewPass" class="auth-input" type="password" placeholder="New password (min. 6 chars)" autocomplete="new-password" style="margin-bottom:6px">
+      <input id="fpNewPass2" class="auth-input" type="password" placeholder="Confirm new password" autocomplete="new-password">
+      <button id="fpSaveBtn" class="auth-btn" style="margin-top:4px">Save New Password</button>
+      <div id="fpSaveErr" class="auth-err"></div>
+    `;
+    let revealed=false;
+    document.getElementById('fpRevealBtn').addEventListener('click',()=>{
+      revealed=!revealed;
+      document.getElementById('fpPassDisplay').textContent=revealed?foundAcc.password:'••••••••';
+      document.getElementById('fpRevealBtn').textContent=revealed?'Hide':'Show';
+    });
+    document.getElementById('fpSaveBtn').addEventListener('click',()=>{
+      const np=document.getElementById('fpNewPass').value;
+      const np2=document.getElementById('fpNewPass2').value;
+      const errSave=document.getElementById('fpSaveErr');
+      errSave.textContent='';
+      if(np.length<6){errSave.textContent='Password must be at least 6 characters';return;}
+      if(np!==np2){errSave.textContent='Passwords do not match';return;}
+      const accsNow=_getAccounts()||{};
+      if(accsNow[foundNs]){accsNow[foundNs].password=np;_saveAccounts(accsNow);}
+      errSave.style.color='var(--green)';
+      errSave.textContent='Password updated! You can now log in.';
+      document.getElementById('fpSaveBtn').disabled=true;
+      setTimeout(()=>{
+        _hideForgotPanel();
+        document.getElementById('authEmail').value=email;
+        document.getElementById('authPassword').value='';
+        document.getElementById('authPassword').focus();
+      },1400);
+    });
+  });
+  document.getElementById('authForgotEmail').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('authForgotSubmit').click();});
 
   /* Transfer data from another browser — opens paste sync code modal */
   const authTransferBtn=document.getElementById('authTransferBtn');
