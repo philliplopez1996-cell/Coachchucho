@@ -3377,9 +3377,9 @@ function launchZone(zoneIndex) {
 
   // Clouds and birds (init after resize so we have W/H)
   TD.clouds    = td_initClouds(canvas.width, canvas.height);
-  TD.bgRocks   = td_initBgRocks(canvas.width, canvas.height);
   TD.birds     = [];
   TD.birdTimer = 3 + Math.random() * 6;
+  TD.trail     = td_genTrail();
 
   // Init powerups for this zone
   TD.powerups = {};
@@ -3411,18 +3411,112 @@ function td_genDecorations() {
   const { rows: R, cols: C, zone } = TD;
   const decoType = zone ? zone.decoType : 'tree';
   const rnd = () => Math.random();
-  const mkDeco = (c, r) => ({ c, r, type: decoType, h: 0.7 + rnd()*0.6, shade: rnd() > 0.45 });
+  const mkDeco = (c, r, s = 0) => ({ c, r, type: decoType, h: 0.65 + rnd()*0.7 + s, shade: rnd() > 0.45 });
 
+  // Ring 1 — immediately adjacent to grid
   for (let c = -2; c <= C+1; c++) {
-    if (rnd() < 0.62) decos.push(mkDeco(c, -1));
-    if (rnd() < 0.62) decos.push(mkDeco(c, R));
+    if (rnd() < 0.78) decos.push(mkDeco(c, -1));
+    if (rnd() < 0.78) decos.push(mkDeco(c, R));
   }
   for (let r = 0; r < R; r++) {
-    if (rnd() < 0.55) decos.push(mkDeco(-1, r));
-    if (rnd() < 0.55) decos.push(mkDeco(C, r));
+    if (rnd() < 0.72) decos.push(mkDeco(-1, r));
+    if (rnd() < 0.72) decos.push(mkDeco(C,  r));
   }
+
+  // Ring 2 — one step further, sparser but still dense
+  for (let c = -4; c <= C+3; c++) {
+    if (rnd() < 0.65) decos.push(mkDeco(c, -2));
+    if (rnd() < 0.65) decos.push(mkDeco(c,  R+1));
+    if (rnd() < 0.52) decos.push(mkDeco(c, -3));
+    if (rnd() < 0.52) decos.push(mkDeco(c,  R+2));
+  }
+  for (let r = -1; r < R+1; r++) {
+    if (rnd() < 0.58) decos.push(mkDeco(-2, r));
+    if (rnd() < 0.58) decos.push(mkDeco(C+1, r));
+    if (rnd() < 0.44) decos.push(mkDeco(-3, r));
+    if (rnd() < 0.44) decos.push(mkDeco(C+2, r));
+  }
+
+  // Ring 3 — scattered outermost fringe, slightly taller trees
+  for (let c = -5; c <= C+4; c++) {
+    if (rnd() < 0.38) decos.push(mkDeco(c, -4, 0.1));
+    if (rnd() < 0.38) decos.push(mkDeco(c,  R+3, 0.1));
+  }
+  for (let r = -2; r < R+2; r++) {
+    if (rnd() < 0.32) decos.push(mkDeco(-4, r, 0.1));
+    if (rnd() < 0.32) decos.push(mkDeco(C+3, r, 0.1));
+  }
+
   decos.sort((a, b) => (a.c + a.r) - (b.c + b.r));
   return decos;
+}
+
+function td_genTrail() {
+  const { rows: R, cols: C, zoneIndex } = TD;
+  const trail = [];
+  // Exit from the right-front edge of the grid, winding toward the distance
+  let c = C, r = Math.floor(R * 0.55);
+  const steps = [[1,0],[1,0],[2,0],[1,1],[1,0],[2,0],[1,0],[1,1],[2,0],[1,0]];
+  for (let i = 0; i < steps.length; i++) {
+    const [dc, dr] = steps[i];
+    c += dc; r += dr;
+    trail.push({ c, r, isEnd: i === steps.length - 1 });
+  }
+  return trail;
+}
+
+function td_drawTrailTile(ctx, t) {
+  const { HW, HH } = ISO;
+  const { c, r, isEnd } = t;
+  const nx = TD.camOX + (c - r) * HW;
+  const ny = TD.camOY + (c + r) * HH;
+
+  // Worn-earth path — warm tan/ochre, brighter than surrounding ground
+  const hash = ((c * 7 + r * 13) & 0xf) / 15;
+  const pr = Math.round(80 + hash * 22), pg = Math.round(57 + hash * 16), pb = Math.round(26 + hash * 10);
+  ctx.beginPath();
+  ctx.moveTo(nx, ny);
+  ctx.lineTo(nx + HW, ny + HH);
+  ctx.lineTo(nx,      ny + 2 * HH);
+  ctx.lineTo(nx - HW, ny + HH);
+  ctx.closePath();
+  ctx.fillStyle = `rgb(${pr},${pg},${pb})`;
+  ctx.fill();
+  ctx.strokeStyle = `rgba(${pr+18},${pg+12},${pb+6},0.45)`;
+  ctx.lineWidth = 0.7;
+  ctx.stroke();
+
+  // Glowing portal at trail's end — pulses in the next zone's color
+  if (isEnd) {
+    const nextZ = ZONES[(TD.zoneIndex + 1) % ZONES.length];
+    const [nr, ng, nb] = nextZ.atmRgb;
+    const pulse = 0.5 + 0.5 * Math.sin(Date.now() * 0.0032);
+    const cx = nx, cy = ny + HH;
+
+    // Glow halo
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, HW * 1.4);
+    grad.addColorStop(0,   `rgba(${nr},${ng},${nb},${0.40 * pulse})`);
+    grad.addColorStop(0.4, `rgba(${nr},${ng},${nb},${0.15 * pulse})`);
+    grad.addColorStop(1,   `rgba(${nr},${ng},${nb},0)`);
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, HW * 1.4, HH * 1.6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Bright center orb
+    ctx.save();
+    ctx.globalAlpha = 0.55 + 0.45 * pulse;
+    ctx.fillStyle = `rgb(${nr},${ng},${nb})`;
+    ctx.beginPath();
+    ctx.arc(cx, cy - HH * 0.25, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 0.30 + 0.25 * pulse;
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(cx, cy - HH * 0.25, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
 }
 
 function td_genHeightMap(rows, cols, zoneIndex) {
@@ -3769,15 +3863,8 @@ function td_render() {
   // ── Ambient sky & atmosphere ──
   td_drawAmbient(ctx, W, H);
 
-  // ── Background floating rocks (in the sky, before main platform) ──
-  if (TD.bgRocks) td_drawBgRocks(ctx);
-
-  // ── Rock underside of main platform ──
-  td_drawRockBase(ctx);
-
   // ── Build painter-sorted render list ──
-  // Narrow margin so the platform edge drops into sky
-  const GM = 2;
+  const GM = 5;
   const items = [];
   for (let r = -GM; r < TD.rows + GM; r++) {
     for (let c = -GM; c < TD.cols + GM; c++) {
@@ -3785,16 +3872,21 @@ function td_render() {
       if (onGrid)
         items.push({ kind: 'tile',   c, r, key: c + r });
       else
-        items.push({ kind: 'ground', c, r, key: c + r - 0.01 }); // just behind same-sum tile
+        items.push({ kind: 'ground', c, r, key: c + r - 0.01 });
     }
   }
   for (const d of TD.decorations)
     items.push({ kind: 'deco', c: d.c, r: d.r, d, key: d.c + d.r });
+  if (TD.trail) {
+    for (const t of TD.trail)
+      items.push({ kind: 'trail', c: t.c, r: t.r, t, key: t.c + t.r + 0.005 });
+  }
   items.sort((a, b) => a.key - b.key);
 
   for (const item of items) {
     if      (item.kind === 'tile')   td_drawTile(ctx, item.c, item.r);
     else if (item.kind === 'deco')   td_drawDeco(ctx, item.d);
+    else if (item.kind === 'trail')  td_drawTrailTile(ctx, item.t);
     else                             td_drawGroundTile(ctx, item.c, item.r);
   }
 
@@ -4035,12 +4127,12 @@ function td_drawGroundTile(ctx, c, r) {
   const { HW, HH } = ISO;
   const nx = TD.camOX + (c - r) * HW, ny = TD.camOY + (c + r) * HH;
 
-  const distC = Math.min(c < 0 ? -c : (c >= TD.cols ? c - TD.cols + 1 : 0), 4);
-  const distR = Math.min(r < 0 ? -r : (r >= TD.rows ? r - TD.rows + 1 : 0), 4);
+  const distC = Math.min(c < 0 ? -c : (c >= TD.cols ? c - TD.cols + 1 : 0), 6);
+  const distR = Math.min(r < 0 ? -r : (r >= TD.rows ? r - TD.rows + 1 : 0), 6);
   const dist  = Math.max(distC, distR);
 
-  // Fade to nothing quickly so the platform edge drops into sky
-  const alpha = Math.max(0, 0.55 - (dist - 1) * 0.55);
+  // Fade gradually across 5 tiles so ground blends naturally into sky
+  const alpha = Math.max(0, 0.72 - (dist - 1) * 0.14);
   if (alpha <= 0) return;
 
   const z = TD.zone || ZONES[0];
