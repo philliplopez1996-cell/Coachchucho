@@ -1536,7 +1536,7 @@ const ZONES = [
     groundRgb:[30,32,48], groundHiRgb:[46,50,70],
     tile:{ top:'#141825', sideR:'#0a0c18', sideL:'#080a14',
            revTop:'#111520', revR:'#080a12', revL:'#06080e' },
-    decoType:'rock',
+    decoType:'treeMix',
   },
   {
     id:'ruins', num:3, name:'Ruins',
@@ -3302,9 +3302,9 @@ function buildWorldMap() {
   cont.innerHTML = ZONES.map((z, i) => {
     const num    = i + 1;
     const isDone = done.includes(z.id);
-    const isOpen = num <= maxOpen;
-    const cls    = !isOpen ? 'zone-card zc-locked' : isDone ? 'zone-card zc-done' : 'zone-card zc-open';
-    const onClick = isOpen ? `onclick="launchZone(${i})"` : '';
+    const isOpen = true; // all zones unlocked for testing
+    const cls    = isDone ? 'zone-card zc-done' : 'zone-card zc-open';
+    const onClick = `onclick="launchZone(${i})"  `;
     const statusChar = isDone ? '✓' : isOpen ? '▶' : '—';
     const iconBg  = hexToRgba(z.accent, isOpen ? 0.15 : 0.05);
 
@@ -3461,7 +3461,11 @@ function td_genDecorations() {
   const { rows: R, cols: C, zone, trail } = TD;
   const decoType = zone ? zone.decoType : 'tree';
   const rnd = () => Math.random();
-  const mkDeco = (c, r, s = 0) => ({ c, r, type: decoType, h: 0.65 + rnd()*0.7 + s, shade: rnd() > 0.45 });
+  const mkDeco = (c, r, s = 0) => {
+    let type = decoType;
+    if (decoType === 'treeMix') type = rnd() < 0.28 ? 'tree' : 'rock';
+    return { c, r, type, h: 0.65 + rnd()*0.7 + s, shade: rnd() > 0.45 };
+  };
 
   // Build set of trail positions so trees don't spawn there
   const trailSet = new Set();
@@ -3556,17 +3560,25 @@ function td_drawTrailTile(ctx, t) {
 
 function td_genHeightMap(rows, cols, zoneIndex) {
   const s = zoneIndex * 2.41 + 1.3;
+  // Per-zone: [maxSteps, freqScale] — highlands gets tall ridged cliffs
+  const cfg = [
+    [2, 1.0],  // grasslands: gentle 0-2 block hills
+    [7, 0.7],  // highlands:  dramatic 0-7 block cliffs
+    [2, 1.0],  // ruins
+    [1, 1.0],  // swamp: mostly flat
+    [4, 1.0],  // summit
+  ];
+  const [maxSteps, fq] = cfg[zoneIndex] || cfg[0];
   const map = [];
   for (let r = 0; r < rows; r++) {
     map[r] = [];
     for (let c = 0; c < cols; c++) {
-      const v = Math.sin(c * 1.3 + s)       * 0.50
-              + Math.sin(r * 1.7 + s * 1.4) * 0.50
-              + Math.sin((c + r) * 0.9 + s * 0.7) * 0.35
-              + Math.sin((c - r) * 0.8 + s * 1.2) * 0.20;
-      // v in roughly [-1.55, 1.55] → normalize to [0,1] → 0, 1, or 2 block heights
-      const norm = (v + 1.55) / 3.1;
-      map[r][c] = Math.round(norm * 2) * ISO.BH;
+      const v = Math.sin(c * 1.3 * fq + s)            * 0.55
+              + Math.sin(r * 1.7 * fq + s * 1.4)      * 0.55
+              + Math.sin((c + r) * 0.9 * fq + s * 0.7)* 0.35
+              + Math.sin((c - r) * 0.8 * fq + s * 1.2)* 0.20;
+      const norm = (v + 1.65) / 3.3;
+      map[r][c] = Math.round(norm * maxSteps) * ISO.BH;
     }
   }
   return map;
@@ -3578,8 +3590,10 @@ function td_snapCamera() {
   const canvas = TD.canvas;
   const { rows: R, cols: C } = TD;
   const cC = (C - 1) * 0.5, rC = (R - 1) * 0.5;
+  // Push camera lower for tall-terrain zones so cliffs aren't cropped
+  const camYFrac = [0.36, 0.50, 0.36, 0.34, 0.42][TD.zoneIndex || 0] || 0.36;
   TD.camOX = canvas.width  * 0.5  - (cC - rC) * ISO.HW;
-  TD.camOY = canvas.height * 0.36 - (cC + rC + 1) * ISO.HH;
+  TD.camOY = canvas.height * camYFrac - (cC + rC + 1) * ISO.HH;
   TD.camTOX = TD.camOX; TD.camTOY = TD.camOY;
 }
 
