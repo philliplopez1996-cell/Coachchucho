@@ -3550,8 +3550,8 @@ function td_loop(ts) {
           speed:   (55 + Math.random() * 55) * (fromLeft ? 1 : -1),
           flapPh:  Math.random() * Math.PI * 2,
           flapSpd: 4 + Math.random() * 3,
-          size:    10 + Math.random() * 9,
-          opacity: 0.38 + Math.random() * 0.32,
+          size:    14 + Math.random() * 10,
+          opacity: 0.60 + Math.random() * 0.28,
         });
       }
     }
@@ -3751,6 +3751,14 @@ function td_completeZone() {
 // ── RENDERER ──────────────────────────────
 
 const NUM_CLR = ['','#4EBDC9','#4AFF3F','#d9713a','#C9A84C','#e05050','#cc88cc','#c8c8c8','#5a7a60'];
+
+// Pixel-art bird frames: [dx, dy] pixel offsets from body center
+const BIRD_PX = [
+  // wings up  (V silhouette)
+  [[-3,-2],[3,-2],[-2,-1],[2,-1],[-1,0],[0,0],[1,0],[0,1]],
+  // wings down (M silhouette)
+  [[-1,0],[0,0],[1,0],[-2,1],[2,1],[-3,2],[3,2],[0,-1]],
+];
 
 function td_render() {
   const { canvas, ctx } = TD;
@@ -4004,18 +4012,21 @@ function td_drawCloud(ctx, x, y, w, h, alpha, cr, cg, cb) {
 }
 
 function td_drawBirds(ctx) {
+  const z = TD.zone || ZONES[0];
+  const [ar, ag, ab] = z.atmRgb;
   TD.birds.forEach(b => {
-    const flap = Math.sin(b.flapPh) * b.size * 0.48;
+    const frame  = Math.floor(b.flapPh / Math.PI) % 2; // alternates 0↔1 each half-cycle
+    const pixels = BIRD_PX[frame];
+    const px     = Math.max(1.5, b.size * 0.20); // pixel square size
     ctx.save();
-    ctx.strokeStyle = `rgba(0,0,0,${b.opacity})`;
-    ctx.lineWidth = Math.max(1.2, b.size * 0.11);
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    // Single W stroke: left tip → left wing peak → body center → right wing peak → right tip
-    ctx.moveTo(b.x - b.size,       b.y + flap * 0.28);
-    ctx.quadraticCurveTo(b.x - b.size * 0.46, b.y - flap, b.x, b.y);
-    ctx.quadraticCurveTo(b.x + b.size * 0.46, b.y - flap, b.x + b.size, b.y + flap * 0.28);
-    ctx.stroke();
+    ctx.fillStyle = `rgba(${Math.round(ar*0.15)},${Math.round(ag*0.15)},${Math.round(ab*0.15)},${b.opacity})`;
+    pixels.forEach(([dx, dy]) => {
+      ctx.fillRect(
+        b.x + dx * px - px * 0.5,
+        b.y + dy * px - px * 0.5,
+        px, px
+      );
+    });
     ctx.restore();
   });
 }
@@ -4075,7 +4086,11 @@ function td_drawTile(ctx, c, r) {
     top   = `rgba(${Math.round(160+pulse*60)},24,24,1)`;
     sideR = '#5a0808'; sideL = '#3e0505';
   } else if (cell.revealed) {
-    top = zt.revTop; sideR = zt.revR; sideL = zt.revL;
+    // Clearly lighter earthy tone — tinted by zone atmosphere so each biome feels distinct
+    const rr = Math.round(52 + ar * 0.18), rg = Math.round(42 + ag * 0.14), rb = Math.round(26 + ab * 0.22);
+    top   = `rgb(${rr},${rg},${rb})`;
+    sideR = `rgb(${Math.round(rr*0.70)},${Math.round(rg*0.70)},${Math.round(rb*0.70)})`;
+    sideL = `rgb(${Math.round(rr*0.50)},${Math.round(rg*0.50)},${Math.round(rb*0.50)})`;
   } else if (isHere) {
     top   = `rgba(${ar},${ag},${ab},0.14)`;
     sideR = `rgba(${Math.round(ar*.4)},${Math.round(ag*.4)},${Math.round(ab*.4)},0.9)`;
@@ -4103,6 +4118,20 @@ function td_drawTile(ctx, c, r) {
   ctx.strokeStyle = isHere ? `rgba(${ar},${ag},${ab},0.65)` : `rgba(${ar},${ag},${ab},0.055)`;
   ctx.lineWidth   = isHere ? 1.5 : 0.5;
   ctx.stroke();
+
+  // Bevel highlight on unrevealed tiles: bright top-left edges make them look raised/pressable
+  if (!cell.revealed && !isHere) {
+    ctx.save();
+    ctx.strokeStyle = `rgba(${ar},${ag},${ab},0.22)`;
+    ctx.lineWidth = 1.2;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(nx - HW, ny + HH - eH);
+    ctx.lineTo(nx,      ny     - eH);
+    ctx.lineTo(nx + HW, ny + HH - eH);
+    ctx.stroke();
+    ctx.restore();
+  }
 
   // Content — center of top face (flags + mine emoji only; numbers handled in td_drawNumbers)
   const fcx = nx, fcy = ny + HH - eH;
