@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Hard Top Concrete — licensed concrete contractor specializing in infrastructure utility work, data center build-outs, equipment pads, and general concrete services. Available anywhere in the United States.">
+  <title>Hard Top Concrete</title>
+
+  <!--
+    THINGS TO UPDATE BEFORE GOING LIVE
+    ====================================
+    1. Phone number  → search "(555) 000-0000" and replace everywhere
+    2. Email         → search "info@hardtopconcrete.com" and replace
+    3. Location      → search "[Your City, State]" and replace
+    4. Founded year  → search "2015" in about.html, update if needed
+    5. Logo image    → add your actual logo image file and update the <img> in the nav
+    6. Contact form  → add action="https://..." to the <form> tag (Formspree, Netlify, etc.)
+  -->
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ══ HEADER / NAV ══════════════════════════════════════════ -->
+  <header class="site-header" id="site-header">
+    <div class="container nav-inner">
+
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="services.html">Services</a>
+        <a href="#contact">Contact</a>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="#contact" class="btn btn-orange">Free Estimate</a>
+      </div>
+
+      <div class="nav-brand" aria-hidden="true">
+        <span class="nav-brand-top">Hard Top</span>
+        <span class="nav-brand-bottom">Concrete</span>
+      </div>
+
+      <a href="index.html" class="logo" aria-label="Hard Top Concrete — home">
+        <img src="logo.png" alt="Hard Top Concrete" class="logo-img">
+      </a>
+
+      <button class="nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+
+    <div class="mobile-menu" aria-hidden="true">
+      <a href="services.html">Services</a>
+      <a href="#contact">Contact</a>
+      <a href="#contact" class="btn btn-orange">Get a Free Estimate</a>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ══ HERO ══════════════════════════════════════════════════ -->
+    <section class="hero" id="home">
+      <img
+        src="hero-construction.jpg"
+        alt="Hard Top Concrete crew installing underground conduit at a data center with a CAT excavator"
+        class="hero-photo"
+      >
+      <div class="hero-photo-overlay" aria-hidden="true"></div>
+      <div class="hero-bg-accent" aria-hidden="true"></div>
+
+      <div class="container hero-body">
+        <div class="hero-content">
+          <p class="eyebrow">
+            <span class="eyebrow-line"></span>
+            Licensed &amp; Insured · Available Anywhere in the United States
+          </p>
+
+          <h1 class="hero-headline">
+            <span class="hl-row">BUILT</span>
+            <span class="hl-row hl-accent">TOUGH.</span>
+            <span class="hl-row hl-sub">FINISHED RIGHT.</span>
+          </h1>
+
+          <p class="hero-desc">
+            From underground utility corridors and data center build-outs to driveways and foundations — Hard Top Concrete delivers demanding work with no shortcuts, no subcontractors, and no excuses.
+          </p>
+
+          <div class="hero-ctas">
+            <a href="#contact" class="btn btn-orange btn-lg">Get a Free Estimate</a>
+            <a href="services.html" class="btn btn-ghost btn-lg">See Our Services</a>
+          </div>
+
+          <div class="hero-process" aria-label="How it works">
+            <div class="hp-step">
+              <span class="hp-num">01</span>
+              <span class="hp-label">Free Estimate</span>
+            </div>
+            <div class="hp-divider" aria-hidden="true"></div>
+            <div class="hp-step">
+              <span class="hp-num">02</span>
+              <span class="hp-label">Site Prep &amp; Pour</span>
+            </div>
+            <div class="hp-divider" aria-hidden="true"></div>
+            <div class="hp-step">
+              <span class="hp-num">03</span>
+              <span class="hp-label">Done Right</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-badge" aria-hidden="true">
+          <div class="badge-ring">
+            <span class="badge-num">10<span class="badge-plus">+</span></span>
+            <span class="badge-label">Years in<br>the Field</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ WHAT WE DO (compact overview) ═════════════════════════ -->
+    <section class="services-preview" id="services">
+      <div class="container">
+
+        <div class="sp-header">
+          <div>
+            <p class="eyebrow"><span class="eyebrow-line"></span>What We Do</p>
+            <h2 class="sp-title">Built for Demanding Work</h2>
+          </div>
+          <a href="services.html" class="sp-all-link">View All Services <span aria-hidden="true">→</span></a>
+        </div>
+
+        <div class="sp-grid">
+          <div class="sp-col">
+            <p class="sp-label sp-label--orange">Infrastructure &amp; Utility Work</p>
+            <ul class="sp-list sp-list--orange">
+              <li>Backup Generator Rough-Ins</li>
+              <li>Data Center Concrete Infrastructure</li>
+              <li>Underground Utility Excavation &amp; Conduit</li>
+              <li>Equipment Pads — Generators, BESS, Switchgear, Transformers</li>
+              <li>Duct Bank Encasement</li>
+            </ul>
+          </div>
+          <div class="sp-col">
+            <p class="sp-label sp-label--red">General Concrete Services</p>
+            <ul class="sp-list sp-list--red">
+              <li>Residential &amp; Commercial Flatwork</li>
+              <li>Foundations &amp; Slabs</li>
+              <li>Parking Lots, Driveways &amp; Sidewalks</li>
+              <li>Stamped Concrete</li>
+              <li>Concrete Saw Cutting</li>
+              <li>Removal, Repairs &amp; Extensions</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ══ CONTACT ════════════════════════════════════════════════ -->
+    <section class="contact" id="contact">
+      <div class="container contact-inner">
+
+        <div class="contact-info">
+          <p class="eyebrow"><span class="eyebrow-line"></span>Get In Touch</p>
+          <h2>Let's Talk About<br>Your Project</h2>
+
+          <div class="ci-list">
+            <div class="ci-item">
+              <span class="ci-label">Call Us</span>
+              <a href="tel:5550000000" class="ci-value">(555) 000-0000</a>
+            </div>
+            <div class="ci-item">
+              <span class="ci-label">Email</span>
+              <a href="mailto:info@hardtopconcrete.com" class="ci-value">info@hardtopconcrete.com</a>
+            </div>
+            <div class="ci-item">
+              <span class="ci-label">Service Area</span>
+              <span class="ci-value">All 50 United States</span>
+            </div>
+            <div class="ci-item">
+              <span class="ci-label">Hours</span>
+              <span class="ci-value">Monday – Saturday, 7 AM – 6 PM</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="contact-form-wrap">
+          <!-- UPDATE: add action="https://..." for your form handler (Formspree, Netlify, etc.) -->
+          <form class="contact-form" id="contact-form" method="POST" novalidate>
+            <div class="form-row-2">
+              <div class="form-group">
+                <label for="cf-name">Name</label>
+                <input type="text" id="cf-name" name="name" placeholder="Your full name" required autocomplete="name">
+              </div>
+              <div class="form-group">
+                <label for="cf-phone">Phone</label>
+                <input type="tel" id="cf-phone" name="phone" placeholder="(555) 000-0000" required autocomplete="tel">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="cf-email">Email</label>
+              <input type="email" id="cf-email" name="email" placeholder="your@email.com" autocomplete="email">
+            </div>
+            <div class="form-group">
+              <label for="cf-service">Service Needed</label>
+              <select id="cf-service" name="service">
+                <option value="" disabled selected>Select a service…</option>
+                <optgroup label="Infrastructure &amp; Utility">
+                  <option>Backup Generator Rough-In</option>
+                  <option>Data Center Concrete Infrastructure</option>
+                  <option>Underground Utility / Conduit Installation</option>
+                  <option>Equipment Pad (Generator, BESS, Switchgear, Transformer)</option>
+                  <option>Duct Bank Encasement</option>
+                </optgroup>
+                <optgroup label="General Concrete">
+                  <option>Flatwork (Residential or Commercial)</option>
+                  <option>Foundation</option>
+                  <option>Parking Lot, Driveway or Sidewalk</option>
+                  <option>Stamped Concrete</option>
+                  <option>Concrete Saw Cutting</option>
+                  <option>Removal, Repair or Extension</option>
+                </optgroup>
+                <option>Not Sure Yet</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="cf-message">Tell Us About the Project</label>
+              <textarea id="cf-message" name="message" rows="4" placeholder="Size, timeline, any details that help us prepare…"></textarea>
+            </div>
+            <button type="submit" class="btn btn-orange btn-lg btn-full">Send My Request</button>
+            <p class="form-note">We respond within one business day.</p>
+          </form>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ══ FOOTER ════════════════════════════════════════════════ -->
+  <footer class="site-footer">
+    <div class="container footer-grid footer-grid--home">
+
+      <div class="footer-brand">
+        <a href="index.html" class="logo" aria-label="Hard Top Concrete — back to top">
+          <img src="logo.png" alt="Hard Top Concrete" class="logo-img">
+        </a>
+        <p class="footer-tagline">Built Tough. Finished Right.</p>
+      </div>
+
+      <div class="footer-col">
+        <h4>Navigation</h4>
+        <a href="services.html">Services</a>
+        <a href="about.html">About Us</a>
+        <a href="process.html">How It Works</a>
+        <a href="#contact">Get a Quote</a>
+      </div>
+
+      <div class="footer-col">
+        <h4>Infrastructure</h4>
+        <span>Generator Rough-Ins</span>
+        <span>Data Center Concrete</span>
+        <span>Underground Utility &amp; Conduit</span>
+        <span>Equipment Pads</span>
+        <span>Duct Bank Encasement</span>
+      </div>
+
+      <div class="footer-col">
+        <h4>General Concrete</h4>
+        <span>Flatwork &amp; Foundations</span>
+        <span>Parking, Driveways &amp; Sidewalks</span>
+        <span>Stamped Concrete</span>
+        <span>Saw Cutting</span>
+        <span>Repair &amp; Extensions</span>
+      </div>
+
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <a href="tel:5550000000">(555) 000-0000</a>
+        <a href="mailto:info@hardtopconcrete.com">info@hardtopconcrete.com</a>
+        <span>[Your City, State]</span>
+        <span>Mon – Sat, 7 AM – 6 PM</span>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <div class="container footer-bottom-inner">
+        <p>&copy; <span id="footer-year">2025</span> Hard Top Concrete. All rights reserved.</p>
+        <p>Licensed &amp; Insured · Nationwide</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
