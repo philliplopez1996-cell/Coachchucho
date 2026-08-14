@@ -1172,122 +1172,57 @@
       white-space: nowrap;
     }
 
-    /* ── N64 Controller ──────────────────────── */
+    /* ── Controller ──────────────────────────── */
     .n64 {
       position: fixed; bottom: 18px; left: 18px; z-index: 20;
       user-select: none; -webkit-user-select: none; touch-action: none;
+      background: linear-gradient(160deg, #252525 0%, #191919 100%);
+      border: 1px solid #383838; border-radius: 16px;
+      padding: 12px 16px;
+      display: flex; align-items: center; gap: 18px;
+      box-shadow: 0 4px 18px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.05);
     }
-    /* Shoulder bar */
-    .n64-shoulders {
-      display: flex; justify-content: space-between; padding: 0 10px; margin-bottom: -3px;
-    }
-    .n64-sh {
-      width: 44px; height: 13px;
-      background: linear-gradient(to bottom, #303030, #222);
-      border: 1px solid #444; border-bottom: none; border-radius: 5px 5px 0 0;
-      display: flex; align-items: center; justify-content: center;
-      font-size: .44rem; color: #666; letter-spacing: .1em; font-family: var(--font-u);
-      cursor: pointer;
-    }
-    .n64-sh:active { background: linear-gradient(to bottom,#3a3a3a,#2a2a2a); }
-    /* Upper body */
-    .n64-upper {
-      background: linear-gradient(160deg, #282828 0%, #1c1c1c 60%, #181818 100%);
-      border: 1px solid #3a3a3a; border-bottom: none; border-radius: 10px 10px 0 0;
-      padding: 7px 8px 4px;
-      display: flex; align-items: center; justify-content: space-between; gap: 4px;
-      box-shadow: 0 -2px 8px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.04);
-      position: relative;
-    }
-    .n64-start-wrap {
-      position: absolute; left: 50%; top: 6px; transform: translateX(-50%);
-      display: flex; flex-direction: column; align-items: center; gap: 2px;
-    }
-    .n64-start {
-      width: 22px; height: 22px; border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, #444, #1a1a1a);
-      border: 1px solid #555; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      font-size: .55rem; color: #888; font-family: var(--font-u);
-    }
-    .n64-start:active { background: radial-gradient(circle at 35% 35%, #555, #222); }
-    .n64-start-lbl { font-size: .38rem; color: #555; letter-spacing: .06em; font-family: var(--font-u); }
-    /* Three prongs */
-    .n64-prongs { display: flex; gap: 3px; }
-    .n64-prong {
-      flex: 1;
-      background: linear-gradient(180deg, #1e1e1e 0%, #181818 100%);
-      border: 1px solid #333; border-top: none; border-radius: 0 0 10px 10px;
-      padding: 6px 3px 10px;
-      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-      gap: 4px;
-      box-shadow: 0 4px 10px rgba(0,0,0,.6);
-    }
-    /* D-pad (left prong) */
-    .n64-dpad {
-      display: grid; grid-template-columns: 22px 22px 22px; grid-template-rows: 22px 22px 22px;
-      gap: 1px;
-    }
-    .n64-dp {
-      background: #111; border: 1px solid #2a2a2a;
-      display: flex; align-items: center; justify-content: center;
-      font-size: .55rem; color: #555; cursor: pointer;
-      transition: background .07s, color .07s;
-    }
-    .n64-dp.n64-dp-ud  { border-radius: 3px 3px 3px 3px; }
-    .n64-dp.n64-dp-tl  { border-radius: 4px 0 0 0; }
-    .n64-dp.n64-dp-tr  { border-radius: 0 4px 0 0; }
-    .n64-dp.n64-dp-bl  { border-radius: 0 0 0 4px; }
-    .n64-dp.n64-dp-br  { border-radius: 0 0 4px 0; }
-    .n64-dp.n64-dp-ctr { background: #161616; border-color: #222; cursor: default; }
-    .n64-dp:active, .n64-dp.pressed { background: #1f3d28; color: #4AFF3F; border-color: #4AFF3F55; }
-    /* Analog stick (center prong) */
+    /* Analog stick */
     .n64-stick-ring {
-      width: 42px; height: 42px; border-radius: 50%;
-      background: radial-gradient(circle at 40% 35%, #333, #191919);
-      border: 2px solid #3c3c3c;
-      position: relative; cursor: pointer;
-      box-shadow: inset 0 2px 4px rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.04);
+      width: 54px; height: 54px; border-radius: 50%;
+      background: radial-gradient(circle at 38% 32%, #363636, #181818);
+      border: 2px solid #404040;
+      position: relative; cursor: grab;
+      box-shadow: inset 0 3px 6px rgba(0,0,0,.7), 0 1px 0 rgba(255,255,255,.04);
+      flex-shrink: 0;
     }
+    .n64-stick-ring:active { cursor: grabbing; }
     .n64-nub {
-      width: 22px; height: 22px; border-radius: 50%;
-      background: radial-gradient(circle at 35% 30%, #666, #2e2e2e);
-      border: 1px solid #555;
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
-      box-shadow: 0 2px 4px rgba(0,0,0,.5);
-      transition: transform .06s cubic-bezier(.22,1,.36,1);
+      width: 28px; height: 28px; border-radius: 50%;
+      background: radial-gradient(circle at 34% 28%, #5a5a5a, #2a2a2a);
+      border: 1px solid #505050;
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      box-shadow: 0 2px 5px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.07);
       pointer-events: none;
     }
-    .n64-z-btn {
-      width: 28px; height: 10px; border-radius: 3px;
-      background: linear-gradient(to bottom, #252525, #181818);
-      border: 1px solid #333;
-      display: flex; align-items: center; justify-content: center;
-      font-size: .38rem; color: #555; font-family: var(--font-u); letter-spacing: .06em;
-      cursor: pointer;
+    /* A / B buttons */
+    .n64-btns {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
     }
-    .n64-z-btn:active { background: linear-gradient(to bottom,#2a2a2a,#1e1e1e); color: #888; }
-    /* Buttons (right prong) */
-    .n64-btn-row { display: flex; gap: 4px; align-items: center; }
+    .n64-btn-wrap {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .n64-btn-lbl {
+      font-family: var(--font-u); font-size: .38rem; color: #555;
+      letter-spacing: .12em; text-align: right;
+    }
     .n64-btn {
       border-radius: 50%; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      font-size: .44rem; font-family: var(--font-u); font-weight: 700; letter-spacing: .04em;
+      font-family: var(--font-u); font-weight: 700; letter-spacing: .04em;
       border: 1px solid transparent;
-      box-shadow: 0 2px 4px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.08);
-      transition: filter .07s;
+      box-shadow: 0 3px 6px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.1);
+      transition: filter .07s, transform .07s;
+      flex-shrink: 0;
     }
-    .n64-btn:active { filter: brightness(1.3); }
-    .n64-btn-a { width: 26px; height: 26px; background: #00913a; border-color: #00a042; color: #b0ffcc; }
-    .n64-btn-b { width: 22px; height: 22px; background: #005e26; border-color: #007030; color: #7adda0; }
-    .n64-c-row { display: flex; gap: 2px; }
-    .n64-c-btn {
-      width: 16px; height: 16px; border-radius: 50%;
-      background: #a07800; border: 1px solid #c89a00; color: #ffe580;
-      display: flex; align-items: center; justify-content: center;
-      font-size: .38rem; cursor: pointer; transition: filter .07s;
-    }
-    .n64-c-btn:active { filter: brightness(1.4); }
+    .n64-btn:active { filter: brightness(1.35); transform: scale(.93); }
+    .n64-btn-a { width: 36px; height: 36px; font-size: .52rem; background: #00913a; border-color: #00b048; color: #c0ffd8; }
+    .n64-btn-b { width: 28px; height: 28px; font-size: .44rem; background: #1a4a28; border-color: #245e32; color: #6ec48a; }
 
     /* Result overlay */
     .td-overlay {
@@ -1470,64 +1405,21 @@
     <div class="td-hud-stat flag">Flags&nbsp;<span id="td-flags">0</span></div>
   </div>
 
-  <!-- N64 Controller -->
+  <!-- Controller: joystick · B (flag) · A (reveal) -->
   <div class="n64" id="td-n64">
-    <div class="n64-shoulders">
-      <div class="n64-sh">L</div>
-      <div class="n64-sh">R</div>
+    <div class="n64-stick-ring" id="n64-stick-ring">
+      <div class="n64-nub" id="n64-nub"></div>
     </div>
-    <div class="n64-upper">
-      <div class="n64-start-wrap">
-        <div class="n64-start" onmousedown="tdReveal()" ontouchstart="event.preventDefault();tdReveal()">&#9654;</div>
-        <div class="n64-start-lbl">START</div>
+    <div class="n64-btns">
+      <div class="n64-btn-wrap">
+        <div class="n64-btn-lbl">FLAG</div>
+        <div class="n64-btn n64-btn-b"
+             onmousedown="tdFlag()" ontouchstart="event.preventDefault();tdFlag()">B</div>
       </div>
-    </div>
-    <div class="n64-prongs">
-      <!-- Left prong: D-pad -->
-      <div class="n64-prong">
-        <div class="n64-dpad">
-          <div class="n64-dp n64-dp-tl"></div>
-          <div class="n64-dp n64-dp-ud" id="ndp-up"
-               onmousedown="dpadStart(0,-1)" onmouseup="dpadEnd()" onmouseleave="dpadEnd()"
-               ontouchstart="event.preventDefault();dpadStart(0,-1)" ontouchend="dpadEnd()">&#9650;</div>
-          <div class="n64-dp n64-dp-tr"></div>
-          <div class="n64-dp n64-dp-ud" id="ndp-left"
-               onmousedown="dpadStart(-1,0)" onmouseup="dpadEnd()" onmouseleave="dpadEnd()"
-               ontouchstart="event.preventDefault();dpadStart(-1,0)" ontouchend="dpadEnd()">&#9664;</div>
-          <div class="n64-dp n64-dp-ctr"></div>
-          <div class="n64-dp n64-dp-ud" id="ndp-right"
-               onmousedown="dpadStart(1,0)" onmouseup="dpadEnd()" onmouseleave="dpadEnd()"
-               ontouchstart="event.preventDefault();dpadStart(1,0)" ontouchend="dpadEnd()">&#9654;</div>
-          <div class="n64-dp n64-dp-bl"></div>
-          <div class="n64-dp n64-dp-ud" id="ndp-down"
-               onmousedown="dpadStart(0,1)" onmouseup="dpadEnd()" onmouseleave="dpadEnd()"
-               ontouchstart="event.preventDefault();dpadStart(0,1)" ontouchend="dpadEnd()">&#9660;</div>
-          <div class="n64-dp n64-dp-br"></div>
-        </div>
-      </div>
-      <!-- Center prong: Analog stick + Z -->
-      <div class="n64-prong">
-        <div class="n64-stick-ring" id="n64-stick-ring">
-          <div class="n64-nub" id="n64-nub"></div>
-        </div>
-        <div class="n64-z-btn">Z</div>
-      </div>
-      <!-- Right prong: C buttons + A/B -->
-      <div class="n64-prong">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
-          <div class="n64-c-btn">&#9650;</div>
-          <div class="n64-c-row">
-            <div class="n64-c-btn">&#9664;</div>
-            <div class="n64-c-btn">&#9654;</div>
-          </div>
-          <div class="n64-c-btn">&#9660;</div>
-        </div>
-        <div class="n64-btn-row">
-          <div class="n64-btn n64-btn-b"
-               onmousedown="tdFlag()" ontouchstart="event.preventDefault();tdFlag()">B</div>
-          <div class="n64-btn n64-btn-a"
-               onmousedown="tdReveal()" ontouchstart="event.preventDefault();tdReveal()">A</div>
-        </div>
+      <div class="n64-btn-wrap">
+        <div class="n64-btn-lbl">REVEAL</div>
+        <div class="n64-btn n64-btn-a"
+             onmousedown="tdReveal()" ontouchstart="event.preventDefault();tdReveal()">A</div>
       </div>
     </div>
   </div>
