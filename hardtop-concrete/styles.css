@@ -238,29 +238,21 @@ h3 { font-size: var(--fs-2xl); }
 /* Logo */
 .logo {
   display: flex;
-  flex-direction: column;
-  line-height: 1;
-  gap: 0.04em;
+  align-items: center;
   flex-shrink: 0;
 }
 
-.logo-top {
-  font-family: 'Oswald', Impact, sans-serif;
-  font-weight: 700;
-  font-size: var(--fs-xl);
-  letter-spacing: 0.06em;
-  color: var(--white);
-  text-transform: uppercase;
+.logo-img {
+  height: 52px;
+  width: auto;
+  display: block;
+  border-radius: 50%;
+  transition: opacity var(--ease);
 }
 
-.logo-bottom {
-  font-family: 'Oswald', Impact, sans-serif;
-  font-weight: 400;
-  font-size: var(--fs-xs);
-  letter-spacing: 0.28em;
-  color: var(--red);
-  text-transform: uppercase;
-}
+.logo:hover .logo-img { opacity: 0.88; }
+
+.footer-brand .logo-img { height: 64px; }
 
 /* Nav links */
 .nav-links {
