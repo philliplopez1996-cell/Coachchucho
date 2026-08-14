@@ -227,6 +227,19 @@ html{height:-webkit-fill-available}
 .ct-val.wb{color:var(--orange)}
 .ct-sep{color:var(--dim);font-size:12px}
 
+/* ── Attendance ── */
+.att-section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.att-bulk-btns{display:flex;gap:6px}
+.att-bulk-btn{padding:3px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:var(--muted);font-size:10px;font-weight:800;cursor:pointer;transition:all .15s}
+.att-bulk-btn:hover{border-color:rgba(255,255,255,.22);color:var(--tx)}
+.att-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.att-row:last-child{border-bottom:none}
+.att-name{flex:1;font-size:13px;font-weight:700;color:var(--tx)}
+.att-btn{padding:5px 13px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:var(--dim);font-size:12px;font-weight:800;cursor:pointer;transition:all .12s;min-width:44px;text-align:center}
+.att-btn.att-present{background:rgba(0,229,100,.12);border-color:rgba(0,229,100,.3);color:var(--green)}
+.att-btn.att-absent{background:rgba(255,96,96,.1);border-color:rgba(255,96,96,.28);color:#FF6060}
+.att-summary{font-size:10px;color:var(--muted);font-weight:700;margin-top:7px;text-align:right}
+
 /* ── Pitch ── */
 .pitch-view-inner{display:flex;flex-direction:column;height:100%;min-height:0}
 .pitch-mode-bar{display:flex;align-items:center;justify-content:space-between;padding:0 0 12px;flex-shrink:0}
@@ -1583,6 +1596,18 @@ html{height:-webkit-fill-available}
         <div class="ap-field"><div class="ap-label">Our Score</div><input class="ap-input" id="evHome" type="number" min="0" max="99" placeholder="0"></div>
         <div class="ap-field"><div class="ap-label">Opp Score</div><input class="ap-input" id="evAway" type="number" min="0" max="99" placeholder="0"></div>
       </div>
+      <!-- Attendance — only shown when editing an existing event -->
+      <div id="evAttendanceWrap" style="display:none;margin-bottom:12px;padding:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px">
+        <div class="att-section-hdr">
+          <div class="ap-label" style="margin-bottom:0">Attendance</div>
+          <div class="att-bulk-btns">
+            <button class="att-bulk-btn" id="attMarkAllPresent">All Present</button>
+            <button class="att-bulk-btn" id="attMarkAllAbsent">All Absent</button>
+          </div>
+        </div>
+        <div id="evAttList"></div>
+        <div class="att-summary" id="evAttSummary"></div>
+      </div>
       <button class="ap-submit-btn" id="evSaveBtn">Save Event</button>
       <button id="evDeleteBtn" style="display:none;width:100%;margin-top:8px;padding:11px;border-radius:10px;background:rgba(255,96,96,.08);border:1px solid rgba(255,96,96,.25);color:#FF6060;font-size:12px;font-weight:800;cursor:pointer">Delete Event</button>
     </div>
@@ -2083,6 +2108,7 @@ function openPlayerModal(p, subIndex=null, pitchIdx=null){
         </div>`).join('')}
       </div>
     </div>`:''}
+    ${(()=>{const att=_playerAttendanceStats(p);return att.total?`<div style="padding:12px 18px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between"><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:#3D5845">Attendance</div><div style="font-size:13px;font-weight:800;color:#DFF0E3">${att.present}<span style="color:#3D5845;font-size:11px">/${att.total}</span><span style="font-size:10px;color:#6B9A78;margin-left:8px">${Math.round(att.present/att.total*100)}%</span></div></div>`:'';})()}
     <div style="height:${(subIndex!==null||pitchIdx!==null)?4:20}px"></div>
   `;
   if(subIndex!==null){
@@ -2437,7 +2463,10 @@ function renderAttrBreakdown(){
   </div>`;
   document.getElementById('attrBreakdown').innerHTML=rows+ovrRow;
   const tile=(va,vb,l)=>`<div class="career-tile"><div class="ct-lbl">${l}</div><div class="ct-vals"><div class="ct-val${va>=vb?' wa':''}">${va}</div><div class="ct-sep">–</div><div class="ct-val${vb>va?' wb':''}">${vb}</div></div></div>`;
-  document.getElementById('careerStats').innerHTML=tile(ra.goals||0,rb.goals||0,'Goals')+tile(ra.assists||0,rb.assists||0,'Assists')+tile(ra.potm||0,rb.potm||0,'Plr of Match')+tile(ra.cs||0,rb.cs||0,'Clean Sheets');
+  const attA=_playerAttendanceStats(ra),attB=_playerAttendanceStats(rb);
+  const attTile=(sa,sb)=>`<div class="career-tile" style="grid-column:1/-1"><div class="ct-lbl">Attendance</div><div class="ct-vals" style="gap:10px"><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div class="ct-val${sa.present>=sb.present?' wa':''}">${sa.present}<span style="font-size:11px;font-weight:700;color:var(--dim)">/${sa.total}</span></div><div style="font-size:8px;color:var(--dim);font-weight:800">${sa.total?Math.round(sa.present/sa.total*100)+'%':'—'}</div></div><div class="ct-sep">vs</div><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div class="ct-val${sb.present>sa.present?' wb':''}">${sb.present}<span style="font-size:11px;font-weight:700;color:var(--dim)">/${sb.total}</span></div><div style="font-size:8px;color:var(--dim);font-weight:800">${sb.total?Math.round(sb.present/sb.total*100)+'%':'—'}</div></div></div></div>`;
+  const attHtml=(attA.total||attB.total)?attTile(attA,attB):'';
+  document.getElementById('careerStats').innerHTML=tile(ra.goals||0,rb.goals||0,'Goals')+tile(ra.assists||0,rb.assists||0,'Assists')+tile(ra.potm||0,rb.potm||0,'Plr of Match')+tile(ra.cs||0,rb.cs||0,'Clean Sheets')+attHtml;
   const wl=wins[0]>wins[1]?`${ra.name.split(' ').pop()} leads ${wins[0]}–${wins[1]} categories`:wins[1]>wins[0]?`${rb.name.split(' ').pop()} leads ${wins[1]}–${wins[0]} categories`:'Tied across all categories';
   const vrd=document.getElementById('radarVerdict');
   vrd.style.display='';
@@ -2972,6 +3001,66 @@ function _renderCalLegend(){
 
 let _editingEvent=null;
 const EV_COLORS=['#00E564','#4B9FFF','#FF5C5C','#FF9F40','#A78BFA','#FF5C8D','#FFE140','#38D9F5'];
+
+/* ══════════════════════════════════════════════
+   ATTENDANCE
+══════════════════════════════════════════════ */
+function _playerAttendanceStats(p){
+  const team=TEAMS.find(t=>t.players.some(x=>x.name===p.name));
+  if(!team)return{present:0,total:0};
+  const teamEvs=EVENTS.filter(ev=>ev.teamId===team.id&&ev.attendance&&Object.keys(ev.attendance).length>0);
+  const total=teamEvs.length;
+  const present=teamEvs.filter(ev=>ev.attendance[p.name]===true).length;
+  return{present,total};
+}
+
+function _renderAttendance(){
+  const wrap=document.getElementById('evAttendanceWrap');
+  const list=document.getElementById('evAttList');
+  const summary=document.getElementById('evAttSummary');
+  if(!wrap||!list)return;
+  if(!_editingEvent){wrap.style.display='none';return;}
+  const teamId=document.getElementById('evTeam').value;
+  const team=TEAMS.find(t=>t.id===teamId);
+  if(!team||!team.players.length){wrap.style.display='none';return;}
+  wrap.style.display='';
+  const att=_editingEvent.attendance||(_editingEvent.attendance={});
+  const players=team.players.filter(p=>p&&p.name);
+  list.innerHTML=players.map(p=>{
+    const state=att[p.name];
+    return `<div class="att-row" data-pname="${p.name}">
+      <div class="att-name">${p.name}<span style="font-size:10px;color:var(--dim);margin-left:6px">${p.pos}</span></div>
+      <button class="att-btn${state===true?' att-present':''}" data-v="present">✓</button>
+      <button class="att-btn${state===false?' att-absent':''}" data-v="absent">✗</button>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('.att-row').forEach(row=>{
+    row.querySelectorAll('.att-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const name=row.dataset.pname;
+        const val=btn.dataset.v==='present';
+        if(att[name]===val)delete att[name];
+        else att[name]=val;
+        saveToStorage();
+        _renderAttendance();
+      });
+    });
+  });
+  const marked=Object.keys(att).length;
+  const presentCount=Object.values(att).filter(v=>v===true).length;
+  summary.textContent=marked?`${presentCount} present · ${marked-presentCount} absent · ${players.length-marked} unmarked`:`${players.length} players — tap to mark attendance`;
+}
+
+function _attMarkAll(present){
+  if(!_editingEvent)return;
+  const teamId=document.getElementById('evTeam').value;
+  const team=TEAMS.find(t=>t.id===teamId);
+  if(!team)return;
+  if(!_editingEvent.attendance)_editingEvent.attendance={};
+  team.players.forEach(p=>{if(p&&p.name)_editingEvent.attendance[p.name]=present;});
+  saveToStorage();
+  _renderAttendance();
+}
 /* EV_TYPE_DEFAULTS kept as silent fallback so old saved events still render their color */
 const EV_TYPE_DEFAULTS={practice:'#00E564',game:'#4B9FFF',meeting:'#FF9F40',tournament:'#FF5C5C'};
 let CUSTOM_EV_TYPES=[]; // loaded in loadFromStorage() after _userNs is set
@@ -3047,6 +3136,9 @@ function openEventModal(ev=null, prefillDate=null){
   document.getElementById('evMultiDateSection').style.display=ev?'none':'';
   document.getElementById('evExtraPicker').value='';
   _renderExtraDates();
+
+  /* Attendance — only for existing events */
+  _renderAttendance();
 
   document.getElementById('eventModalOverlay').classList.add('open');
 }
@@ -3968,6 +4060,16 @@ function initAuth(){
   if(evCustomTypeConfirm)evCustomTypeConfirm.addEventListener('click',_doAddCustomType);
   if(evCustomTypeInput)evCustomTypeInput.addEventListener('keydown',e=>{if(e.key==='Enter')_doAddCustomType();});
   if(evCustomTypeCancel)evCustomTypeCancel.addEventListener('click',()=>{evCustomTypeForm.style.display='none';evCustomTypeInput.value='';});
+
+  /* Attendance bulk buttons */
+  const attAllPresent=document.getElementById('attMarkAllPresent');
+  const attAllAbsent=document.getElementById('attMarkAllAbsent');
+  if(attAllPresent)attAllPresent.addEventListener('click',()=>_attMarkAll(true));
+  if(attAllAbsent)attAllAbsent.addEventListener('click',()=>_attMarkAll(false));
+
+  /* Re-render attendance when team changes */
+  const evTeamSel=document.getElementById('evTeam');
+  if(evTeamSel)evTeamSel.addEventListener('change',_renderAttendance);
 
   /* Event save */
   const evSaveBtn=document.getElementById('evSaveBtn');
