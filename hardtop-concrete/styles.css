@@ -216,26 +216,28 @@ h3 { font-size: var(--fs-2xl); }
   inset-block-start: 0;
   width: 100%;
   z-index: 200;
-  background: rgba(0, 0, 0, 0.88);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--rule);
-  transition: background var(--ease), border-color var(--ease);
+  background: rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  transition: background 0.35s ease, border-color 0.35s ease, backdrop-filter 0.35s ease;
 }
 
 .site-header.scrolled {
-  background: rgba(0, 0, 0, 0.97);
+  background: rgba(0, 0, 0, 0.95);
   border-bottom-color: var(--rule-strong);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .nav-inner {
   display: flex;
   align-items: center;
   height: var(--nav-h);
-  gap: var(--sp-lg);
+  gap: var(--sp-md);
 }
 
-/* Logo */
+/* Logo (right side of nav) */
 .logo {
   display: flex;
   align-items: center;
@@ -243,7 +245,7 @@ h3 { font-size: var(--fs-2xl); }
 }
 
 .logo-img {
-  height: 52px;
+  height: 62px;
   width: auto;
   display: block;
   border-radius: 50%;
@@ -252,13 +254,40 @@ h3 { font-size: var(--fs-2xl); }
 
 .logo:hover .logo-img { opacity: 0.88; }
 
-.footer-brand .logo-img { height: 64px; }
+.footer-brand .logo-img { height: 70px; }
 
-/* Nav links */
+/* Nav center brand name */
+.nav-brand {
+  flex: 1;
+  text-align: center;
+  line-height: 1.1;
+  pointer-events: none;
+}
+
+.nav-brand-top {
+  display: block;
+  font-family: 'Oswald', Impact, 'Arial Narrow', sans-serif;
+  font-weight: 700;
+  font-size: var(--fs-xl);
+  letter-spacing: 0.08em;
+  color: var(--white);
+  text-transform: uppercase;
+}
+
+.nav-brand-bottom {
+  display: block;
+  font-family: 'Oswald', Impact, 'Arial Narrow', sans-serif;
+  font-weight: 400;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.3em;
+  color: var(--red);
+  text-transform: uppercase;
+}
+
+/* Nav links (left side) */
 .nav-links {
   display: flex;
   gap: var(--sp-md);
-  margin-left: auto;
 }
 
 .nav-links a {
@@ -314,7 +343,6 @@ h3 { font-size: var(--fs-2xl); }
   gap: 5px;
   width: 32px;
   height: 32px;
-  margin-left: auto;
 }
 
 .nav-toggle span {
@@ -1191,7 +1219,9 @@ a.ci-value:hover { color: var(--orange); }
 
   .nav-links,
   .nav-actions { display: none; }
-  .nav-toggle { display: flex; }
+  .nav-toggle { display: flex; order: -1; }
+  .nav-brand { flex: 1; text-align: center; }
+  .logo-img { height: 50px; }
 
   .hero-body {
     flex-direction: column;
