@@ -1174,7 +1174,7 @@
 
     /* ── Controller ──────────────────────────── */
     .n64 {
-      position: fixed; bottom: 18px; left: 18px; z-index: 20;
+      position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); z-index: 20;
       user-select: none; -webkit-user-select: none; touch-action: none;
       background: linear-gradient(160deg, #252525 0%, #191919 100%);
       border: 1px solid #383838; border-radius: 16px;
@@ -1184,7 +1184,7 @@
     }
     /* Analog stick */
     .n64-stick-ring {
-      width: 54px; height: 54px; border-radius: 50%;
+      width: 80px; height: 80px; border-radius: 50%;
       background: radial-gradient(circle at 38% 32%, #363636, #181818);
       border: 2px solid #404040;
       position: relative; cursor: grab;
@@ -1193,7 +1193,7 @@
     }
     .n64-stick-ring:active { cursor: grabbing; }
     .n64-nub {
-      width: 28px; height: 28px; border-radius: 50%;
+      width: 40px; height: 40px; border-radius: 50%;
       background: radial-gradient(circle at 34% 28%, #5a5a5a, #2a2a2a);
       border: 1px solid #505050;
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -3741,7 +3741,7 @@ function dpadEnd() {
 /* ── N64 Analog Stick ─────────────────────────────────── */
 (function() {
   let _active = false, _sx = 0, _sy = 0, _dir = null;
-  const DEAD = 8; // px dead zone before triggering movement
+  const DEAD = 12; // px dead zone before triggering movement
 
   function _getXY(e) {
     if (e.touches && e.touches.length > 0) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -3751,7 +3751,7 @@ function dpadEnd() {
   function _setNub(dx, dy) {
     const nub  = document.getElementById('n64-nub');
     if (!nub) return;
-    const MAX = 9;
+    const MAX = 14;
     const len = Math.sqrt(dx*dx + dy*dy);
     const scale = len > MAX ? MAX / len : 1;
     const ox = dx * scale, oy = dy * scale;
