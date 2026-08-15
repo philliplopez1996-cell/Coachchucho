@@ -1554,12 +1554,12 @@ const ZONES = [
     id:'swamp', num:4, name:'Swamp',
     desc:'Murky waters hide the danger',
     rows:12, cols:12, mines:25, xpReward:300,
-    sky:['#0d2820','#163424','#1e4430'],
-    atmRgb:[60,200,150], accent:'#40D4A8',
-    cloudRgb:[170,230,210],
-    groundRgb:[20,52,38], groundHiRgb:[30,72,54],
-    tile:{ top:'#163022', sideR:'#0e2016', sideL:'#0a1810',
-           revTop:'#122a1c', revR:'#0c1c12', revL:'#091410' },
+    sky:['#1c4e3a','#28644c','#347a5e'],
+    atmRgb:[60,210,155], accent:'#40D4A8',
+    cloudRgb:[190,240,220],
+    groundRgb:[44,100,72], groundHiRgb:[60,132,96],
+    tile:{ top:'#2e6848', sideR:'#1e4830', sideL:'#163826',
+           revTop:'#285e40', revR:'#1a3e2a', revL:'#122e1e' },
     decoType:'swampMix',
   },
   {
@@ -3467,7 +3467,8 @@ function td_genDecorations() {
     if (decoType === 'treeMix') type = rnd() < 0.28 ? 'tree' : 'rock';
     if (decoType === 'swampMix') {
       const roll = rnd();
-      type = roll < 0.38 ? 'deadTree' : roll < 0.62 ? 'tree' : roll < 0.82 ? 'rock' : 'pillar';
+      // deadTree(swamp) 20% | tree(z1) 30% | rock(z2) 28% | pillar(z3) 22%
+      type = roll < 0.20 ? 'deadTree' : roll < 0.50 ? 'tree' : roll < 0.78 ? 'rock' : 'pillar';
     }
     // Highlands rocks are noticeably larger
     const hBase = (type === 'rock' && decoType === 'treeMix') ? 1.1 + rnd()*1.0 + s : 0.65 + rnd()*0.7 + s;
@@ -3567,11 +3568,11 @@ function td_drawTrailTile(ctx, t) {
 
 function td_genWaterMap(rows, cols) {
   const map = Array.from({ length: rows }, () => new Array(cols).fill(false));
-  // Main river: winds left-to-right through the lower-middle of the grid
-  const baseR = Math.floor(rows * 0.62);
+  // Main river: winds left-to-right across the bottom quarter of the grid
+  const baseR = Math.floor(rows * 0.76);
   for (let c = 0; c < cols; c++) {
-    const rMid = Math.round(baseR + Math.sin(c * 0.75 + 0.9) * 2.2);
-    for (let dr = -1; dr <= 1; dr++) {
+    const rMid = Math.round(baseR + Math.sin(c * 0.65 + 0.5) * 1.8);
+    for (let dr = -2; dr <= 2; dr++) {
       const rr = rMid + dr;
       if (rr >= 0 && rr < rows) map[rr][c] = true;
     }
