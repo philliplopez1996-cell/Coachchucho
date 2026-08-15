@@ -1399,7 +1399,9 @@ html{height:-webkit-fill-available}
       <div class="action-title">⚽ Who Scored?</div>
       <button class="action-close" onclick="closeGoalPicker()">✕</button>
     </div>
-    <div class="action-list" id="goalPickerList"></div>
+    <div class="action-list" id="goalPickerList">
+      <!-- Opposition row injected by openGoalPicker -->
+    </div>
   </div>
 </div>
 
@@ -2678,11 +2680,35 @@ function renderMatchBench(){
 ══════════════════════════════════════════════ */
 function openGoalPicker(){
   const list=document.getElementById('goalPickerList');
-  list.innerHTML=match.starters.map((p,i)=>`<div class="action-player-item" data-pi="${i}">
+  /* Opposition row — visually distinct, sits above team players */
+  const oppRow=document.createElement('div');
+  oppRow.style.cssText='display:flex;align-items:center;gap:12px;padding:12px 18px;cursor:pointer;background:rgba(255,80,80,.05);border-bottom:1px solid rgba(255,80,80,.12);transition:background .12s';
+  oppRow.innerHTML=`
+    <div style="width:36px;height:36px;border-radius:50%;background:rgba(255,80,80,.12);border:1.5px solid rgba(255,80,80,.3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">⚽</div>
+    <div style="flex:1"><div style="font-size:13px;font-weight:800;color:#FF6060">Opposition Goal</div><div style="font-size:10px;color:var(--muted)">Other team scored</div></div>
+    <div style="font-size:11px;font-weight:800;color:#FF6060;letter-spacing:.3px">OPP</div>`;
+  oppRow.addEventListener('mouseenter',()=>oppRow.style.background='rgba(255,80,80,.1)');
+  oppRow.addEventListener('mouseleave',()=>oppRow.style.background='rgba(255,80,80,.05)');
+  oppRow.addEventListener('click',()=>recordGoal(null));
+
+  /* Divider label */
+  const divider=document.createElement('div');
+  divider.style.cssText='padding:8px 18px 4px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.1px;color:var(--dim)';
+  divider.textContent='Our Team';
+
+  /* Own-team player rows */
+  const playersHtml=match.starters.map((p,i)=>`<div class="action-player-item" data-pi="${i}">
     <div class="action-av">${p.init}</div>
     <div class="action-info"><div class="action-name">${p.name}</div><div class="action-meta">${p.pos} · #${p.num}</div></div>
     <div class="action-ovr">${p.ovr}</div>
   </div>`).join('');
+
+  list.innerHTML='';
+  list.appendChild(oppRow);
+  list.appendChild(divider);
+  const tmp=document.createElement('div');tmp.innerHTML=playersHtml;
+  while(tmp.firstChild)list.appendChild(tmp.firstChild);
+
   list.querySelectorAll('.action-player-item').forEach(el=>{
     el.addEventListener('click',()=>recordGoal(match.starters[+el.dataset.pi]));
   });
@@ -2691,15 +2717,30 @@ function openGoalPicker(){
 function closeGoalPicker(){document.getElementById('goalOverlay').classList.remove('open');}
 
 function recordGoal(player){
-  match.homeScore++;
-  document.getElementById('matchScore').textContent=match.homeScore+' – '+match.awayScore;
+  /* player===null means opposition scored */
+  const isOpp=!player;
   const min=Math.floor(match.seconds/60)+1;
-  const entry={type:'goal',player:player.name,min};
-  match.log.push(entry);
-  addMatchLogEntry('⚽',`<strong>${player.name}</strong> scored!`,min);
+  if(isOpp){
+    match.awayScore++;
+    document.getElementById('matchScore').textContent=match.homeScore+' – '+match.awayScore;
+    const entry={type:'goal',player:'Opposition',side:'away',min};
+    match.log.push(entry);
+    addMatchLogEntry('<span style="color:#FF6060">⚽</span>','<strong style="color:#FF6060">Opposition</strong> scored',min);
+    closeGoalPicker();
+    showToast('Opposition goal — '+min+'\'');
+  } else {
+    match.homeScore++;
+    document.getElementById('matchScore').textContent=match.homeScore+' – '+match.awayScore;
+    const entry={type:'goal',player:player.name,side:'home',min};
+    match.log.push(entry);
+    player.goals=(player.goals||0)+1;
+    const teamP=activeTeam?activeTeam.players.find(x=>x.name===player.name):null;
+    if(teamP)teamP.goals=(teamP.goals||0)+1;
+    addMatchLogEntry('⚽',`<strong>${player.name}</strong> scored!`,min);
+    closeGoalPicker();
+    showToast('GOAL! '+player.name+' — '+min+'\'');
+  }
   saveToStorage();
-  closeGoalPicker();
-  showToast('GOAL! '+player.name+' — '+min+'\'');
 }
 
 function addMatchLogEntry(icon,text,min){
@@ -2779,7 +2820,7 @@ function showPostGame(){
   const min=Math.floor(match.seconds/60);
   const body=document.getElementById('postgameBody');
   const goalLog=match.log.filter(e=>e.type==='goal');
-  const goalSummary=goalLog.length?`<div style="margin-bottom:12px"><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:#3D5845;margin-bottom:8px">Goals (${goalLog.length})</div>${goalLog.map(e=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:#00E564;font-size:14px">⚽</span><span style="font-size:13px;font-weight:700;color:#DFF0E3">${e.player}</span><span style="font-size:11px;color:#6B9A78;margin-left:auto">${e.min}'</span></div>`).join('')}</div>`:'<div style="color:#3D5845;font-size:12px;margin-bottom:12px">No goals scored</div>';
+  const goalSummary=goalLog.length?`<div style="margin-bottom:12px"><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:#3D5845;margin-bottom:8px">Goals (${goalLog.length})</div>${goalLog.map(e=>{const opp=e.side==='away';return`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="font-size:14px;color:${opp?'#FF6060':'#00E564'}">⚽</span><span style="font-size:13px;font-weight:700;color:${opp?'#FF6060':'#DFF0E3'}">${e.player}</span>${opp?'<span style="font-size:9px;font-weight:800;color:#FF6060;background:rgba(255,96,96,.1);border-radius:5px;padding:2px 6px;margin-left:2px">OPP</span>':''}<span style="font-size:11px;color:#6B9A78;margin-left:auto">${e.min}'</span></div>`;}).join('')}</div>`:'<div style="color:#3D5845;font-size:12px;margin-bottom:12px">No goals scored</div>';
   body.innerHTML=`<div style="text-align:center;margin-bottom:16px">
     <div style="font-family:'Impact',Arial,sans-serif;font-size:42px;color:#00E564">${match.homeScore} – ${match.awayScore}</div>
     <div style="font-size:11px;color:#6B9A78;margin-top:4px">Final Score · ${min} min played</div>
