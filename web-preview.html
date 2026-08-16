@@ -1799,35 +1799,63 @@ const match={
 };
 
 /* ── Background-safe timer helpers ────────────────────────── */
-let _silentAudio=null;
+let _silentAudio=null, _silentCtx=null;
 
-function _getSilentAudioUrl(){
-  // Build a 1-second silent mono 8-bit 8kHz WAV programmatically
-  const sr=8000,samples=sr;
-  const buf=new ArrayBuffer(44+samples);
-  const v=new DataView(buf);
-  const ws=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i));};
-  ws(0,'RIFF');v.setUint32(4,36+samples,true);ws(8,'WAVE');
-  ws(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
-  v.setUint32(24,sr,true);v.setUint32(28,sr,true);v.setUint16(32,1,true);v.setUint16(34,8,true);
-  ws(36,'data');v.setUint32(40,samples,true);
-  for(let i=0;i<samples;i++)v.setUint8(44+i,128); // 0x80 = silence for unsigned 8-bit
-  return URL.createObjectURL(new Blob([buf],{type:'audio/wav'}));
+/* Match duration in seconds based on the active team's format.
+   11v11 and 9v9 → 30 min halves = 60 min total
+   7v7           → 25 min halves = 50 min total              */
+function _matchDuration(){
+  const fmt=(activeTeam&&activeTeam.format)||'11v11';
+  return fmt==='7v7'?3000:3600;
+}
+
+/* Called synchronously inside a user-gesture handler (button tap).
+   Creates an AudioContext streaming silent audio — no fixed duration,
+   no loop-reset — so setPositionState can advance freely.          */
+function _initSilentAudio(){
+  if(_silentAudio)return;
+  try{
+    _silentCtx=new(window.AudioContext||window.webkitAudioContext)();
+    const gain=_silentCtx.createGain();
+    gain.gain.value=0.001; // near-zero; true 0 can be optimised away
+    const osc=_silentCtx.createOscillator();
+    osc.connect(gain);
+    const dest=_silentCtx.createMediaStreamDestination();
+    gain.connect(dest);
+    osc.start();
+    _silentAudio=new Audio();
+    _silentAudio.srcObject=dest.stream;
+  }catch(e){
+    // Fallback: 2-min silent WAV with loop; still better than 1-second
+    try{
+      const sr=8000,sec=120,n=sr*sec;
+      const b=new ArrayBuffer(44+n);const v=new DataView(b);
+      const ws=(o,x)=>{for(let i=0;i<x.length;i++)v.setUint8(o+i,x.charCodeAt(i));};
+      ws(0,'RIFF');v.setUint32(4,36+n,true);ws(8,'WAVE');ws(12,'fmt ');
+      v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+      v.setUint32(24,sr,true);v.setUint32(28,sr,true);v.setUint16(32,1,true);v.setUint16(34,8,true);
+      ws(36,'data');v.setUint32(40,n,true);
+      for(let i=0;i<n;i++)v.setUint8(44+i,128);
+      _silentAudio=new Audio();
+      _silentAudio.src=URL.createObjectURL(new Blob([b],{type:'audio/wav'}));
+      _silentAudio.loop=true;
+    }catch(e2){}
+  }
 }
 
 function _startSilentAudio(){
+  if(!_silentAudio)return;
   try{
-    if(!_silentAudio){
-      _silentAudio=new Audio();
-      _silentAudio.src=_getSilentAudioUrl();
-      _silentAudio.loop=true;
-    }
+    if(_silentCtx&&_silentCtx.state==='suspended')_silentCtx.resume();
     _silentAudio.play().catch(()=>{});
   }catch(e){}
 }
 
 function _stopSilentAudio(){
-  if(_silentAudio){_silentAudio.pause();_silentAudio.currentTime=0;}
+  try{
+    if(_silentAudio){_silentAudio.pause();}
+    if(_silentCtx)_silentCtx.suspend().catch(()=>{});
+  }catch(e){}
 }
 
 function _updateMediaSession(){
@@ -1840,13 +1868,14 @@ function _updateMediaSession(){
       album:'Roster Radar · Live Match',
     });
     navigator.mediaSession.playbackState=match.running?'playing':'paused';
-    // setPositionState lets the OS advance the timer on the lock screen without JS.
-    // playbackRate:1 means the OS interpolates position forward in real time itself.
+    // playbackRate:1 → OS advances the lock-screen counter in real time
+    // without any JS involvement while the screen is locked.
     if(typeof navigator.mediaSession.setPositionState==='function'){
+      const dur=_matchDuration();
       navigator.mediaSession.setPositionState({
-        duration:5400,                              // 90-minute match
+        duration:dur,
         playbackRate:match.running?1:0,
-        position:Math.min(match.seconds,5400),
+        position:Math.min(match.seconds,dur),
       });
     }
   }catch(e){}
@@ -2750,6 +2779,9 @@ function _updateMatchScoreLbl(){
 function initMatch(){
   if(match.timerInterval){clearInterval(match.timerInterval);match.timerInterval=null;}
   _stopSilentAudio();
+  // Tear down AudioContext so next match gets a fresh one
+  if(_silentCtx){try{_silentCtx.close();}catch(e){} _silentCtx=null;}
+  _silentAudio=null;
   if('mediaSession' in navigator){
     navigator.mediaSession.playbackState='none';
     try{navigator.mediaSession.setPositionState();}catch(e){}
@@ -2793,7 +2825,8 @@ function toggleMatchTimer(){
     document.getElementById('liveIndicator').style.display='none';
     _updateMediaSession();
   } else if(match.seconds===0){
-    /* First start — show game picker so coach can link to a scheduled event */
+    /* First start — init audio here (user gesture context) before async picker */
+    _initSilentAudio();
     openGamePicker(ev=>{
       match.linkedEventId=ev?ev.id:null;
       _updateMatchScoreLbl();
