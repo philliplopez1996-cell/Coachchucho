@@ -1833,15 +1833,22 @@ function _stopSilentAudio(){
 function _updateMediaSession(){
   if(!('mediaSession' in navigator))return;
   try{
-    const m=Math.floor(match.seconds/60).toString().padStart(2,'0');
-    const s=(match.seconds%60).toString().padStart(2,'0');
     const teamName=activeTeam?activeTeam.name:'Match';
     navigator.mediaSession.metadata=new MediaMetadata({
       title:`${match.homeScore} – ${match.awayScore}`,
-      artist:`${teamName} · ${m}:${s}`,
+      artist:teamName,
       album:'Roster Radar · Live Match',
     });
     navigator.mediaSession.playbackState=match.running?'playing':'paused';
+    // setPositionState lets the OS advance the timer on the lock screen without JS.
+    // playbackRate:1 means the OS interpolates position forward in real time itself.
+    if(typeof navigator.mediaSession.setPositionState==='function'){
+      navigator.mediaSession.setPositionState({
+        duration:5400,                              // 90-minute match
+        playbackRate:match.running?1:0,
+        position:Math.min(match.seconds,5400),
+      });
+    }
   }catch(e){}
 }
 
@@ -2743,7 +2750,10 @@ function _updateMatchScoreLbl(){
 function initMatch(){
   if(match.timerInterval){clearInterval(match.timerInterval);match.timerInterval=null;}
   _stopSilentAudio();
-  if('mediaSession' in navigator)navigator.mediaSession.playbackState='none';
+  if('mediaSession' in navigator){
+    navigator.mediaSession.playbackState='none';
+    try{navigator.mediaSession.setPositionState();}catch(e){}
+  }
   match.running=false;
   match.startEpoch=null;
   match.linkedEventId=null;
@@ -2801,8 +2811,8 @@ function tickClock(){
   const m=Math.floor(match.seconds/60).toString().padStart(2,'0');
   const s=(match.seconds%60).toString().padStart(2,'0');
   document.getElementById('matchClock').textContent=m+':'+s;
-  // Update lock screen every 15 seconds to avoid excessive MediaSession calls
-  if(match.seconds%15===0)_updateMediaSession();
+  // Re-sync position state every 60s; OS interpolates between syncs automatically
+  if(match.seconds%60===0)_updateMediaSession();
 }
 
 function endMatch(){
