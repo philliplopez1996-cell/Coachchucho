@@ -1537,6 +1537,7 @@ const ZONES = [
     tile:{ top:'#141825', sideR:'#0a0c18', sideL:'#080a14',
            revTop:'#111520', revR:'#080a12', revL:'#06080e' },
     decoType:'treeMix',
+    decoWeights:{ tree:0.72, rock:0.28 },
   },
   {
     id:'ruins', num:3, name:'Ruins',
@@ -1561,6 +1562,7 @@ const ZONES = [
     tile:{ top:'#2e6848', sideR:'#1e4830', sideL:'#163826',
            revTop:'#285e40', revR:'#1a3e2a', revL:'#122e1e' },
     decoType:'swampMix',
+    decoWeights:{ deadTree:0.20, tree:0.30, rock:0.28, pillar:0.22 },
   },
   {
     id:'summit', num:5, name:'Summit',
@@ -3464,11 +3466,9 @@ function td_genDecorations() {
   const rnd = () => Math.random();
   const mkDeco = (c, r, s = 0) => {
     let type = decoType;
-    if (decoType === 'treeMix') type = rnd() < 0.28 ? 'tree' : 'rock';
-    if (decoType === 'swampMix') {
-      const roll = rnd();
-      // deadTree(swamp) 20% | tree(z1) 30% | rock(z2) 28% | pillar(z3) 22%
-      type = roll < 0.20 ? 'deadTree' : roll < 0.50 ? 'tree' : roll < 0.78 ? 'rock' : 'pillar';
+    if (zone && zone.decoWeights) {
+      const r = rnd(); let acc = 0;
+      for (const [t, w] of Object.entries(zone.decoWeights)) { acc += w; if (r < acc) { type = t; break; } }
     }
     // Highlands rocks are noticeably larger
     const hBase = (type === 'rock' && decoType === 'treeMix') ? 1.1 + rnd()*1.0 + s : 0.65 + rnd()*0.7 + s;
