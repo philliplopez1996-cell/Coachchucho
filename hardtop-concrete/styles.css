@@ -325,6 +325,28 @@ h3 { font-size: var(--fs-2xl); }
   gap: var(--sp-sm);
 }
 
+.nav-linkedin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  color: rgba(255,255,255,0.7);
+  transition: color var(--ease);
+}
+.nav-linkedin svg { width: 22px; height: 22px; display: block; }
+.nav-linkedin:hover { color: #0A66C2; }
+
+.mobile-linkedin {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: var(--fs-sm);
+  color: rgba(255,255,255,0.7);
+  letter-spacing: .05em;
+}
+.mobile-linkedin:hover { color: #0A66C2; }
+
 .nav-phone {
   font-family: 'Oswald', sans-serif;
   font-size: var(--fs-sm);
