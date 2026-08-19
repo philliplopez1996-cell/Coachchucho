@@ -1596,6 +1596,64 @@ a.ci-value:hover { color: var(--orange); }
   padding-bottom: var(--sp-xl);
 }
 
+/* ── LABOR SUPPORT PRICING ───────────────────────────────── */
+.ls-pricing {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: 620px;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.ls-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-md);
+  padding: var(--sp-sm) var(--sp-md);
+  border-bottom: 1px solid var(--rule);
+  flex-wrap: wrap;
+}
+
+.ls-price-row:last-child { border-bottom: none; }
+
+.ls-price-label {
+  font-family: 'Oswald', Impact, sans-serif;
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--orange);
+  min-width: 160px;
+  flex-shrink: 0;
+}
+
+.ls-price-vals {
+  color: var(--text-muted);
+  font-size: var(--fs-base);
+}
+
+.ls-price-vals strong {
+  color: var(--white);
+  font-weight: 600;
+}
+
+.ls-note {
+  color: var(--text-subtle);
+  font-size: var(--fs-sm);
+}
+
+.ls-price-row--note {
+  background: rgba(255,255,255,0.03);
+}
+
+.ls-overtime {
+  color: var(--text-subtle);
+  font-size: var(--fs-sm);
+  font-style: italic;
+}
+
 @media (max-width: 768px) {
   .photo-grid { grid-template-columns: repeat(2, 1fr); }
 }
