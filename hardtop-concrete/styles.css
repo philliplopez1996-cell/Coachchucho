@@ -947,11 +947,16 @@ h3 { font-size: var(--fs-2xl); }
 }
 
 .contact-inner {
-  display: grid;
-  grid-template-columns: 1fr 1.25fr;
-  gap: var(--sp-2xl);
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-lg);
+  max-width: 680px;
+  margin-inline: auto;
+  text-align: center;
 }
+
+.contact-form-wrap { width: 100%; }
 
 .contact-info h2 { margin-bottom: var(--sp-lg); }
 
