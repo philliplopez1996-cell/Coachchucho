@@ -10,7 +10,7 @@
     THINGS TO UPDATE BEFORE GOING LIVE
     ====================================
     1. Phone number  → search "(555) 000-0000" and replace everywhere
-    2. Email         → search "info@hardtopconcrete.com" and replace
+    2. Email         → search "concretepourestimate@gmail.com" and replace
     3. Location      → search "[Your City, State]" and replace
     4. Founded year  → search "2015" in about.html, update if needed
     5. Logo image    → add your actual logo image file and update the <img> in the nav
@@ -180,8 +180,11 @@
         </div>
 
         <div class="contact-form-wrap">
-          <!-- UPDATE: add action="https://..." for your form handler (Formspree, Netlify, etc.) -->
-          <form class="contact-form" id="contact-form" method="POST" novalidate>
+          <form class="contact-form" id="contact-form" action="https://formsubmit.co/concretepourestimate@gmail.com" method="POST" novalidate>
+            <input type="hidden" name="_subject" value="New Estimate Request — Hard Top Concrete">
+            <input type="hidden" name="_next" value="https://philliplopez1996-cell.github.io/Coachchucho/hardtop-concrete/thank-you.html">
+            <input type="hidden" name="_captcha" value="false">
+            <input type="hidden" name="_template" value="table">
             <div class="form-row-2">
               <div class="form-group">
                 <label for="cf-name">Name</label>
@@ -272,7 +275,7 @@
       <div class="footer-col">
         <h4>Contact</h4>
         <a href="tel:5550000000">(555) 000-0000</a>
-        <a href="mailto:info@hardtopconcrete.com">info@hardtopconcrete.com</a>
+        <a href="mailto:concretepourestimate@gmail.com">concretepourestimate@gmail.com</a>
         <span>[Your City, State]</span>
         <span>Mon – Sat, 7 AM – 6 PM</span>
       </div>
