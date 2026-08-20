@@ -99,9 +99,10 @@ html{height:-webkit-fill-available}
 .view::-webkit-scrollbar-thumb{background:var(--dim);border-radius:999px}
 
 /* ── Bottom nav (mobile only) ── */
-.bottom-nav{display:none;height:auto;min-height:64px;padding:4px 8px max(12px,env(safe-area-inset-bottom));border-top:1px solid var(--border);background:rgba(6,13,8,.98);backdrop-filter:blur(10px);flex-shrink:0;gap:2px;grid-column:1/-1}
-.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;cursor:pointer;padding:6px 2px;border-radius:12px;color:var(--dim);transition:all .15s}
-.bnav-btn.active{color:var(--green);background:rgba(0,229,100,.06)}
+.bottom-nav{display:none;height:auto;min-height:64px;padding:4px 8px max(12px,env(safe-area-inset-bottom));border-top:1px solid var(--border);background:rgba(6,13,8,.96);backdrop-filter:blur(20px);flex-shrink:0;gap:2px;grid-column:1/-1}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:1px solid transparent;background:none;cursor:pointer;padding:8px 4px;border-radius:14px;color:var(--dim);transition:color .15s,background .15s,border-color .15s,box-shadow .15s,transform .08s,opacity .08s;-webkit-tap-highlight-color:transparent}
+.bnav-btn.active{color:var(--green);background:rgba(0,229,100,.11);border-color:rgba(0,229,100,.2);box-shadow:0 0 14px rgba(0,229,100,.07),inset 0 1px 0 rgba(0,229,100,.12)}
+.bnav-btn:active{transform:scale(0.88);opacity:.85}
 .bnav-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
 .bnav-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.4px}
 
@@ -608,10 +609,10 @@ html{height:-webkit-fill-available}
 .pr-ovr{font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:20px;color:var(--gold);flex-shrink:0}
 
 /* ── Goal / Sub Sheets ── */
-.action-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:260;display:none;align-items:flex-end}
+.action-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:260;display:none;align-items:flex-end}
 .action-overlay.open{display:flex}
-.action-sheet{background:linear-gradient(160deg,#0c1810 0%,#060d08 100%);border-radius:20px 20px 0 0;border:1px solid var(--border);width:100%;max-height:75vh;display:flex;flex-direction:column;overflow:hidden}
-.action-topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0}
+.action-sheet{background:rgba(8,18,10,.82);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border-radius:20px 20px 0 0;border:1px solid rgba(255,255,255,.09);border-bottom:none;box-shadow:0 -8px 32px rgba(0,0,0,.4);width:100%;max-height:75vh;display:flex;flex-direction:column;overflow:hidden}
+.action-topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0}
 .action-title{font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:15px;letter-spacing:1px;color:var(--text)}
 .action-close{width:28px;height:28px;border-radius:7px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:var(--muted);cursor:pointer;font-size:14px}
 .action-list{flex:1;overflow-y:auto;padding:8px 0}
@@ -633,9 +634,9 @@ html{height:-webkit-fill-available}
 .sub-section-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:4px}
 
 /* ── Post Game Modal ── */
-.postgame-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:270;display:none;align-items:flex-end}
+.postgame-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:270;display:none;align-items:flex-end}
 .postgame-overlay.open{display:flex}
-.postgame-sheet{background:linear-gradient(160deg,#0c1810 0%,#060d08 100%);border-radius:20px 20px 0 0;border:1px solid var(--border);width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
+.postgame-sheet{background:rgba(8,18,10,.84);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border-radius:20px 20px 0 0;border:1px solid rgba(255,255,255,.09);border-bottom:none;box-shadow:0 -8px 32px rgba(0,0,0,.4);width:100%;max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
 .postgame-topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0}
 .postgame-title{font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:18px;letter-spacing:1px;color:var(--text)}
 .postgame-body{flex:1;overflow-y:auto;padding:16px 18px}
@@ -649,9 +650,9 @@ html{height:-webkit-fill-available}
 .postgame-confirm-btn{width:100%;padding:14px;background:var(--green);border:none;border-radius:12px;color:#071A0A;font-size:14px;font-weight:900;cursor:pointer;margin-top:16px;letter-spacing:.3px}
 
 /* ── Add Player Modal ── */
-.addp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:220;display:none;align-items:flex-end;justify-content:center}
+.addp-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:220;display:none;align-items:flex-end;justify-content:center}
 .addp-overlay.open{display:flex}
-.addp-sheet{background:linear-gradient(160deg,#0c1810 0%,#060d08 100%);border-radius:20px 20px 0 0;border:1px solid var(--border);width:100%;max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
+.addp-sheet{background:rgba(8,18,10,.82);backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%);border-radius:20px 20px 0 0;border:1px solid rgba(255,255,255,.09);border-bottom:none;box-shadow:0 -8px 32px rgba(0,0,0,.4);width:100%;max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
 /* Desktop: centered dialog instead of bottom sheet */
 @media(min-width:769px){
   #eventModalOverlay{align-items:center}
@@ -679,7 +680,7 @@ html{height:-webkit-fill-available}
 .ap-submit-btn{padding:13px;background:var(--green);border:none;border-radius:10px;color:#071A0A;font-size:13px;font-weight:900;cursor:pointer;letter-spacing:.3px;margin-top:4px}
 
 /* ── Team Modal ── */
-.team-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:220;display:none;align-items:flex-end}
+.team-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:220;display:none;align-items:flex-end}
 .team-modal-overlay.open{display:flex}
 .tm-pill{padding:6px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:none;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;transition:all .15s;margin:3px}
 .tm-pill.sel{background:rgba(0,229,100,.12);border-color:rgba(0,229,100,.4);color:var(--green)}
@@ -693,6 +694,26 @@ html{height:-webkit-fill-available}
 /* ── Toast ── */
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(0,229,100,.15);border:1px solid rgba(0,229,100,.35);color:var(--green);padding:10px 20px;border-radius:10px;font-size:12px;font-weight:800;letter-spacing:.3px;opacity:0;pointer-events:none;transition:all .25s;z-index:300;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── Tap micro-interactions ── */
+button,-webkit-tap-highlight-color{-webkit-tap-highlight-color:transparent}
+.action-row,.action-player-item,.picker-player-item,.game-picker-row,.team-banner,.potm-card,.bench-chip-m,.player-card,.tc-chip{-webkit-tap-highlight-color:transparent}
+/* Buttons: quick 80ms scale on press */
+button:active:not(:disabled){transform:scale(0.94);opacity:.88}
+/* List rows: subtle shrink */
+.action-row:active,.action-player-item:active,.picker-player-item:active,.game-picker-row:active{transform:scale(0.98);background:rgba(255,255,255,.06)!important}
+/* Cards: deeper press */
+.potm-card:active{transform:scale(0.91)!important}
+.team-banner:active{transform:scale(0.98)}
+.bench-chip-m:active{transform:scale(0.9)}
+.player-card:active{transform:scale(0.97)}
+/* Ensure elements with existing transitions also cover transform */
+.team-banner{transition:background .15s,transform .08s,opacity .08s}
+.action-row{transition:background .12s,transform .08s}
+.picker-player-item{transition:background .12s,transform .08s}
+.potm-card{transition:all .15s,transform .08s}
+/* Rows that use action-player-item class */
+.action-player-item{transition:background .12s,transform .08s}
 
 /* ── Dynamic classes (JS-generated) ── */
 /* Picker player item */
