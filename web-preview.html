@@ -1799,7 +1799,7 @@ const match={
 };
 
 /* ── Background-safe timer helpers ────────────────────────── */
-let _silentAudio=null, _silentCtx=null;
+let _silentAudio=null, _silentCtx=null, _mediaHandlersInited=false;
 
 /* Match duration in seconds based on the active team's format.
    11v11 and 9v9 → 30 min halves = 60 min total
@@ -1882,9 +1882,10 @@ function _updateMediaSession(){
 }
 
 function _initMediaSessionHandlers(){
-  if(!('mediaSession' in navigator))return;
+  if(_mediaHandlersInited||!('mediaSession' in navigator))return;
+  _mediaHandlersInited=true;
   navigator.mediaSession.setActionHandler('play',()=>{
-    if(!match.running&&match.seconds>=0)toggleMatchTimer();
+    if(!match.running&&match.seconds>0)toggleMatchTimer(); // >0: never open picker from lock screen
   });
   navigator.mediaSession.setActionHandler('pause',()=>{
     if(match.running)toggleMatchTimer();
@@ -2757,11 +2758,14 @@ function openGamePicker(onSelect){
     });
   }
   document.getElementById('gamePickerOverlay').classList.add('open');
+  /* X and backdrop both mean "dismiss and start without linking" so the match
+     always starts — coach doesn't get left hanging with a frozen Start button */
+  const _dismiss=()=>{closeGamePicker();if(onSelect)onSelect(null);};
   const skip=document.getElementById('gamePickerSkip');
-  if(skip){skip.onclick=()=>{closeGamePicker();if(onSelect)onSelect(null);};}
+  if(skip)skip.onclick=_dismiss;
   const cls=document.getElementById('gamePickerClose');
-  if(cls){cls.onclick=()=>{closeGamePicker();};}
-  document.getElementById('gamePickerOverlay').onclick=e=>{if(e.target.id==='gamePickerOverlay')closeGamePicker();};
+  if(cls)cls.onclick=_dismiss;
+  document.getElementById('gamePickerOverlay').onclick=e=>{if(e.target.id==='gamePickerOverlay')_dismiss();};
 }
 function closeGamePicker(){document.getElementById('gamePickerOverlay').classList.remove('open');}
 
@@ -2782,6 +2786,7 @@ function initMatch(){
   // Tear down AudioContext so next match gets a fresh one
   if(_silentCtx){try{_silentCtx.close();}catch(e){} _silentCtx=null;}
   _silentAudio=null;
+  _mediaHandlersInited=false;
   if('mediaSession' in navigator){
     navigator.mediaSession.playbackState='none';
     try{navigator.mediaSession.setPositionState();}catch(e){}
@@ -2809,7 +2814,7 @@ function _startTimer(){
   // Anchor the epoch to wall clock so throttled/backgrounded tabs self-correct
   match.startEpoch=Date.now()-(match.seconds*1000);
   match.running=true;
-  match.timerInterval=setInterval(tickClock,500);
+  match.timerInterval=setInterval(tickClock,1000);
   document.getElementById('matchStartBtn').textContent='⏸ Pause';
   document.getElementById('liveIndicator').style.display='flex';
   _startSilentAudio();
