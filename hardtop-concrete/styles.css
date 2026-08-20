@@ -51,9 +51,12 @@
   --sp-2xl: 6rem;
 
   /* Layout */
-  --nav-h:  96px;
-  --radius: 2px;
-  --ease:   0.2s ease;
+  --nav-h:    96px;
+  --radius:   6px;
+  --radius-lg: 14px;
+  --ease:     0.2s ease;
+  --glow-orange: 0 4px 28px rgba(255,107,0,0.28);
+  --glow-orange-lg: 0 8px 40px rgba(255,107,0,0.4);
 }
 
 /* ── RESET ────────────────────────────────────────────────── */
@@ -177,11 +180,13 @@ h3 { font-size: var(--fs-2xl); }
   background: var(--orange);
   color: var(--black);
   border-color: var(--orange);
+  box-shadow: var(--glow-orange);
 }
 .btn-orange:hover {
-  background: #e05f00;
-  border-color: #e05f00;
-  transform: translateY(-1px);
+  background: #ff7d1a;
+  border-color: #ff7d1a;
+  transform: translateY(-2px);
+  box-shadow: var(--glow-orange-lg);
 }
 
 .btn-ghost {
@@ -190,8 +195,9 @@ h3 { font-size: var(--fs-2xl); }
   border-color: var(--rule-strong);
 }
 .btn-ghost:hover {
-  border-color: var(--white);
-  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.5);
+  background: rgba(255,255,255,0.06);
+  transform: translateY(-1px);
 }
 
 .btn-dark {
@@ -839,11 +845,18 @@ h3 { font-size: var(--fs-2xl); }
   flex: 1;
   position: relative;
   padding: var(--sp-lg);
-  border-top: 3px solid var(--rule);
-  transition: border-top-color 0.3s ease;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  background: rgba(255,255,255,0.02);
+  transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.process-step:hover { border-top-color: var(--red); }
+.process-step:hover {
+  border-color: rgba(227,6,19,0.35);
+  background: rgba(227,6,19,0.03);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 36px rgba(0,0,0,0.4);
+}
 
 /* Giant ghost number */
 .ps-bg-num {
@@ -1343,15 +1356,21 @@ a.ci-value:hover { color: var(--orange); }
 .sp-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  border: 1px solid var(--rule-strong);
+  gap: var(--sp-md);
 }
 
 .sp-col {
   padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  background: rgba(255,255,255,0.02);
+  transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
 }
 
-.sp-col + .sp-col {
-  border-left: 1px solid var(--rule-strong);
+.sp-col:hover {
+  border-color: var(--rule-strong);
+  background: rgba(255,255,255,0.035);
+  transform: translateY(-2px);
 }
 
 .sp-label {
@@ -1661,3 +1680,65 @@ a.ci-value:hover { color: var(--orange); }
 @media (max-width: 480px) {
   .photo-grid { grid-template-columns: 1fr; }
 }
+
+/* ── MODERN REFINEMENTS ─────────────────────────────────── */
+
+/* Subtle grain texture over dark backgrounds */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Photo card gradient overlay on hover */
+.photo-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 55%);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  z-index: 1;
+}
+.photo-card:hover::after { opacity: 1; }
+
+/* Nav linkedin icon — rounded on new radius system */
+.nav-linkedin { border-radius: var(--radius); }
+
+/* Form fields — rounder, more modern */
+.form-group input,
+.form-group select,
+.form-group textarea {
+  border-radius: var(--radius);
+}
+
+/* Stats bar — add subtle card treatment */
+.stats-bar {
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+
+/* Section heading h2 — subtle gradient on key sections */
+.page-hero h1 {
+  background: linear-gradient(135deg, var(--white) 60%, rgba(255,255,255,0.65) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* CTA band — add a radial glow behind the text */
+.cta-band::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 30% 50%, rgba(255,255,255,0.08) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+/* Process divider — hide the old vertical line, spacing handled by flex gap */
+.process-steps { gap: var(--sp-md); }
+.process-divider { display: none; }
