@@ -1244,7 +1244,7 @@
     .td-ov-btns { display: flex; gap: 12px; }
 
     /* Zone Campaign Map */
-    .zone-cards { display: flex; flex-direction: column; gap: 8px; padding: 2px 0 12px; }
+    .zone-cards { padding: 4px 0 8px; }
     .zone-card {
       border: 1px solid var(--brd);
       border-radius: 8px;
@@ -3302,30 +3302,114 @@ function buildWorldMap() {
   const done    = Array.isArray(profile.worldCompleted) ? profile.worldCompleted : [];
   const maxOpen = profile.worldUnlocked || 1;
 
-  cont.innerHTML = ZONES.map((z, i) => {
-    const num    = i + 1;
-    const isDone = done.includes(z.id);
-    const isOpen = true; // all zones unlocked for testing
-    const cls    = isDone ? 'zone-card zc-done' : 'zone-card zc-open';
-    const onClick = `onclick="launchZone(${i})"  `;
-    const statusChar = isDone ? '✓' : isOpen ? '▶' : '—';
-    const iconBg  = hexToRgba(z.accent, isOpen ? 0.15 : 0.05);
+  const W = 340, H = 380;
+  // Zone positions on the world map (x, y, rx, ry)
+  const zPos = [
+    { x:72,  y:326, rx:60, ry:44 },  // 1 Grasslands - bottom left
+    { x:218, y:262, rx:54, ry:40 },  // 2 Highlands
+    { x:278, y:174, rx:52, ry:38 },  // 3 Ruins
+    { x:112, y:104, rx:54, ry:40 },  // 4 Swamp
+    { x:232, y:36,  rx:48, ry:34 },  // 5 Summit
+  ];
 
-    return `<div class="${cls}" ${onClick}>
-      <div class="zone-icon" style="background:${iconBg};color:${z.accent};">${statusChar}</div>
-      <div class="zone-body">
-        <div class="zone-num">ZONE ${num}</div>
-        <div class="zone-name">${z.name}</div>
-        <div class="zone-desc">${z.desc}</div>
-        <div class="zone-meta">
-          <span>${z.cols}×${z.rows}</span><span>·</span>
-          <span>${z.mines} mines</span><span>·</span>
-          <span class="zone-xp">+${z.xpReward} XP</span>
-          ${isDone ? '<span class="zone-clrd">· CLEARED</span>' : ''}
-        </div>
-      </div>
-    </div>`;
-  }).join('');
+  let svg = [];
+
+  svg.push(`<defs>
+    <radialGradient id="wmbg" cx="45%" cy="75%" r="85%">
+      <stop offset="0%" stop-color="#0c1e10"/>
+      <stop offset="100%" stop-color="#050c07"/>
+    </radialGradient>
+  </defs>`);
+  svg.push(`<rect width="${W}" height="${H}" rx="14" fill="url(#wmbg)"/>`);
+
+  // Subtle grid
+  for (let gx = 20; gx < W; gx += 28)
+    svg.push(`<line x1="${gx}" y1="0" x2="${gx}" y2="${H}" stroke="#182419" stroke-width="1"/>`);
+  for (let gy = 20; gy < H; gy += 28)
+    svg.push(`<line x1="0" y1="${gy}" x2="${W}" y2="${gy}" stroke="#182419" stroke-width="1"/>`);
+
+  // Map title
+  svg.push(`<text x="${W/2}" y="375" text-anchor="middle" font-size="7.5" fill="#2a3d2c" letter-spacing="3" font-family="monospace">WORLD MAP</text>`);
+
+  // Trails between zones
+  for (let i = 0; i < zPos.length - 1; i++) {
+    const a = zPos[i], b = zPos[i + 1];
+    const trailOpen = (i + 2) <= maxOpen;
+    const col   = trailOpen ? '#ffffff' : '#2a2a2a';
+    const alpha = trailOpen ? '55' : 'aa';
+    const ctrl  = { x: (a.x + b.x) / 2 + (i % 2 === 0 ? -28 : 28), y: (a.y + b.y) / 2 };
+    svg.push(`<path d="M${a.x},${a.y} Q${ctrl.x},${ctrl.y} ${b.x},${b.y}" fill="none"
+      stroke="${col}${alpha}" stroke-width="2.5" stroke-dasharray="${trailOpen ? '7,5' : '3,9'}"/>`);
+    if (trailOpen) {
+      // Footprint dots along trail
+      for (let t = 0.2; t <= 0.8; t += 0.3) {
+        const px = (1-t)*(1-t)*a.x + 2*(1-t)*t*ctrl.x + t*t*b.x;
+        const py = (1-t)*(1-t)*a.y + 2*(1-t)*t*ctrl.y + t*t*b.y;
+        svg.push(`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="2" fill="#ffffff22"/>`);
+      }
+    }
+  }
+
+  // Zone blobs
+  ZONES.forEach((z, i) => {
+    const p     = zPos[i];
+    const num   = i + 1;
+    const isDone = done.includes(z.id);
+    const isOpen = num <= maxOpen;
+    const ac    = z.accent;
+
+    // Outer glow (open zones only)
+    if (isOpen)
+      svg.push(`<ellipse cx="${p.x}" cy="${p.y}" rx="${p.rx+10}" ry="${p.ry+7}"
+        fill="${ac}" fill-opacity="0.05" stroke="${ac}" stroke-opacity="0.12" stroke-width="1"/>`);
+
+    // Terrain blob
+    svg.push(`<ellipse cx="${p.x}" cy="${p.y}" rx="${p.rx}" ry="${p.ry}"
+      fill="${ac}" fill-opacity="${isOpen ? 0.20 : 0.05}"
+      stroke="${ac}" stroke-opacity="${isOpen ? 0.55 : 0.18}" stroke-width="1.5"
+      ${!isOpen ? 'filter="saturate(0)"' : ''}/>`);
+
+    // Inner highlight
+    svg.push(`<ellipse cx="${p.x}" cy="${p.y - 7}" rx="${p.rx * 0.48}" ry="${p.ry * 0.32}"
+      fill="${ac}" fill-opacity="${isOpen ? 0.14 : 0.03}"/>`);
+
+    // Zone number badge
+    const bx = p.x - p.rx * 0.64, by = p.y - p.ry * 0.64;
+    svg.push(`<circle cx="${bx}" cy="${by}" r="12"
+      fill="${isOpen ? ac : '#222'}" fill-opacity="${isOpen ? 0.85 : 0.6}"/>`);
+    svg.push(`<text x="${bx}" y="${by}" text-anchor="middle" dominant-baseline="central"
+      font-size="9" font-weight="bold" fill="${isOpen ? '#000d04' : '#555'}"
+      font-family="monospace">${num}</text>`);
+
+    // Status icon
+    const icon = isDone ? '✓' : isOpen ? '▶' : '⬡';
+    svg.push(`<text x="${p.x}" y="${p.y - 3}" text-anchor="middle" dominant-baseline="central"
+      font-size="${isOpen ? 17 : 15}" fill="${isOpen ? (isDone ? '#7fff88' : ac) : '#444'}">${icon}</text>`);
+
+    // Zone name
+    svg.push(`<text x="${p.x}" y="${p.y + 16}" text-anchor="middle"
+      font-size="9.5" fill="${isOpen ? '#ccd8cc' : '#393939'}"
+      font-family="monospace" letter-spacing="0.8">${z.name.toUpperCase()}</text>`);
+
+    // Cleared badge
+    if (isDone)
+      svg.push(`<text x="${p.x}" y="${p.y + 27}" text-anchor="middle"
+        font-size="7.5" fill="#4AFF3F" font-family="monospace" letter-spacing="1.5">CLEARED</text>`);
+
+    // Lock label for closed zones
+    if (!isOpen)
+      svg.push(`<text x="${p.x}" y="${p.y + 27}" text-anchor="middle"
+        font-size="7.5" fill="#444" font-family="monospace" letter-spacing="1">LOCKED</text>`);
+
+    // Clickable hit area
+    if (isOpen)
+      svg.push(`<ellipse cx="${p.x}" cy="${p.y}" rx="${p.rx}" ry="${p.ry}"
+        fill="transparent" style="cursor:pointer" onclick="launchZone(${i})"/>`);
+  });
+
+  cont.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}"
+    style="max-width:100%;display:block;margin:0 auto;border-radius:14px;overflow:hidden;"
+    >${svg.join('')}</svg>`;
 }
 
 function launch3D() {
