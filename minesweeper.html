@@ -1550,6 +1550,7 @@ const ZONES = [
     tile:{ top:'#1c1008', sideR:'#110a05', sideL:'#0e0804',
            revTop:'#181008', revR:'#0e0905', revL:'#0a0703' },
     decoType:'pillar',
+    decoWeights:{ pillar:0.42, rock:0.36, tree:0.22 },
   },
   {
     id:'swamp', num:4, name:'Swamp',
@@ -4613,15 +4614,29 @@ function td_drawWaterTile(ctx, c, r, cell) {
   ctx.lineTo(nx, ny+2*HH+BH*0.5); ctx.lineTo(nx-HW, ny+HH+BH*0.5);
   ctx.closePath(); ctx.fillStyle = '#050f0b'; ctx.fill();
 
-  // Water surface — animated teal shimmer
-  const wr = Math.round(12 + shimmer * 14);
-  const wg = Math.round(72 + shimmer * 38 + shimmer2 * 18);
-  const wb = Math.round(78 + shimmer * 44);
+  // Water surface — brighter when revealed so the click is obvious
+  const revealBright = cell.revealed ? 0.55 : 0;
+  const wr = Math.round(12 + shimmer * 14 + revealBright * 58);
+  const wg = Math.round(72 + shimmer * 38 + shimmer2 * 18 + revealBright * 80);
+  const wb = Math.round(78 + shimmer * 44 + revealBright * 72);
   ctx.beginPath();
   ctx.moveTo(nx, ny); ctx.lineTo(nx+HW, ny+HH); ctx.lineTo(nx, ny+2*HH); ctx.lineTo(nx-HW, ny+HH);
   ctx.closePath();
-  ctx.fillStyle = `rgb(${wr},${wg},${wb})`;
+  ctx.fillStyle = `rgb(${Math.min(wr,255)},${Math.min(wg,255)},${Math.min(wb,255)})`;
   ctx.fill();
+
+  // Glowing border on revealed water tiles
+  if (cell.revealed) {
+    const pulse = 0.55 + 0.45 * Math.sin(t * 2.8 + c * 0.7 + r * 0.5);
+    ctx.save();
+    ctx.strokeStyle = `rgba(100,255,210,${0.55 * pulse})`;
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(nx, ny); ctx.lineTo(nx+HW, ny+HH); ctx.lineTo(nx, ny+2*HH); ctx.lineTo(nx-HW, ny+HH);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+  }
 
   // Highlight ripple streaks
   ctx.save();
@@ -4640,9 +4655,9 @@ function td_drawWaterTile(ctx, c, r, cell) {
   ctx.stroke();
   ctx.restore();
 
-  // Lily pads — stable per-tile hash, ~28% of water tiles
+  // Lily pads hidden on revealed tiles (disturbed water)
   const lilyHash = (c * 23 + r * 41) % 100;
-  if (lilyHash < 28) {
+  if (lilyHash < 28 && !cell.revealed) {
     const lpx = nx + (lilyHash % 5 - 2) * HW * 0.15;
     const lpy = ny + HH * 0.9 + (lilyHash % 3 - 1) * HH * 0.18;
     const lpr = 4.5 + (lilyHash % 4);
