@@ -1762,7 +1762,7 @@ body::after {
   padding: var(--sp-lg) var(--sp-xl);
   border: 1px solid var(--rule);
   border-radius: var(--radius-lg);
-  background: rgba(255,107,0,0.04);
+  background: rgba(227,6,19,0.04);
 }
 .ls-teaser-left .sp-label { margin-bottom: var(--sp-xs); }
 .ls-teaser-desc {
@@ -1789,7 +1789,7 @@ body::after {
   content: '·';
   position: absolute;
   left: 0;
-  color: var(--orange);
+  color: var(--red);
   font-weight: 700;
 }
 @media (max-width: 768px) {
