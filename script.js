@@ -246,46 +246,25 @@
   const balls3d = [];
   if (ballField) {
     const rand = (min, max) => Math.random() * (max - min) + min;
-    const BALL_COUNT = 12;
+    const BALL_COUNT = 3;
     const pageHeight = document.body.scrollHeight;
-    const MIN_GAP = 70; // minimum px gap (beyond combined radii) between balls on the same side
-    const placed = { left: [], right: [] };
 
     // Keep the hero photo completely clear — spheres only start appearing once you scroll past it
     const heroEl = document.querySelector('.hero');
     const heroBottom = heroEl ? heroEl.offsetTop + heroEl.offsetHeight : 0;
-    // Extra buffer accounts for the largest possible bounce+drift swing so no sphere ever
-    // animates back up into the hero photo
     const zoneStart = (heroBottom + 110) / pageHeight;
     const zoneEnd = 0.97;
 
     const TIERS = [
-      { name: 'small',  min: 16, max: 34, opacity: [0.35, 0.55], blur: 1.4, ampScale: 0.5 },
-      { name: 'medium', min: 35, max: 64, opacity: [0.6, 0.8],   blur: 0.5, ampScale: 0.8 },
-      { name: 'large',  min: 65, max: 100, opacity: [0.9, 1],    blur: 0,   ampScale: 1.3 },
+      { min: 40, max: 60, opacity: [0.55, 0.7], blur: 0.5 },
+      { min: 60, max: 85, opacity: [0.8, 0.95],  blur: 0 },
+      { min: 85, max: 110, opacity: [0.95, 1],   blur: 0 },
     ];
-    // Guarantee a real mix of sizes (not left to chance): ~1/3 small, 1/3 medium, 1/3 large
-    const tierAssignments = [];
-    for (let i = 0; i < BALL_COUNT; i++) tierAssignments.push(TIERS[i % TIERS.length]);
-    for (let i = tierAssignments.length - 1; i > 0; i--) {
-      const j = Math.floor(rand(0, i + 1));
-      [tierAssignments[i], tierAssignments[j]] = [tierAssignments[j], tierAssignments[i]];
-    }
 
     for (let i = 0; i < BALL_COUNT; i++) {
-      const tier = tierAssignments[i];
+      const tier = TIERS[i % TIERS.length];
       const size = rand(tier.min, tier.max);
-      const side = Math.random() < 0.5 ? 'left' : 'right';
-      const edgeOffset = rand(0.5, 8.5);
-
-      // Try to find a top position (below the hero) that doesn't crowd existing balls on the same side
-      let top = rand(zoneStart, zoneEnd) * pageHeight;
-      for (let attempt = 0; attempt < 25; attempt++) {
-        const candidate = rand(zoneStart, zoneEnd) * pageHeight;
-        const tooClose = placed[side].some(p => Math.abs(p.top - candidate) < (p.size + size) / 2 + MIN_GAP);
-        if (!tooClose) { top = candidate; break; }
-      }
-      placed[side].push({ top, size });
+      const top = rand(zoneStart, zoneEnd) * pageHeight;
 
       const el = document.createElement('div');
       el.className = 'floating-3d ball-3d';
@@ -293,31 +272,34 @@
       el.style.width = size + 'px';
       el.style.height = size + 'px';
       el.style.top = top + 'px';
-      el.style[side] = edgeOffset + 'vw';
+      el.style.left = '0px';
       el.style.opacity = String(rand(tier.opacity[0], tier.opacity[1]));
       if (tier.blur) el.style.filter = `blur(${tier.blur}px)`;
       ballField.appendChild(el);
 
       balls3d.push({
         el,
-        ampY: rand(8, 36) * tier.ampScale,
-        freq: rand(0.0008, 0.0022),
-        phase: rand(0, Math.PI * 2),
-        spin: rand(-1, 1) * tier.ampScale,
-        driftAmp: rand(6, 28) * tier.ampScale,
-        driftFreq: rand(0.0012, 0.0032),
+        size,
+        ampY: rand(14, 32),
+        freqY: rand(0.0007, 0.0015),
+        phaseY: rand(0, Math.PI * 2),
+        freqX: rand(0.00016, 0.00028),
+        phaseX: rand(0, Math.PI * 2),
+        spin: rand(-0.02, 0.02),
       });
     }
   }
 
   function animateBalls(timestamp) {
     if (balls3d.length) {
-      const y = lastScrollY;
+      const vw = window.innerWidth;
       balls3d.forEach(b => {
-        const bounce = Math.sin(timestamp * b.freq + b.phase) * b.ampY;
-        const drift = Math.sin(y * b.driftFreq + b.phase) * b.driftAmp;
-        const rotate = y * b.spin;
-        b.el.style.transform = `translateY(${bounce + drift}px) rotate(${rotate}deg)`;
+        const margin = b.size / 2 + 12;
+        const rangeX = Math.max(vw - margin * 2, 0);
+        const x = margin + ((Math.sin(timestamp * b.freqX + b.phaseX) * 0.5) + 0.5) * rangeX;
+        const bounce = Math.sin(timestamp * b.freqY + b.phaseY) * b.ampY;
+        const rotate = timestamp * b.spin;
+        b.el.style.transform = `translate(${x}px, ${bounce}px) rotate(${rotate}deg)`;
       });
     }
     requestAnimationFrame(animateBalls);
