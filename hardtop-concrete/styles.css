@@ -1742,3 +1742,50 @@ body::after {
 /* Process divider — hide the old vertical line, spacing handled by flex gap */
 .process-steps { gap: var(--sp-md); }
 .process-divider { display: none; }
+
+/* ── Labor Support teaser (homepage) ─────────────────────────── */
+.ls-teaser {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: center;
+  gap: var(--sp-lg);
+  margin-top: var(--sp-lg);
+  padding: var(--sp-lg) var(--sp-xl);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  background: rgba(255,107,0,0.04);
+}
+.ls-teaser-left .sp-label { margin-bottom: var(--sp-xs); }
+.ls-teaser-desc {
+  color: var(--gray);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  max-width: 340px;
+}
+.ls-teaser-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ls-teaser-list li {
+  font-size: 0.875rem;
+  color: var(--gray);
+  padding-left: 1.1em;
+  position: relative;
+}
+.ls-teaser-list li::before {
+  content: '·';
+  position: absolute;
+  left: 0;
+  color: var(--orange);
+  font-weight: 700;
+}
+@media (max-width: 768px) {
+  .ls-teaser {
+    grid-template-columns: 1fr;
+  }
+  .ls-teaser-desc { max-width: none; }
+}
