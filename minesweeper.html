@@ -1174,55 +1174,84 @@
 
     /* ── Controller ──────────────────────────── */
     .n64 {
-      position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); z-index: 20;
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 20;
       user-select: none; -webkit-user-select: none; touch-action: none;
-      background: linear-gradient(160deg, #252525 0%, #191919 100%);
-      border: 1px solid #383838; border-radius: 16px;
-      padding: 12px 16px;
-      display: flex; align-items: center; gap: 18px;
-      box-shadow: 0 4px 18px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.05);
+      background: linear-gradient(170deg, #2c2c2c 0%, #1c1c1c 55%, #161616 100%);
+      border: 1px solid #3e3e3e;
+      border-radius: 24px 24px 52px 52px;
+      padding: 14px 24px 20px;
+      display: flex; align-items: center; gap: 22px;
+      box-shadow:
+        0 8px 28px rgba(0,0,0,.85),
+        inset 0 1px 0 rgba(255,255,255,.07),
+        inset 0 -2px 4px rgba(0,0,0,.5),
+        0 0 0 1px rgba(0,0,0,.5);
+      min-width: 300px;
     }
+    /* Shoulder bumps (cosmetic pseudo-grips) */
+    .n64::before, .n64::after {
+      content: ''; position: absolute; bottom: -10px;
+      width: 72px; height: 22px;
+      background: linear-gradient(170deg, #222, #141414);
+      border: 1px solid #333; border-top: none;
+      border-radius: 0 0 28px 28px;
+      box-shadow: 0 6px 10px rgba(0,0,0,.6);
+    }
+    .n64::before { left: 12px; }
+    .n64::after  { right: 12px; }
     /* Analog stick */
     .n64-stick-ring {
-      width: 80px; height: 80px; border-radius: 50%;
-      background: radial-gradient(circle at 38% 32%, #363636, #181818);
-      border: 2px solid #404040;
-      position: relative; cursor: grab;
-      box-shadow: inset 0 3px 6px rgba(0,0,0,.7), 0 1px 0 rgba(255,255,255,.04);
-      flex-shrink: 0;
+      width: 82px; height: 82px; border-radius: 50%;
+      background: radial-gradient(circle at 36% 30%, #383838, #161616);
+      border: 2px solid #424242;
+      position: relative; cursor: grab; flex-shrink: 0;
+      box-shadow: inset 0 4px 8px rgba(0,0,0,.75), 0 1px 0 rgba(255,255,255,.04);
     }
     .n64-stick-ring:active { cursor: grabbing; }
     .n64-nub {
-      width: 40px; height: 40px; border-radius: 50%;
-      background: radial-gradient(circle at 34% 28%, #5a5a5a, #2a2a2a);
-      border: 1px solid #505050;
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      box-shadow: 0 2px 5px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.07);
+      width: 42px; height: 42px; border-radius: 50%;
+      background: radial-gradient(circle at 32% 26%, #686868, #2c2c2c);
+      border: 1px solid #525252;
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      box-shadow: 0 3px 7px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.09);
       pointer-events: none;
     }
-    /* A / B buttons */
+    /* A / B button cluster */
     .n64-btns {
-      display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+    }
+    .n64-btn-row {
+      display: flex; align-items: flex-end; gap: 10px;
     }
     .n64-btn-wrap {
-      display: flex; align-items: center; gap: 6px;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
     }
     .n64-btn-lbl {
-      font-family: var(--font-u); font-size: .38rem; color: #555;
-      letter-spacing: .12em; text-align: right;
+      font-family: var(--font-u); font-size: .40rem; color: #585858;
+      letter-spacing: .14em; text-align: center;
     }
     .n64-btn {
       border-radius: 50%; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      font-family: var(--font-u); font-weight: 700; letter-spacing: .04em;
-      border: 1px solid transparent;
-      box-shadow: 0 3px 6px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.1);
-      transition: filter .07s, transform .07s;
+      font-family: var(--font-u); font-weight: 800; letter-spacing: .04em;
+      border: 2px solid transparent;
+      box-shadow: 0 4px 10px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.12);
+      transition: filter .07s, transform .08s;
       flex-shrink: 0;
     }
-    .n64-btn:active { filter: brightness(1.35); transform: scale(.93); }
-    .n64-btn-a { width: 36px; height: 36px; font-size: .52rem; background: #00913a; border-color: #00b048; color: #c0ffd8; }
-    .n64-btn-b { width: 28px; height: 28px; font-size: .44rem; background: #1a4a28; border-color: #245e32; color: #6ec48a; }
+    .n64-btn:active { filter: brightness(1.4); transform: scale(.91) translateY(2px); }
+    .n64-btn-a {
+      width: 54px; height: 54px; font-size: .68rem;
+      background: radial-gradient(circle at 36% 28%, #00d955, #007830);
+      border-color: #00ef60; color: #b8ffe0;
+      box-shadow: 0 5px 12px rgba(0,0,0,.65), 0 0 10px rgba(0,200,80,.15), inset 0 1px 0 rgba(255,255,255,.15);
+    }
+    .n64-btn-b {
+      width: 46px; height: 46px; font-size: .58rem;
+      background: radial-gradient(circle at 36% 28%, #e05820, #8c2c00);
+      border-color: #f07030; color: #ffe4cc;
+      box-shadow: 0 5px 12px rgba(0,0,0,.65), 0 0 10px rgba(200,80,20,.15), inset 0 1px 0 rgba(255,255,255,.15);
+    }
 
     /* Result overlay */
     .td-overlay {
@@ -1411,15 +1440,17 @@
       <div class="n64-nub" id="n64-nub"></div>
     </div>
     <div class="n64-btns">
-      <div class="n64-btn-wrap">
-        <div class="n64-btn-lbl">FLAG</div>
-        <div class="n64-btn n64-btn-b"
-             onmousedown="tdFlag()" ontouchstart="event.preventDefault();tdFlag()">B</div>
-      </div>
-      <div class="n64-btn-wrap">
-        <div class="n64-btn-lbl">REVEAL</div>
-        <div class="n64-btn n64-btn-a"
-             onmousedown="tdReveal()" ontouchstart="event.preventDefault();tdReveal()">A</div>
+      <div class="n64-btn-row">
+        <div class="n64-btn-wrap">
+          <div class="n64-btn n64-btn-b"
+               onmousedown="tdFlag()" ontouchstart="event.preventDefault();tdFlag()">B</div>
+          <div class="n64-btn-lbl">FLAG</div>
+        </div>
+        <div class="n64-btn-wrap">
+          <div class="n64-btn n64-btn-a"
+               onmousedown="tdReveal()" ontouchstart="event.preventDefault();tdReveal()">A</div>
+          <div class="n64-btn-lbl">REVEAL</div>
+        </div>
       </div>
     </div>
   </div>
