@@ -1570,6 +1570,42 @@ a.ci-value:hover { color: var(--orange); }
 }
 
 /* ── PHOTO GALLERY PAGE ──────────────────────────────────── */
+.gallery-filters {
+  display: flex;
+  gap: var(--sp-sm);
+  margin-bottom: var(--sp-xl);
+}
+
+.filter-btn {
+  font-family: var(--font-head);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.5rem 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--gray);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.filter-btn:hover {
+  border-color: var(--orange);
+  color: var(--white);
+}
+
+.filter-btn.active {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: var(--white);
+}
+
+.photo-card[hidden] {
+  display: none !important;
+}
+
 .photo-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
