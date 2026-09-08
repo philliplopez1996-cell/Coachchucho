@@ -1,3 +1,4 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}</style></head><body>
 <!doctype html>
 <title>Roster Radar</title>
 <meta charset="utf-8">
@@ -1066,6 +1067,7 @@ button:active:not(:disabled){transform:scale(0.94);opacity:.88}
         <div class="rdr-legend" id="rdr-legend">
           <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div><span id="rdrLegA" style="color:var(--green)">Player A</span></div>
           <div class="leg-item"><div class="leg-dot" style="background:var(--orange)"></div><span id="rdrLegB" style="color:var(--orange)">Player B</span></div>
+          <div class="leg-item" id="rdrLegAvgWrap" style="display:none"><div class="leg-dot" style="background:rgba(255,255,255,.55);border:1px dashed rgba(255,255,255,.7)"></div><span style="color:rgba(255,255,255,.55)">Team Avg</span></div>
         </div>
       </div>
       <div class="attr-breakdown">
@@ -2538,6 +2540,16 @@ function renderRadarSlots(){
   }
 }
 
+function _teamAvgAttrs(){
+  const players=activeTeam?activeTeam.players:[];
+  if(!players.length)return null;
+  const keys=['pac','sho','pas','dri','def','phy'];
+  return keys.map(k=>{
+    const vals=players.map(p=>p[k]||0).filter(v=>v>0);
+    return vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0;
+  });
+}
+
 function buildRadar(){
   const ra=radarA,rb=radarB;
   if(!ra||!rb)return;
@@ -2554,6 +2566,20 @@ function buildRadar(){
     const[x,y]=pt(i,1);s+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(255,255,255,0.1)" stroke-width=".7"/>`;
     const[lx,ly]=pt(i,1.22);s+=`<text x="${lx}" y="${ly}" fill="#9fd8ae" font-size="12" font-family="system-ui" font-weight="800" text-anchor="middle" dominant-baseline="middle">${l}</text>`;
   });
+  // draw team avg first (behind players)
+  const avgVals=_teamAvgAttrs();
+  const avgWrap=document.getElementById('rdrLegAvgWrap');
+  if(avgVals){
+    const ps=avgVals.map((v,i)=>pt(i,Math.max(.04,v/99)).join(',')).join(' ');
+    s+=`<polygon points="${ps}" fill="rgba(255,255,255,.06)" stroke="rgba(255,255,255,.45)" stroke-width="1.6" stroke-dasharray="5 3"/>`;
+    avgVals.forEach((v,i)=>{
+      const[x,y]=pt(i,Math.max(.04,v/99));
+      s+=`<circle cx="${x}" cy="${y}" r="3" fill="rgba(255,255,255,.55)" stroke="rgba(0,0,0,.4)" stroke-width=".8"/>`;
+    });
+    if(avgWrap)avgWrap.style.display='';
+  } else {
+    if(avgWrap)avgWrap.style.display='none';
+  }
   const series=[
     {c:'#00E564',v:[ra.pac,ra.sho,ra.pas,ra.dri,ra.def,ra.phy]},
     {c:'#FF8C42',v:[rb.pac,rb.sho,rb.pas,rb.dri,rb.def,rb.phy]}
@@ -2575,26 +2601,31 @@ function renderAttrBreakdown(){
   const ra=radarA,rb=radarB;
   if(!ra||!rb)return;
   const attrs=[['pac','PAC'],['sho','SHO'],['pas','PAS'],['dri','DRI'],['def','DEF'],['phy','PHY']];
+  const avgVals=_teamAvgAttrs();
   let wins=[0,0];
-  const rows=attrs.map(([k,l])=>{
+  const rows=attrs.map(([k,l],idx)=>{
     const av=ra[k]||0,bv=rb[k]||0;
     if(av>bv)wins[0]++;else if(bv>av)wins[1]++;
     const aw=av>=bv,bw=bv>=av;
+    const avgVal=avgVals?avgVals[idx]:null;
+    const avgHtml=avgVal!=null?`<div style="font-size:8px;color:rgba(255,255,255,.4);font-weight:800;margin-top:2px">avg ${avgVal}</div>`:'';
     return `<div class="attr-row">
       <div class="atr-side atr-left">
         <div class="atr-val${aw?' wa':''}">${av}</div>
         <div class="bar-track"><div class="bar bar-a${aw?' win':''}" style="width:${av}%"></div></div>
       </div>
-      <div class="atr-center"><div class="atr-name">${l}</div></div>
+      <div class="atr-center"><div class="atr-name">${l}</div>${avgHtml}</div>
       <div class="atr-side atr-right">
         <div class="bar-track"><div class="bar bar-b${bw?' win':''}" style="width:${bv}%"></div></div>
         <div class="atr-val${bw?' wb':''}">${bv}</div>
       </div>
     </div>`;
   }).join('');
+  const teamAvgOvr=(()=>{const ps=activeTeam?activeTeam.players:[];if(!ps.length)return null;const vs=ps.map(p=>p.ovr||0).filter(v=>v>0);return vs.length?Math.round(vs.reduce((a,b)=>a+b,0)/vs.length):null;})();
+  const ovrAvgHtml=teamAvgOvr!=null?`<div style="font-size:8px;color:rgba(255,255,255,.4);font-weight:800;margin-top:2px">avg ${teamAvgOvr}</div>`:'';
   const ovrRow=`<div class="attr-row" style="border-top:1px solid rgba(255,255,255,.08);padding-top:8px;margin-top:4px">
     <div class="atr-side atr-left"><div class="atr-val wa" style="font-size:16px">${ra.ovr}</div><div class="bar-track"><div class="bar bar-a win" style="width:${ra.ovr}%"></div></div></div>
-    <div class="atr-center"><div class="atr-name" style="font-weight:900;color:#DFF0E3">OVR</div></div>
+    <div class="atr-center"><div class="atr-name" style="font-weight:900;color:#DFF0E3">OVR</div>${ovrAvgHtml}</div>
     <div class="atr-side atr-right"><div class="bar-track"><div class="bar bar-b" style="width:${rb.ovr}%"></div></div><div class="atr-val" style="font-size:16px">${rb.ovr}</div></div>
   </div>`;
   document.getElementById('attrBreakdown').innerHTML=rows+ovrRow;
@@ -4700,3 +4731,5 @@ function initAuth(){
   initAuth();
 })();
 </script>
+
+</body></html>
