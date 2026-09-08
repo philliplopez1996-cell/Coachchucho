@@ -11,7 +11,18 @@
   --text:#DFF0E3;--muted:#6B9A78;--dim:#3D5845;
   --border:rgba(0,229,100,.1);--border2:rgba(255,255,255,.06);
   --sidebar-w:228px;--sidebar-w-col:60px;--topbar:52px;--modal-z:200;
+  --topbar-bg:rgba(4,10,6,.95);--bottomnav-bg:rgba(6,13,8,.96);
+  --ui-overlay-bg:rgba(255,255,255,.04);--ui-overlay-border:rgba(255,255,255,.08);
 }
+:root[data-theme="light"]{
+  --bg:#EFF6F2;--surface:#FFFFFF;--surface2:#E6F0EB;--sidebar-bg:#FFFFFF;
+  --green:#00843F;--gold:#B07800;--orange:#D4610A;--red:#C0362A;--blue:#1A6BBF;
+  --text:#0D1F14;--muted:#5A8A6E;--dim:#87AE98;
+  --border:rgba(0,132,63,.15);--border2:rgba(0,132,63,.08);
+  --topbar-bg:rgba(255,255,255,.97);--bottomnav-bg:rgba(240,246,242,.97);
+  --ui-overlay-bg:rgba(0,0,0,.04);--ui-overlay-border:rgba(0,0,0,.1);
+}
+html[data-theme="light"],html[data-theme="light"] body{background:var(--bg)!important;}
 html,body{
   height:100%;
   background:
@@ -75,14 +86,20 @@ html{height:-webkit-fill-available}
 .shell.collapsed .team-chip{justify-content:center;padding:8px;margin-bottom:4px}
 
 /* ── Topbar ── */
-.topbar{background:rgba(4,10,6,.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;position:sticky;top:0;z-index:20}
+.topbar{background:var(--topbar-bg);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;position:sticky;top:0;z-index:20}
 .topbar-title{font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:16px;letter-spacing:1px;text-transform:uppercase;color:var(--text);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.topbar-search{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:0 12px;height:32px;width:180px}
+.topbar-search{display:flex;align-items:center;gap:8px;background:var(--ui-overlay-bg);border:1px solid var(--ui-overlay-border);border-radius:8px;padding:0 12px;height:32px;width:180px}
 .topbar-search input{background:none;border:none;outline:none;font-size:12px;color:var(--text);width:100%}
 .topbar-search input::placeholder{color:var(--dim)}
 .topbar-search svg{width:13px;height:13px;color:var(--dim);flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
-.tb-menu-btn{width:32px;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;display:none}
+.tb-menu-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--ui-overlay-border);background:var(--ui-overlay-bg);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;display:none}
 .tb-menu-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.theme-toggle{width:32px;height:32px;border-radius:8px;border:1px solid var(--ui-overlay-border);background:var(--ui-overlay-bg);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.theme-toggle:hover{color:var(--text)}
+.theme-toggle svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.tt-moon{display:none}
+:root[data-theme="light"] .tt-sun{display:none}
+:root[data-theme="light"] .tt-moon{display:block}
 
 /* ── Radar Badge ── */
 .radar-badge{position:relative;overflow:hidden;padding:0;background:rgba(0,229,100,.06)!important;width:36px;height:36px;border-radius:50%;border:1.5px solid rgba(0,229,100,.35);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
@@ -100,7 +117,7 @@ html{height:-webkit-fill-available}
 .view::-webkit-scrollbar-thumb{background:var(--dim);border-radius:999px}
 
 /* ── Bottom nav (mobile only) ── */
-.bottom-nav{display:none;height:auto;min-height:64px;padding:4px 8px max(12px,env(safe-area-inset-bottom));border-top:1px solid var(--border);background:rgba(6,13,8,.96);backdrop-filter:blur(20px);flex-shrink:0;gap:2px;grid-column:1/-1}
+.bottom-nav{display:none;height:auto;min-height:64px;padding:4px 8px max(12px,env(safe-area-inset-bottom));border-top:1px solid var(--border);background:var(--bottomnav-bg);backdrop-filter:blur(20px);flex-shrink:0;gap:2px;grid-column:1/-1}
 .bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:1px solid transparent;background:none;cursor:pointer;padding:8px 4px;border-radius:14px;color:var(--dim);transition:color .15s,background .15s,border-color .15s,box-shadow .15s,transform .08s,opacity .08s;-webkit-tap-highlight-color:transparent}
 .bnav-btn.active{color:var(--green);background:rgba(0,229,100,.11);border-color:rgba(0,229,100,.2);box-shadow:0 0 14px rgba(0,229,100,.07),inset 0 1px 0 rgba(0,229,100,.12)}
 .bnav-btn:active{transform:scale(0.88);opacity:.85}
@@ -978,6 +995,10 @@ button:active:not(:disabled){transform:scale(0.94);opacity:.88}
       <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       <input type="text" id="topSearch" placeholder="Search players…">
     </div>
+    <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+      <svg class="tt-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="tt-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
     <button class="radar-badge" id="radarBadge" title="Player Radar">
       <div class="rb-sweep"></div>
       <svg class="rb-svg" viewBox="0 0 32 32" fill="none">
@@ -4023,6 +4044,16 @@ function initAuth(){
   const sbToggle=document.getElementById('sbToggle');
   if(sbToggle)sbToggle.addEventListener('click',()=>{
     document.getElementById('shell').classList.toggle('collapsed');
+  });
+
+  /* Theme toggle */
+  const savedTheme=localStorage.getItem('cc_theme')||'dark';
+  if(savedTheme==='light')document.documentElement.setAttribute('data-theme','light');
+  const themeToggle=document.getElementById('themeToggle');
+  if(themeToggle)themeToggle.addEventListener('click',()=>{
+    const isLight=document.documentElement.getAttribute('data-theme')==='light';
+    if(isLight){document.documentElement.removeAttribute('data-theme');localStorage.setItem('cc_theme','dark');}
+    else{document.documentElement.setAttribute('data-theme','light');localStorage.setItem('cc_theme','light');}
   });
 
   /* Radar badge → switch to radar */
