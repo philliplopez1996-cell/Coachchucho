@@ -1321,6 +1321,10 @@ button:active:not(:disabled){transform:scale(0.94);opacity:.88}
       <svg viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15"/></svg>
       Share Sync Link
     </button>
+    <button class="menu-item" id="menuThemeBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <span id="menuThemeLbl">Light Mode</span>
+    </button>
   </div>
   <div class="menu-version">Roster Radar Web v2.0</div>
 </div>
@@ -4049,12 +4053,22 @@ function initAuth(){
   /* Theme toggle */
   const savedTheme=localStorage.getItem('cc_theme')||'dark';
   if(savedTheme==='light')document.documentElement.setAttribute('data-theme','light');
-  const themeToggle=document.getElementById('themeToggle');
-  if(themeToggle)themeToggle.addEventListener('click',()=>{
+  function toggleTheme(){
     const isLight=document.documentElement.getAttribute('data-theme')==='light';
     if(isLight){document.documentElement.removeAttribute('data-theme');localStorage.setItem('cc_theme','dark');}
     else{document.documentElement.setAttribute('data-theme','light');localStorage.setItem('cc_theme','light');}
-  });
+    _updateThemeMenuLabel();
+  }
+  function _updateThemeMenuLabel(){
+    const isLight=document.documentElement.getAttribute('data-theme')==='light';
+    const lbl=document.getElementById('menuThemeLbl');
+    if(lbl)lbl.textContent=isLight?'Dark Mode':'Light Mode';
+  }
+  const themeToggle=document.getElementById('themeToggle');
+  if(themeToggle)themeToggle.addEventListener('click',toggleTheme);
+  const menuThemeBtn=document.getElementById('menuThemeBtn');
+  if(menuThemeBtn)menuThemeBtn.addEventListener('click',()=>{toggleTheme();closeMobileMenu();});
+  _updateThemeMenuLabel();
 
   /* Radar badge → switch to radar */
   const rb=document.getElementById('radarBadge');
