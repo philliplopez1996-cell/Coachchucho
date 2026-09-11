@@ -22,14 +22,26 @@
   --topbar-bg:rgba(255,255,255,.97);--bottomnav-bg:rgba(240,246,242,.97);
   --ui-overlay-bg:rgba(0,0,0,.04);--ui-overlay-border:rgba(0,0,0,.1);
 }
-html[data-theme="light"],html[data-theme="light"] body{background:var(--bg)!important;}
+html[data-theme="light"],html[data-theme="light"] body{
+  background:
+    radial-gradient(circle at 1px 1px, rgba(0,132,63,.07) 1px, transparent 0),
+    radial-gradient(ellipse 70% 55% at 15% 12%, rgba(0,132,63,.09) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 50% at 85% 88%, rgba(0,132,63,.06) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 45% at 50% 100%, rgba(0,100,40,.05) 0%, transparent 55%),
+    #EFF6F2 !important;
+  background-size: 28px 28px, 100% 100%, 100% 100%, 100% 100%, 100% 100% !important;
+}
 html,body{
   height:100%;
   background:
-    radial-gradient(ellipse 70% 55% at 18% 15%, rgba(0,229,100,.055) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 70% at 85% 88%, rgba(0,40,16,.55) 0%, transparent 60%),
-    radial-gradient(ellipse 100% 60% at 50% 110%, rgba(0,15,8,.7) 0%, transparent 55%),
+    radial-gradient(circle at 1px 1px, rgba(0,229,100,.028) 1px, transparent 0),
+    radial-gradient(ellipse 70% 55% at 18% 15%, rgba(0,229,100,.085) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 35% at 80% 10%, rgba(0,229,100,.04) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 70% at 85% 88%, rgba(0,40,16,.6) 0%, transparent 60%),
+    radial-gradient(ellipse 100% 60% at 50% 115%, rgba(0,15,8,.75) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 40% at 50% 50%, rgba(0,229,100,.022) 0%, transparent 70%),
     var(--bg);
+  background-size: 32px 32px, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
   color:var(--text);font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden
 }
 html{height:-webkit-fill-available}
@@ -110,7 +122,8 @@ html{height:-webkit-fill-available}
 @keyframes rb-blip-anim{0%,82%{opacity:0}83%{opacity:1}90%{opacity:.8}95%{opacity:.3}100%{opacity:0}}
 
 /* ── Main / Views ── */
-.main{overflow:hidden;display:flex;position:relative;background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(0,229,100,.03) 0%,transparent 65%)}
+.main{overflow:hidden;display:flex;position:relative;background:radial-gradient(ellipse 90% 45% at 50% -5%,rgba(0,229,100,.055) 0%,transparent 60%),radial-gradient(ellipse 60% 35% at 0% 50%,rgba(0,229,100,.02) 0%,transparent 55%),radial-gradient(ellipse 70% 40% at 100% 80%,rgba(0,40,16,.35) 0%,transparent 55%)}
+:root[data-theme="light"] .main{background:radial-gradient(ellipse 90% 45% at 50% -5%,rgba(0,132,63,.07) 0%,transparent 60%),radial-gradient(ellipse 60% 35% at 0% 50%,rgba(0,132,63,.03) 0%,transparent 55%),transparent}
 .view{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:20px;display:none;scrollbar-width:thin;scrollbar-color:var(--dim) transparent}
 .view.active{display:block}
 .view::-webkit-scrollbar{width:4px}
