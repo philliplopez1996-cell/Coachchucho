@@ -24,24 +24,24 @@
 }
 html[data-theme="light"],html[data-theme="light"] body{
   background:
-    radial-gradient(circle at 1px 1px, rgba(0,132,63,.07) 1px, transparent 0),
-    radial-gradient(ellipse 70% 55% at 15% 12%, rgba(0,132,63,.09) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 50% at 85% 88%, rgba(0,132,63,.06) 0%, transparent 60%),
-    radial-gradient(ellipse 80% 45% at 50% 100%, rgba(0,100,40,.05) 0%, transparent 55%),
+    repeating-linear-gradient(180deg,rgba(0,132,63,.03) 0px,rgba(0,132,63,.03) 22px,transparent 22px,transparent 44px),
+    radial-gradient(ellipse 70% 55% at 15% 12%, rgba(0,132,63,.13) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 50% at 85% 88%, rgba(0,132,63,.09) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 45% at 50% 100%, rgba(0,100,40,.07) 0%, transparent 55%),
     #EFF6F2 !important;
-  background-size: 28px 28px, 100% 100%, 100% 100%, 100% 100%, 100% 100% !important;
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100% !important;
 }
 html,body{
   height:100%;
   background:
-    radial-gradient(circle at 1px 1px, rgba(0,229,100,.028) 1px, transparent 0),
-    radial-gradient(ellipse 70% 55% at 18% 15%, rgba(0,229,100,.085) 0%, transparent 65%),
-    radial-gradient(ellipse 40% 35% at 80% 10%, rgba(0,229,100,.04) 0%, transparent 60%),
-    radial-gradient(ellipse 55% 70% at 85% 88%, rgba(0,40,16,.6) 0%, transparent 60%),
+    repeating-linear-gradient(180deg,rgba(0,229,100,.02) 0px,rgba(0,229,100,.02) 22px,transparent 22px,transparent 44px),
+    radial-gradient(ellipse 70% 55% at 18% 15%, rgba(0,229,100,.13) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 35% at 80% 10%, rgba(0,229,100,.06) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 70% at 85% 88%, rgba(0,40,16,.65) 0%, transparent 60%),
     radial-gradient(ellipse 100% 60% at 50% 115%, rgba(0,15,8,.75) 0%, transparent 55%),
-    radial-gradient(ellipse 55% 40% at 50% 50%, rgba(0,229,100,.022) 0%, transparent 70%),
+    radial-gradient(ellipse 55% 40% at 50% 50%, rgba(0,229,100,.03) 0%, transparent 70%),
     var(--bg);
-  background-size: 32px 32px, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
   color:var(--text);font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden
 }
 html{height:-webkit-fill-available}
@@ -124,6 +124,89 @@ html{height:-webkit-fill-available}
 /* ── Main / Views ── */
 .main{overflow:hidden;display:flex;position:relative;background:radial-gradient(ellipse 90% 45% at 50% -5%,rgba(0,229,100,.055) 0%,transparent 60%),radial-gradient(ellipse 60% 35% at 0% 50%,rgba(0,229,100,.02) 0%,transparent 55%),radial-gradient(ellipse 70% 40% at 100% 80%,rgba(0,40,16,.35) 0%,transparent 55%)}
 :root[data-theme="light"] .main{background:radial-gradient(ellipse 90% 45% at 50% -5%,rgba(0,132,63,.07) 0%,transparent 60%),radial-gradient(ellipse 60% 35% at 0% 50%,rgba(0,132,63,.03) 0%,transparent 55%),transparent}
+
+/* ── Light mode: fix hardcoded dark-world values ── */
+:root[data-theme="light"] .back-btn,
+:root[data-theme="light"] .addp-close,
+:root[data-theme="light"] .picker-close,
+:root[data-theme="light"] .action-close,
+:root[data-theme="light"] .panel-back,
+:root[data-theme="light"] .menu-close,
+:root[data-theme="light"] .cal-nav-btn,
+:root[data-theme="light"] .sb-toggle,
+:root[data-theme="light"] .team-del-btn,
+:root[data-theme="light"] .pm-back{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.13)}
+:root[data-theme="light"] .ap-input,
+:root[data-theme="light"] .prof-edit-input{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.15)}
+:root[data-theme="light"] .ap-input option{background:#fff;color:#0D1F14}
+:root[data-theme="light"] .picker-search{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12)}
+:root[data-theme="light"] .search-box{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12)}
+:root[data-theme="light"] .pill,
+:root[data-theme="light"] .sort-pill,
+:root[data-theme="light"] .tm-pill,
+:root[data-theme="light"] .foot-pill,
+:root[data-theme="light"] .pf-slot-btn,
+:root[data-theme="light"] .ev-type-btn,
+:root[data-theme="light"] .prog-tab{border-color:rgba(0,0,0,.15);background:rgba(0,0,0,.03)}
+:root[data-theme="light"] .sort-dd-btn{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.14)}
+:root[data-theme="light"] .sort-dd-menu{background:var(--surface);border-color:rgba(0,0,0,.12);box-shadow:0 8px 28px rgba(0,0,0,.12)}
+:root[data-theme="light"] .sort-dd-opt:hover{background:rgba(0,0,0,.05)}
+:root[data-theme="light"] .attr-slider{background:rgba(0,0,0,.12)}
+:root[data-theme="light"] .bar-track{background:rgba(0,0,0,.1)}
+:root[data-theme="light"] .att-row{border-bottom-color:rgba(0,0,0,.07)}
+:root[data-theme="light"] .att-btn{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12)}
+:root[data-theme="light"] .att-bulk-btn{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.12)}
+:root[data-theme="light"] .attr-tile,
+:root[data-theme="light"] .stat-tile{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.08)}
+:root[data-theme="light"] .at-val{text-shadow:none}
+:root[data-theme="light"] .pgh-clock{text-shadow:none}
+:root[data-theme="light"] .cal-view-left{background:rgba(255,255,255,.65);border-color:rgba(0,0,0,.08);box-shadow:0 8px 40px rgba(0,0,0,.07),inset 0 1px 0 rgba(255,255,255,.9)}
+:root[data-theme="light"] .cal-view-right{background:rgba(255,255,255,.65);border-color:rgba(0,0,0,.08);box-shadow:0 6px 32px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.9)}
+:root[data-theme="light"] #view-calendar .cal-day{background:rgba(255,255,255,.7);border-color:rgba(0,0,0,.09);box-shadow:0 2px 6px rgba(0,0,0,.05)}
+:root[data-theme="light"] #view-calendar .cal-day:hover{background:rgba(255,255,255,.95);border-color:rgba(0,132,63,.28);box-shadow:0 4px 12px rgba(0,0,0,.1)}
+:root[data-theme="light"] #view-calendar .cal-day:not(.other-month)::before{color:rgba(0,0,0,0)}
+:root[data-theme="light"] #view-calendar .cal-day:not(.other-month):hover::before{color:rgba(0,132,63,.55)}
+:root[data-theme="light"] #view-calendar .cal-nav-btn{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.1);box-shadow:none}
+:root[data-theme="light"] #view-calendar .cal-nav-btn:hover{background:rgba(0,0,0,.08);border-color:rgba(0,0,0,.18);box-shadow:none}
+:root[data-theme="light"] .cal-view-right .cal-event-item{background:rgba(0,0,0,.025);border-color:rgba(0,0,0,.08)}
+:root[data-theme="light"] .cal-view-right .cal-event-item:hover{background:rgba(0,0,0,.04);border-color:rgba(0,132,63,.22)}
+:root[data-theme="light"] .cal-view-right .cal-event-item:last-child{border-color:rgba(0,0,0,.08)}
+:root[data-theme="light"] .pmp-wrap{background:rgba(0,0,0,.07)}
+:root[data-theme="light"] .pmp-btn{color:var(--muted)}
+:root[data-theme="light"] .bench-chip-m{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.1)}
+:root[data-theme="light"] .bench-chip-m:hover{background:rgba(0,0,0,.07)}
+:root[data-theme="light"] .bench-player:hover{background:rgba(0,0,0,.03)}
+:root[data-theme="light"] .bench-av{background:rgba(0,0,0,.07);border-color:rgba(0,0,0,.14);color:var(--muted)}
+:root[data-theme="light"] .bc-av{background:rgba(0,0,0,.06);border-color:rgba(0,0,0,.13);color:var(--muted)}
+:root[data-theme="light"] .br-av{background:rgba(0,0,0,.06);border-color:rgba(0,0,0,.12);color:var(--muted)}
+:root[data-theme="light"] .pitch-game-hud{background:rgba(255,255,255,.88);border-color:rgba(0,132,63,.3);box-shadow:0 0 14px rgba(0,132,63,.06)}
+:root[data-theme="light"] .pgh-score{color:var(--text)}
+:root[data-theme="light"] .pitch-match-log{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.08)}
+:root[data-theme="light"] .pml-row{border-bottom-color:rgba(0,0,0,.05)}
+:root[data-theme="light"] .pml-text,.root[data-theme="light"] .pml-entry{color:var(--text)}
+:root[data-theme="light"] .pml-entry{border-bottom-color:rgba(0,0,0,.05)}
+:root[data-theme="light"] .bench-row:hover{background:rgba(0,0,0,.04)}
+:root[data-theme="light"] .bench-row{border-bottom-color:rgba(0,0,0,.06)}
+:root[data-theme="light"] .picker-player-item:hover,
+:root[data-theme="light"] .picker-player-item.selected{background:rgba(0,0,0,.04)}
+:root[data-theme="light"] .action-row:hover{background:rgba(0,0,0,.04)}
+:root[data-theme="light"] .action-row:active,
+:root[data-theme="light"] .action-player-item:active,
+:root[data-theme="light"] .picker-player-item:active{background:rgba(0,0,0,.07)!important}
+:root[data-theme="light"] .picker-row:hover{background:rgba(0,0,0,.04)}
+:root[data-theme="light"] .panel-overlay{background:linear-gradient(160deg,#f0f7f3 0%,#eef5f0 100%)}
+:root[data-theme="light"] .menu-panel{background:linear-gradient(160deg,#f0f7f3 0%,#eef5f0 100%)}
+:root[data-theme="light"] .picker-sheet,
+:root[data-theme="light"] .addp-sheet{background:var(--surface);border-color:rgba(0,0,0,.1)}
+:root[data-theme="light"] .action-sheet,
+:root[data-theme="light"] .postgame-sheet{background:rgba(240,246,242,.97);border-color:rgba(0,0,0,.1)}
+:root[data-theme="light"] .player-modal-overlay{background:linear-gradient(160deg,#f0f7f3 0%,#eef5f0 100%)}
+:root[data-theme="light"] .pm-av{background:rgba(0,132,63,.1);border-color:rgba(0,132,63,.25);color:var(--green)}
+:root[data-theme="light"] .potm-av{background:rgba(0,0,0,.07);border-color:rgba(0,0,0,.14);color:var(--muted)}
+:root[data-theme="light"] .action-topbar{border-bottom-color:rgba(0,0,0,.08)}
+:root[data-theme="light"] .sub-half{border-bottom-color:rgba(0,0,0,.08)}
+:root[data-theme="light"] .bnav-team-dot{border-color:rgba(240,246,242,.98)}
+
 .view{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:20px;display:none;scrollbar-width:thin;scrollbar-color:var(--dim) transparent}
 .view.active{display:block}
 .view::-webkit-scrollbar{width:4px}
