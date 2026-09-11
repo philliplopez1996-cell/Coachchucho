@@ -713,9 +713,9 @@ html{height:-webkit-fill-available}
 /* ── Team Modal ── */
 .team-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:220;display:none;align-items:flex-end}
 .team-modal-overlay.open{display:flex}
-.tm-pill{padding:6px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:none;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;transition:all .15s;margin:3px}
+.tm-pill{padding:5px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:none;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;transition:all .15s}
 .tm-pill.sel{background:rgba(0,229,100,.12);border-color:rgba(0,229,100,.4);color:var(--green)}
-.tm-age-grid,.tm-form-grid{display:flex;flex-wrap:wrap}
+.tm-age-grid,.tm-form-grid{display:flex;flex-wrap:wrap;gap:4px}
 .color-swatch-grid{display:flex;flex-wrap:wrap;gap:8px}
 .color-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s}
 .color-swatch.sel{border-color:#fff;transform:scale(1.15)}
@@ -1600,25 +1600,31 @@ button:active:not(:disabled){transform:scale(0.94);opacity:.88}
 
 <!-- TEAM FOLDER MODAL -->
 <div class="team-modal-overlay" id="teamModalOverlay">
-  <div class="addp-sheet">
+  <div class="addp-sheet" style="max-height:82vh">
     <div class="addp-topbar">
       <div class="addp-title">New Team Folder</div>
       <button class="addp-close" id="tmClose">✕</button>
     </div>
-    <div class="addp-body">
-      <div style="text-align:center;margin-bottom:16px">
+    <div class="addp-body" style="gap:8px;padding:12px 16px">
+      <!-- Photo + Name row -->
+      <div style="display:flex;align-items:center;gap:12px">
         <input type="file" id="tmPhotoInput" accept="image/*" style="display:none">
-        <div id="tmPhotoPreview" style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.06);border:2px dashed rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;cursor:pointer;overflow:hidden;background-size:cover;background-position:center">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.8" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <div id="tmPhotoPreview" style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.06);border:2px dashed rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;overflow:hidden;background-size:cover;background-position:center" title="Team photo (optional)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.8" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
         </div>
-        <div style="font-size:10px;color:var(--muted)">Team photo (optional)</div>
+        <div class="ap-field" style="flex:1;gap:4px">
+          <div class="ap-label">Team Name</div>
+          <input class="ap-input" id="tmName" type="text" placeholder="e.g. GSA United" maxlength="40">
+        </div>
       </div>
-      <div class="ap-field"><div class="ap-label">Team Name</div><input class="ap-input" id="tmName" type="text" placeholder="e.g. GSA United" maxlength="40"></div>
-      <div class="ap-field"><div class="ap-label">Age Group</div><div class="tm-age-grid" id="tmAgeGrid"></div></div>
-      <div class="ap-field"><div class="ap-label">Game Format</div><div class="tm-age-grid" id="tmFormatGrid"></div></div>
-      <div class="ap-field"><div class="ap-label">Formation</div><div class="tm-form-grid" id="tmFormGrid"></div></div>
-      <div class="ap-field"><div class="ap-label">Team Color</div><div class="color-swatch-grid" id="tmColorGrid"></div></div>
-      <button class="tm-create-btn" id="tmSaveBtn">
+      <!-- Age Group + Format side by side -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div class="ap-field" style="gap:4px"><div class="ap-label">Age Group</div><div class="tm-age-grid" id="tmAgeGrid"></div></div>
+        <div class="ap-field" style="gap:4px"><div class="ap-label">Game Format</div><div class="tm-age-grid" id="tmFormatGrid"></div></div>
+      </div>
+      <div class="ap-field" style="gap:4px"><div class="ap-label">Formation</div><div class="tm-form-grid" id="tmFormGrid"></div></div>
+      <div class="ap-field" style="gap:6px"><div class="ap-label">Team Color</div><div class="color-swatch-grid" id="tmColorGrid"></div></div>
+      <button class="tm-create-btn" id="tmSaveBtn" style="margin-top:4px">
         <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
         Create Team Folder
       </button>
