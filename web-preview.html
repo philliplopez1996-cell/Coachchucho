@@ -120,6 +120,11 @@ html{height:-webkit-fill-available}
 .rb-blip{fill:#00E564;filter:drop-shadow(0 0 2px #00E564);opacity:0;animation:rb-blip-anim 3.5s linear infinite;animation-delay:var(--d)}
 @keyframes rb-spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @keyframes rb-blip-anim{0%,82%{opacity:0}83%{opacity:1}90%{opacity:.8}95%{opacity:.3}100%{opacity:0}}
+/* Light mode — boost radar badge contrast */
+:root[data-theme="light"] .radar-badge{background:rgba(0,132,63,.14)!important;border:2px solid rgba(0,132,63,.55);box-shadow:0 0 0 3px rgba(0,132,63,.1),0 2px 10px rgba(0,132,63,.2)}
+:root[data-theme="light"] .rb-sweep{background:conic-gradient(from 0deg,transparent 0deg,rgba(0,132,63,.7) 30deg,rgba(0,132,63,.2) 60deg,transparent 90deg)}
+:root[data-theme="light"] .rb-blip{fill:#00843F;filter:drop-shadow(0 0 2.5px rgba(0,132,63,.9))}
+:root[data-theme="light"] .rb-svg circle[stroke]{stroke:rgba(0,132,63,1)}
 
 /* ── Main / Views ── */
 .main{overflow:hidden;display:flex;position:relative;background:radial-gradient(ellipse 90% 45% at 50% -5%,rgba(0,229,100,.055) 0%,transparent 60%),radial-gradient(ellipse 60% 35% at 0% 50%,rgba(0,229,100,.02) 0%,transparent 55%),radial-gradient(ellipse 70% 40% at 100% 80%,rgba(0,40,16,.35) 0%,transparent 55%)}
@@ -971,6 +976,31 @@ button:active:not(:disabled){transform:scale(0.94);opacity:.88}
   <div style="display:flex;gap:8px">
     <button id="syncLinkNo" style="flex:1;padding:10px;border-radius:10px;background:rgba(255,255,255,.06);border:none;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer">Cancel</button>
     <button id="syncLinkYes" style="flex:2;padding:10px;border-radius:10px;background:var(--green);border:none;color:#000;font-size:12px;font-weight:800;cursor:pointer">Yes, Import</button>
+  </div>
+</div>
+
+<!-- WALKTHROUGH OVERLAY -->
+<div id="wt-overlay" style="display:none;position:fixed;inset:0;z-index:8500;pointer-events:none">
+  <!-- dim backdrop, punched out around target -->
+  <div id="wt-backdrop" style="position:absolute;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(1px);transition:opacity .25s;pointer-events:all"></div>
+  <!-- spotlight cutout via clip-path on backdrop — replaced per step -->
+  <!-- tooltip card -->
+  <div id="wt-card" style="position:absolute;width:min(88vw,340px);background:var(--surface,#0c1810);border:1px solid rgba(0,229,100,.35);border-radius:20px;padding:22px 20px 18px;box-shadow:0 20px 60px rgba(0,0,0,.65),0 0 0 1px rgba(0,229,100,.1);pointer-events:all;transition:left .3s,top .3s,opacity .25s;z-index:2">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <div id="wt-icon" style="width:36px;height:36px;border-radius:10px;background:rgba(0,229,100,.1);border:1px solid rgba(0,229,100,.28);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0"></div>
+      <div>
+        <div id="wt-step-lbl" style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--dim,#3D5845)">Step 1 of 5</div>
+        <div id="wt-title" style="font-size:15px;font-weight:800;color:var(--text,#DFF0E3);line-height:1.2"></div>
+      </div>
+    </div>
+    <div id="wt-body" style="font-size:12px;color:var(--muted,#6B9A78);line-height:1.65;margin-bottom:16px"></div>
+    <!-- progress dots -->
+    <div id="wt-dots" style="display:flex;gap:5px;justify-content:center;margin-bottom:14px"></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button id="wt-skip" style="background:none;border:none;color:var(--dim,#3D5845);font-size:11px;font-weight:700;cursor:pointer;padding:4px 0;flex:1;text-align:left">Skip tour</button>
+      <button id="wt-prev" style="padding:8px 16px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--muted,#6B9A78);font-size:12px;font-weight:800;cursor:pointer;display:none">Back</button>
+      <button id="wt-next" style="padding:8px 20px;border-radius:10px;background:var(--green,#00E564);border:none;color:#071A0A;font-size:12px;font-weight:800;cursor:pointer">Next →</button>
+    </div>
   </div>
 </div>
 
@@ -4635,6 +4665,7 @@ function initAuth(){
     }
     document.getElementById('authScreen').style.display='none';
     bootApp();
+    setTimeout(()=>{if(window._startWalkthrough)window._startWalkthrough();},600);
   });
   document.getElementById('authCreatePass2').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('authCreateSubmit').click();});
 
@@ -4877,6 +4908,200 @@ function initAuth(){
 
   checkIncomingSyncLink();
   initAuth();
+})();
+
+/* ══════════════════════════════════════════════
+   WALKTHROUGH
+══════════════════════════════════════════════ */
+(function(){
+  const WT_KEY='cc_wt_done';
+  const STEPS=[
+    {
+      icon:'📋',
+      title:'Your Teams',
+      body:'Start by creating a team. Tap <strong style="color:var(--green)">+ New Team</strong> and give it a name, age group, and formation. You can manage multiple teams from the sidebar.',
+      target:'addFolderBtn',
+      placement:'below'
+    },
+    {
+      icon:'⚽',
+      title:'Player Roster',
+      body:'Add players to your roster by tapping <strong style="color:var(--green)">+ Add Player</strong>. Set their position, attributes, and contact info — all in one place.',
+      target:'addPlayerBtn',
+      placement:'below',
+      viewBefore:'teams'
+    },
+    {
+      icon:'🗓',
+      title:'Calendar & Events',
+      body:'Track games, practices, and custom events on the calendar. Tap any day to add an event — set the type, title, time, and link it to a team.',
+      target:'calPrevBtn',
+      placement:'right',
+      viewBefore:'calendar'
+    },
+    {
+      icon:'🏟',
+      title:'Pitch & Lineup',
+      body:'Drag players onto the pitch to build your starting lineup. Switch to <strong style="color:var(--green)">Match Mode</strong> to track live scores and substitutions during a game.',
+      target:'pmpRegularBtn',
+      placement:'below',
+      viewBefore:'pitch'
+    },
+    {
+      icon:'📡',
+      title:'Player Radar',
+      body:'Compare any two players side-by-side on the Radar screen. Pick players from the slots at the top to see a full attribute breakdown and verdict.',
+      target:'radarBadge',
+      placement:'below-left'
+    }
+  ];
+
+  let _step=0;
+  let _active=false;
+
+  function _sk(){return 'cc_wt_done';}
+
+  function startWalkthrough(){
+    if(localStorage.getItem(_sk())==='1')return;
+    _active=true;
+    _step=0;
+    document.getElementById('wt-overlay').style.display='';
+    _renderStep();
+  }
+
+  function _finishWalkthrough(){
+    _active=false;
+    localStorage.setItem(_sk(),'1');
+    const ov=document.getElementById('wt-overlay');
+    ov.style.opacity='0';
+    ov.style.transition='opacity .3s';
+    setTimeout(()=>{ov.style.display='none';ov.style.opacity='';ov.style.transition='';},320);
+  }
+
+  function _renderStep(){
+    const s=STEPS[_step];
+    const total=STEPS.length;
+
+    /* Switch view if step requires it */
+    if(s.viewBefore)switchView(s.viewBefore);
+
+    /* Labels */
+    document.getElementById('wt-icon').textContent=s.icon;
+    document.getElementById('wt-step-lbl').textContent='Step '+(_step+1)+' of '+total;
+    document.getElementById('wt-title').textContent=s.title;
+    document.getElementById('wt-body').innerHTML=s.body;
+
+    /* Dots */
+    const dots=document.getElementById('wt-dots');
+    dots.innerHTML=STEPS.map((_,i)=>`<div style="width:${i===_step?20:6}px;height:6px;border-radius:999px;background:${i===_step?'var(--green,#00E564)':'rgba(255,255,255,.15)'};transition:all .25s"></div>`).join('');
+
+    /* Buttons */
+    document.getElementById('wt-prev').style.display=_step===0?'none':'';
+    const nextBtn=document.getElementById('wt-next');
+    nextBtn.textContent=_step===total-1?'Get started ✓':'Next →';
+
+    /* Position card near target */
+    setTimeout(()=>_positionCard(s),60);
+  }
+
+  function _positionCard(s){
+    const card=document.getElementById('wt-card');
+    const backdrop=document.getElementById('wt-backdrop');
+    const target=document.getElementById(s.target);
+    const ov=document.getElementById('wt-overlay');
+    const ovRect=ov.getBoundingClientRect();
+
+    card.style.opacity='0';
+
+    if(!target){
+      /* Center if no target */
+      card.style.left='50%';
+      card.style.top='50%';
+      card.style.transform='translate(-50%,-50%)';
+      backdrop.style.clipPath='none';
+      card.style.opacity='1';
+      return;
+    }
+
+    const r=target.getBoundingClientRect();
+    const pad=10;
+    /* Highlight cutout via box-shadow on a pseudo positioned div */
+    const spotEl=document.getElementById('wt-spot');
+    /* Use spotlight via backdrop with clip-path exclusion — simpler: just lower opacity in areas */
+    /* Actually do a semi-transparent backdrop and a bright ring around target */
+    backdrop.style.boxShadow='none';
+
+    /* Place card */
+    card.style.transform='none';
+    const cw=340;
+    const ch=240;
+    const vw=window.innerWidth;
+    const vh=window.innerHeight;
+
+    let left,top;
+    const pl=s.placement||'below';
+
+    if(pl==='below'||pl==='below-left'){
+      top=r.bottom+pad;
+      left=pl==='below-left'?Math.min(r.right-cw,vw-cw-16):Math.max(16,r.left);
+    } else if(pl==='right'){
+      top=r.top;
+      left=r.right+pad;
+    } else {
+      top=r.top-ch-pad;
+      left=r.left;
+    }
+
+    /* Clamp */
+    left=Math.max(16,Math.min(left,vw-cw-16));
+    top=Math.max(16,Math.min(top,vh-ch-16));
+
+    card.style.left=left+'px';
+    card.style.top=top+'px';
+    card.style.opacity='1';
+
+    /* Highlight ring on target */
+    _applyHighlight(target);
+  }
+
+  let _hlEl=null;
+  function _applyHighlight(el){
+    _removeHighlight();
+    if(!el)return;
+    const r=el.getBoundingClientRect();
+    const h=document.createElement('div');
+    h.id='wt-hl';
+    h.style.cssText='position:fixed;z-index:8501;border-radius:50%;pointer-events:none;transition:all .25s;box-shadow:0 0 0 3px #00E564,0 0 0 6px rgba(0,229,100,.35),0 0 24px rgba(0,229,100,.4);';
+    const pad=6;
+    h.style.left=(r.left-pad)+'px';
+    h.style.top=(r.top-pad)+'px';
+    h.style.width=(r.width+pad*2)+'px';
+    h.style.height=(r.height+pad*2)+'px';
+    h.style.borderRadius=r.width===r.height?'50%':'12px';
+    document.body.appendChild(h);
+    _hlEl=h;
+  }
+
+  function _removeHighlight(){
+    if(_hlEl){_hlEl.remove();_hlEl=null;}
+    const old=document.getElementById('wt-hl');
+    if(old)old.remove();
+  }
+
+  /* Wire buttons */
+  document.getElementById('wt-next').addEventListener('click',()=>{
+    if(_step<STEPS.length-1){_step++;_renderStep();}
+    else _finishWalkthrough();
+  });
+  document.getElementById('wt-prev').addEventListener('click',()=>{
+    if(_step>0){_step--;_renderStep();}
+  });
+  document.getElementById('wt-skip').addEventListener('click',_finishWalkthrough);
+  document.getElementById('wt-backdrop').addEventListener('click',_finishWalkthrough);
+
+  /* Expose so bootApp can trigger it */
+  window._startWalkthrough=startWalkthrough;
+  window._finishWalkthrough=_finishWalkthrough;
 })();
 </script>
 
