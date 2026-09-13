@@ -22,37 +22,16 @@
   --topbar-bg:rgba(255,255,255,.97);--bottomnav-bg:rgba(240,246,242,.97);
   --ui-overlay-bg:rgba(0,0,0,.04);--ui-overlay-border:rgba(0,0,0,.1);
 }
-html[data-theme="light"],html[data-theme="light"] body{
-  background:
-    repeating-linear-gradient(45deg, rgba(0,132,63,.07) 0px, rgba(0,132,63,.07) 1px, transparent 1px, transparent 32px),
-    repeating-linear-gradient(-45deg, rgba(0,132,63,.07) 0px, rgba(0,132,63,.07) 1px, transparent 1px, transparent 32px),
-    radial-gradient(ellipse 65% 55% at 50% 40%, rgba(0,132,63,.1) 0%, transparent 65%),
-    radial-gradient(ellipse 50% 40% at 4% 6%, rgba(0,132,63,.12) 0%, transparent 55%),
-    #EFF6F2 !important;
-  background-size: 32px 32px, 32px 32px, 100% 100%, 100% 100%, 100% 100% !important;
-}
+html[data-theme="light"],html[data-theme="light"] body{background:var(--bg)!important}
 html,body{
   height:100%;
-  background:
-    /* Diamond grid — Geo Rush style */
-    repeating-linear-gradient(45deg, rgba(0,229,100,.07) 0px, rgba(0,229,100,.07) 1px, transparent 1px, transparent 32px),
-    repeating-linear-gradient(-45deg, rgba(0,229,100,.07) 0px, rgba(0,229,100,.07) 1px, transparent 1px, transparent 32px),
-    /* Neon center bloom */
-    radial-gradient(ellipse 65% 55% at 50% 40%, rgba(0,229,100,.12) 0%, transparent 65%),
-    /* Top-left neon accent */
-    radial-gradient(ellipse 50% 42% at 4% 6%, rgba(0,229,100,.18) 0%, transparent 55%),
-    /* Bottom-right dark void */
-    radial-gradient(ellipse 55% 55% at 94% 94%, rgba(0,8,20,.9) 0%, transparent 55%),
-    /* Bottom edge fade to black */
-    radial-gradient(ellipse 100% 55% at 50% 110%, rgba(0,3,12,.9) 0%, transparent 50%),
-    var(--bg);
-  background-size: 32px 32px, 32px 32px, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+  background:var(--bg);
   color:var(--text);font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden
 }
 html{height:-webkit-fill-available}
 
 /* ── Shell ── */
-.shell{display:grid;grid-template-columns:var(--sidebar-w) 1fr;grid-template-rows:var(--topbar) 1fr;height:100vh;height:100svh;min-height:-webkit-fill-available;transition:grid-template-columns .22s ease}
+.shell{display:grid;grid-template-columns:var(--sidebar-w) 1fr;grid-template-rows:var(--topbar) 1fr;height:100vh;height:100svh;min-height:-webkit-fill-available;transition:grid-template-columns .22s ease;position:relative;z-index:1}
 .shell.collapsed{grid-template-columns:var(--sidebar-w-col) 1fr}
 
 /* ── Sidebar ── */
@@ -958,6 +937,7 @@ button:active:not(:disabled){transform:scale(0.94);opacity:.88}
 .auth-forgot:hover{color:var(--text)}
 .auth-note{text-align:center;font-size:10px;color:var(--dim);margin-top:14px}
 </style>
+<canvas id="bg-canvas" style="position:fixed;inset:0;z-index:0;pointer-events:none;width:100%;height:100%"></canvas>
 
 <!-- AUTH SCREEN -->
 <!-- SYNC MODAL -->
@@ -5107,6 +5087,119 @@ function initAuth(){
   /* Expose so bootApp can trigger it */
   window._startWalkthrough=startWalkthrough;
   window._finishWalkthrough=_finishWalkthrough;
+})();
+
+/* ── Perspective Soccer Pitch Background ────────────────── */
+(function initBgCanvas(){
+  const cv=document.getElementById('bg-canvas');
+  if(!cv)return;
+  function rng42(seed){let a=seed;return function(){a+=0x6d2b79f5;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296};}
+  function draw(){
+    const DPR=Math.min(window.devicePixelRatio||1,2);
+    const W=cv.width=cv.offsetWidth*DPR;
+    const H=cv.height=cv.offsetHeight*DPR;
+    const ctx=cv.getContext('2d');
+    const dark=document.documentElement.dataset.theme!=='light';
+    const VX=W*.5,VY=H*.40,CAM=22,NHW=W*.47;
+    function p2s(px,py){const sc=CAM/(py+CAM);return[VX+(px/34)*sc*NHW,VY+(H-VY)*sc];}
+
+    /* sky */
+    if(dark){
+      const sg=ctx.createLinearGradient(0,0,0,VY);
+      sg.addColorStop(0,'#04000e');sg.addColorStop(.5,'#0b0022');sg.addColorStop(1,'#16003a');
+      ctx.fillStyle=sg;ctx.fillRect(0,0,W,VY);
+      /* stars */
+      const r=rng42(7777);ctx.save();
+      for(let i=0;i<160;i++){const x=r()*W,y=r()*VY*.93,rr=r()*1.2+.3,a=r()*.65+.3;ctx.beginPath();ctx.arc(x,y,rr,0,Math.PI*2);ctx.fillStyle=`rgba(255,242,255,${a})`;ctx.fill();}
+      ctx.restore();
+      /* moon */
+      const mx=W*.76,my=VY*.27,mr=Math.max(11,W*.017);
+      const mg=ctx.createRadialGradient(mx,my,0,mx,my,mr*3.5);
+      mg.addColorStop(0,'rgba(255,238,200,.95)');mg.addColorStop(.45,'rgba(255,225,185,.5)');mg.addColorStop(1,'transparent');
+      ctx.fillStyle=mg;ctx.fillRect(mx-mr*4,my-mr*4,mr*8,mr*8);
+      ctx.beginPath();ctx.arc(mx,my,mr,0,Math.PI*2);ctx.fillStyle='rgba(255,242,215,.96)';ctx.fill();
+      /* pitch */
+      const pg=ctx.createLinearGradient(0,VY,0,H);
+      pg.addColorStop(0,'#030f07');pg.addColorStop(.35,'#05160a');pg.addColorStop(1,'#071c0d');
+      ctx.fillStyle=pg;ctx.fillRect(0,VY,W,H-VY);
+      /* stripes */
+      for(let i=0;i<10;i++){if(i%2===0)continue;const y1=i/10*105,y2=(i+1)/10*105;const[lx1,ly1]=p2s(-34,y1),[rx1]=p2s(34,y1),[lx2,ly2]=p2s(-34,y2),[rx2]=p2s(34,y2);ctx.beginPath();ctx.moveTo(lx1,ly1);ctx.lineTo(rx1,ly1);ctx.lineTo(rx2,ly2);ctx.lineTo(lx2,ly2);ctx.closePath();ctx.fillStyle='rgba(255,255,255,.02)';ctx.fill();}
+      /* horizon glow */
+      const hg=ctx.createLinearGradient(0,VY-55,0,VY+110);
+      hg.addColorStop(0,'transparent');hg.addColorStop(.3,'rgba(0,229,100,.14)');hg.addColorStop(.65,'rgba(0,229,100,.06)');hg.addColorStop(1,'transparent');
+      ctx.fillStyle=hg;ctx.fillRect(0,VY-55,W,165);
+      /* center bloom */
+      const bl=ctx.createRadialGradient(VX,VY,0,VX,VY,W*.3);
+      bl.addColorStop(0,'rgba(0,229,100,.09)');bl.addColorStop(.6,'rgba(0,60,220,.05)');bl.addColorStop(1,'transparent');
+      ctx.fillStyle=bl;ctx.fillRect(VX-W*.32,VY-80,W*.64,200);
+    } else {
+      /* daytime sky */
+      const sg=ctx.createLinearGradient(0,0,0,VY);
+      sg.addColorStop(0,'#1848a8');sg.addColorStop(.6,'#2e6ec5');sg.addColorStop(1,'#4f8ee0');
+      ctx.fillStyle=sg;ctx.fillRect(0,0,W,VY);
+      /* sun */
+      const sx=W*.72,sy=VY*.3,sr=Math.max(13,W*.02);
+      const sunG=ctx.createRadialGradient(sx,sy,0,sx,sy,sr*4.5);
+      sunG.addColorStop(0,'rgba(255,242,150,1)');sunG.addColorStop(.35,'rgba(255,220,90,.55)');sunG.addColorStop(1,'transparent');
+      ctx.fillStyle=sunG;ctx.fillRect(sx-sr*5,sy-sr*5,sr*10,sr*10);
+      ctx.beginPath();ctx.arc(sx,sy,sr,0,Math.PI*2);ctx.fillStyle='rgba(255,248,185,1)';ctx.fill();
+      /* bright green pitch */
+      const pg=ctx.createLinearGradient(0,VY,0,H);
+      pg.addColorStop(0,'#196330');pg.addColorStop(.4,'#207838');pg.addColorStop(1,'#268840');
+      ctx.fillStyle=pg;ctx.fillRect(0,VY,W,H-VY);
+      /* stripes */
+      for(let i=0;i<10;i++){if(i%2===0)continue;const y1=i/10*105,y2=(i+1)/10*105;const[lx1,ly1]=p2s(-34,y1),[rx1]=p2s(34,y1),[lx2,ly2]=p2s(-34,y2),[rx2]=p2s(34,y2);ctx.beginPath();ctx.moveTo(lx1,ly1);ctx.lineTo(rx1,ly1);ctx.lineTo(rx2,ly2);ctx.lineTo(lx2,ly2);ctx.closePath();ctx.fillStyle='rgba(255,255,255,.07)';ctx.fill();}
+      /* horizon light */
+      const hl=ctx.createLinearGradient(0,VY-30,0,VY+70);
+      hl.addColorStop(0,'rgba(255,255,255,.1)');hl.addColorStop(.4,'rgba(255,240,200,.18)');hl.addColorStop(1,'transparent');
+      ctx.fillStyle=hl;ctx.fillRect(0,VY-30,W,100);
+    }
+
+    /* ── Pitch Lines ── */
+    const LC=dark?'rgba(0,229,100,.88)':'rgba(255,255,255,.9)';
+    const GC=dark?'#00E564':'rgba(255,255,255,.8)';
+    const SC=dark?'rgba(0,229,100,.92)':'rgba(255,255,255,.96)';
+    const LW=Math.max(1.5,W/900);
+    ctx.save();ctx.strokeStyle=LC;ctx.lineWidth=LW;ctx.shadowColor=GC;ctx.shadowBlur=dark?7:2;ctx.lineCap='round';
+    function ln(x1,y1,x2,y2){const[sx1,sy1]=p2s(x1,y1),[sx2,sy2]=p2s(x2,y2);ctx.beginPath();ctx.moveTo(sx1,sy1);ctx.lineTo(sx2,sy2);ctx.stroke();}
+    function poly(pts){if(!pts.length)return;const[sx,sy]=p2s(pts[0][0],pts[0][1]);ctx.beginPath();ctx.moveTo(sx,sy);for(let i=1;i<pts.length;i++){const[px,py]=p2s(pts[i][0],pts[i][1]);ctx.lineTo(px,py);}ctx.stroke();}
+    function circ(cx,cy,r,seg=52){const pts=[];for(let i=0;i<=seg;i++){const a=i/seg*Math.PI*2;pts.push([cx+Math.cos(a)*r,cy+Math.sin(a)*r]);}poly(pts);}
+    function arc(cx,cy,r,a1,a2,seg=28){const pts=[];for(let i=0;i<=seg;i++){const a=a1+(a2-a1)*(i/seg);pts.push([cx+Math.cos(a)*r,cy+Math.sin(a)*r]);}poly(pts);}
+    /* boundary */
+    ln(-34,0,34,0);ln(-34,105,34,105);ln(-34,0,-34,105);ln(34,0,34,105);
+    /* halfway */
+    ln(-34,52.5,34,52.5);
+    /* center circle */
+    circ(0,52.5,9.15);
+    /* near penalty area */
+    ln(-20.16,0,-20.16,16.5);ln(20.16,0,20.16,16.5);ln(-20.16,16.5,20.16,16.5);
+    /* far penalty area */
+    ln(-20.16,88.5,-20.16,105);ln(20.16,88.5,20.16,105);ln(-20.16,88.5,20.16,88.5);
+    /* near goal area */
+    ln(-9.16,0,-9.16,5.5);ln(9.16,0,9.16,5.5);ln(-9.16,5.5,9.16,5.5);
+    /* far goal area */
+    ln(-9.16,99.5,-9.16,105);ln(9.16,99.5,9.16,105);ln(-9.16,99.5,9.16,99.5);
+    /* penalty arcs */
+    const PAA=Math.asin(5.5/9.15);
+    arc(0,11,9.15,PAA,Math.PI-PAA);
+    arc(0,94,9.15,Math.PI+PAA,2*Math.PI-PAA);
+    /* corner arcs */
+    arc(-34,0,1,0,Math.PI/2);arc(34,0,1,Math.PI/2,Math.PI);
+    arc(-34,105,1,3*Math.PI/2,2*Math.PI);arc(34,105,1,Math.PI,3*Math.PI/2);
+    /* spots */
+    ctx.fillStyle=SC;ctx.shadowBlur=dark?6:2;
+    [[0,52.5],[0,11],[0,94]].forEach(([px,py])=>{const[sx,sy]=p2s(px,py);ctx.beginPath();ctx.arc(sx,sy,Math.max(2,LW*2.2),0,Math.PI*2);ctx.fill();});
+    /* far goal posts */
+    ctx.lineWidth=LW*1.8;ln(-3.66,105,-3.66,107.5);ln(3.66,105,3.66,107.5);ln(-3.66,107.5,3.66,107.5);
+    ctx.restore();
+    /* vignette */
+    const vg=ctx.createRadialGradient(W/2,H*.6,H*.15,W/2,H*.6,H*.9);
+    vg.addColorStop(0,'transparent');vg.addColorStop(1,dark?'rgba(0,0,0,.52)':'rgba(0,0,0,.22)');
+    ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+  }
+  requestAnimationFrame(draw);
+  const ro=new ResizeObserver(()=>requestAnimationFrame(draw));ro.observe(cv);
+  const mo=new MutationObserver(()=>requestAnimationFrame(draw));mo.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 })();
 </script>
 
