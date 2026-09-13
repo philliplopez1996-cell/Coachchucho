@@ -6,7 +6,7 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#060d08;--surface:#0c1810;--surface2:#101e13;--sidebar-bg:#040a06;
+  --bg:#040c10;--surface:#0a1518;--surface2:#0e1c20;--sidebar-bg:#050e12;
   --green:#00E564;--gold:#FFD700;--orange:#FF8C42;--red:#FF6060;--blue:#5AABFF;
   --text:#DFF0E3;--muted:#6B9A78;--dim:#3D5845;
   --border:rgba(0,229,100,.1);--border2:rgba(255,255,255,.06);
@@ -24,24 +24,29 @@
 }
 html[data-theme="light"],html[data-theme="light"] body{
   background:
-    repeating-linear-gradient(180deg,rgba(0,132,63,.03) 0px,rgba(0,132,63,.03) 22px,transparent 22px,transparent 44px),
-    radial-gradient(ellipse 70% 55% at 15% 12%, rgba(0,132,63,.13) 0%, transparent 65%),
-    radial-gradient(ellipse 55% 50% at 85% 88%, rgba(0,132,63,.09) 0%, transparent 60%),
-    radial-gradient(ellipse 80% 45% at 50% 100%, rgba(0,100,40,.07) 0%, transparent 55%),
+    repeating-linear-gradient(45deg, rgba(0,132,63,.07) 0px, rgba(0,132,63,.07) 1px, transparent 1px, transparent 32px),
+    repeating-linear-gradient(-45deg, rgba(0,132,63,.07) 0px, rgba(0,132,63,.07) 1px, transparent 1px, transparent 32px),
+    radial-gradient(ellipse 65% 55% at 50% 40%, rgba(0,132,63,.1) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 40% at 4% 6%, rgba(0,132,63,.12) 0%, transparent 55%),
     #EFF6F2 !important;
-  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100% !important;
+  background-size: 32px 32px, 32px 32px, 100% 100%, 100% 100%, 100% 100% !important;
 }
 html,body{
   height:100%;
   background:
-    repeating-linear-gradient(180deg,rgba(0,229,100,.02) 0px,rgba(0,229,100,.02) 22px,transparent 22px,transparent 44px),
-    radial-gradient(ellipse 70% 55% at 18% 15%, rgba(0,229,100,.13) 0%, transparent 65%),
-    radial-gradient(ellipse 40% 35% at 80% 10%, rgba(0,229,100,.06) 0%, transparent 60%),
-    radial-gradient(ellipse 55% 70% at 85% 88%, rgba(0,40,16,.65) 0%, transparent 60%),
-    radial-gradient(ellipse 100% 60% at 50% 115%, rgba(0,15,8,.75) 0%, transparent 55%),
-    radial-gradient(ellipse 55% 40% at 50% 50%, rgba(0,229,100,.03) 0%, transparent 70%),
+    /* Diamond grid — Geo Rush style */
+    repeating-linear-gradient(45deg, rgba(0,229,100,.07) 0px, rgba(0,229,100,.07) 1px, transparent 1px, transparent 32px),
+    repeating-linear-gradient(-45deg, rgba(0,229,100,.07) 0px, rgba(0,229,100,.07) 1px, transparent 1px, transparent 32px),
+    /* Neon center bloom */
+    radial-gradient(ellipse 65% 55% at 50% 40%, rgba(0,229,100,.12) 0%, transparent 65%),
+    /* Top-left neon accent */
+    radial-gradient(ellipse 50% 42% at 4% 6%, rgba(0,229,100,.18) 0%, transparent 55%),
+    /* Bottom-right dark void */
+    radial-gradient(ellipse 55% 55% at 94% 94%, rgba(0,8,20,.9) 0%, transparent 55%),
+    /* Bottom edge fade to black */
+    radial-gradient(ellipse 100% 55% at 50% 110%, rgba(0,3,12,.9) 0%, transparent 50%),
     var(--bg);
-  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+  background-size: 32px 32px, 32px 32px, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
   color:var(--text);font-family:system-ui,-apple-system,'Segoe UI',Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden
 }
 html{height:-webkit-fill-available}
