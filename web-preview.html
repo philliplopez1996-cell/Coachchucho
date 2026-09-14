@@ -5133,26 +5133,50 @@ function initAuth(){
       bl.addColorStop(0,'rgba(0,229,100,.09)');bl.addColorStop(.6,'rgba(0,60,220,.05)');bl.addColorStop(1,'transparent');
       ctx.fillStyle=bl;ctx.fillRect(VX-W*.32,VY-80,W*.64,200);
     } else {
-      /* daytime sky */
+      /* daytime sky — deep blue top, warm haze at horizon */
       const sg=ctx.createLinearGradient(0,0,0,VY);
-      sg.addColorStop(0,'#1848a8');sg.addColorStop(.6,'#2e6ec5');sg.addColorStop(1,'#4f8ee0');
+      sg.addColorStop(0,'#0d3a8a');sg.addColorStop(.45,'#1a5cbf');sg.addColorStop(.82,'#3d84d8');sg.addColorStop(1,'#7ab8f5');
       ctx.fillStyle=sg;ctx.fillRect(0,0,W,VY);
+      /* warm horizon sky bleed */
+      const hsky=ctx.createLinearGradient(0,VY*.7,0,VY);
+      hsky.addColorStop(0,'transparent');hsky.addColorStop(1,'rgba(255,210,130,.22)');
+      ctx.fillStyle=hsky;ctx.fillRect(0,VY*.7,W,VY*.3);
       /* sun */
-      const sx=W*.72,sy=VY*.3,sr=Math.max(13,W*.02);
-      const sunG=ctx.createRadialGradient(sx,sy,0,sx,sy,sr*4.5);
-      sunG.addColorStop(0,'rgba(255,242,150,1)');sunG.addColorStop(.35,'rgba(255,220,90,.55)');sunG.addColorStop(1,'transparent');
-      ctx.fillStyle=sunG;ctx.fillRect(sx-sr*5,sy-sr*5,sr*10,sr*10);
-      ctx.beginPath();ctx.arc(sx,sy,sr,0,Math.PI*2);ctx.fillStyle='rgba(255,248,185,1)';ctx.fill();
-      /* bright green pitch */
+      const sx=W*.72,sy=VY*.28,sr=Math.max(14,W*.022);
+      const sunG=ctx.createRadialGradient(sx,sy,0,sx,sy,sr*6);
+      sunG.addColorStop(0,'rgba(255,250,200,1)');sunG.addColorStop(.25,'rgba(255,230,110,.7)');sunG.addColorStop(.6,'rgba(255,200,60,.18)');sunG.addColorStop(1,'transparent');
+      ctx.fillStyle=sunG;ctx.fillRect(sx-sr*7,sy-sr*7,sr*14,sr*14);
+      ctx.beginPath();ctx.arc(sx,sy,sr,0,Math.PI*2);ctx.fillStyle='rgba(255,252,220,1)';ctx.fill();
+      /* clouds — 3 simple puffs */
+      const r2=rng42(4242);
+      ctx.save();ctx.globalAlpha=0.72;
+      [[W*.18,VY*.38,W*.11],[W*.52,VY*.18,W*.09],[W*.82,VY*.5,W*.07]].forEach(([cx,cy,rr])=>{
+        const cg=ctx.createRadialGradient(cx,cy,0,cx,cy,rr);
+        cg.addColorStop(0,'rgba(255,255,255,.92)');cg.addColorStop(.6,'rgba(240,248,255,.65)');cg.addColorStop(1,'transparent');
+        ctx.fillStyle=cg;ctx.beginPath();ctx.ellipse(cx,cy,rr,rr*.52,0,0,Math.PI*2);ctx.fill();
+        ctx.beginPath();ctx.ellipse(cx-rr*.38,cy+rr*.08,rr*.58,rr*.4,0,0,Math.PI*2);ctx.fill();
+        ctx.beginPath();ctx.ellipse(cx+rr*.42,cy+rr*.06,rr*.52,rr*.38,0,0,Math.PI*2);ctx.fill();
+      });
+      ctx.restore();
+      /* pitch — two distinct alternating greens drawn perspectively */
       const pg=ctx.createLinearGradient(0,VY,0,H);
-      pg.addColorStop(0,'#196330');pg.addColorStop(.4,'#207838');pg.addColorStop(1,'#268840');
+      pg.addColorStop(0,'#145c28');pg.addColorStop(.4,'#1a7233');pg.addColorStop(1,'#1f8038');
       ctx.fillStyle=pg;ctx.fillRect(0,VY,W,H-VY);
-      /* stripes */
-      for(let i=0;i<10;i++){if(i%2===0)continue;const y1=i/10*105,y2=(i+1)/10*105;const[lx1,ly1]=p2s(-34,y1),[rx1]=p2s(34,y1),[lx2,ly2]=p2s(-34,y2),[rx2]=p2s(34,y2);ctx.beginPath();ctx.moveTo(lx1,ly1);ctx.lineTo(rx1,ly1);ctx.lineTo(rx2,ly2);ctx.lineTo(lx2,ly2);ctx.closePath();ctx.fillStyle='rgba(255,255,255,.07)';ctx.fill();}
-      /* horizon light */
-      const hl=ctx.createLinearGradient(0,VY-30,0,VY+70);
-      hl.addColorStop(0,'rgba(255,255,255,.1)');hl.addColorStop(.4,'rgba(255,240,200,.18)');hl.addColorStop(1,'transparent');
-      ctx.fillStyle=hl;ctx.fillRect(0,VY-30,W,100);
+      /* stripes — alternate two grass tones with visible contrast */
+      for(let i=0;i<10;i++){
+        const y1=i/10*105,y2=(i+1)/10*105;
+        const[lx1,ly1]=p2s(-34,y1),[rx1]=p2s(34,y1),[lx2,ly2]=p2s(-34,y2),[rx2]=p2s(34,y2);
+        ctx.beginPath();ctx.moveTo(lx1,ly1);ctx.lineTo(rx1,ly1);ctx.lineTo(rx2,ly2);ctx.lineTo(lx2,ly2);ctx.closePath();
+        ctx.fillStyle=i%2===0?'rgba(0,0,0,.10)':'rgba(255,255,255,.07)';ctx.fill();
+      }
+      /* warm golden horizon glow — sunlight reflecting off the near pitch */
+      const hl=ctx.createLinearGradient(0,VY-20,0,VY+120);
+      hl.addColorStop(0,'rgba(255,230,140,.28)');hl.addColorStop(.25,'rgba(255,210,80,.14)');hl.addColorStop(.7,'rgba(255,180,40,.05)');hl.addColorStop(1,'transparent');
+      ctx.fillStyle=hl;ctx.fillRect(0,VY-20,W,140);
+      /* center bloom — soft warm light pool on the pitch */
+      const bl=ctx.createRadialGradient(VX,VY+50,0,VX,VY+50,W*.35);
+      bl.addColorStop(0,'rgba(255,230,130,.13)');bl.addColorStop(.5,'rgba(255,200,80,.05)');bl.addColorStop(1,'transparent');
+      ctx.fillStyle=bl;ctx.fillRect(VX-W*.38,VY,W*.76,220);
     }
 
     /* ── Pitch Lines ── */
