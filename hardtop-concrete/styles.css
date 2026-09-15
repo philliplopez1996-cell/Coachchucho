@@ -558,10 +558,13 @@ h3 { font-size: var(--fs-2xl); }
 }
 
 .hero-content {
+  position: relative;
   width: 100%;
   max-width: 920px;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  text-align: center;
   gap: 2rem;
   background: linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 100%);
   backdrop-filter: blur(2px);
@@ -569,6 +572,14 @@ h3 { font-size: var(--fs-2xl); }
   border: 1px solid rgba(255,255,255,0.06);
   border-radius: var(--radius-lg);
   padding: var(--sp-2xl) var(--sp-2xl);
+}
+
+.hero-content .eyebrow {
+  justify-content: center;
+}
+
+.hero-content .hero-desc {
+  text-align: center;
 }
 
 .hero-headline {
@@ -626,15 +637,17 @@ h3 { font-size: var(--fs-2xl); }
 
 /* Badges */
 .hero-badges {
+  position: absolute;
+  top: var(--sp-xl);
+  right: var(--sp-xl);
   display: flex;
-  flex-direction: row;
-  gap: var(--sp-lg);
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .badge-ring {
-  width: 120px;
-  height: 120px;
+  width: 100px;
+  height: 100px;
   border: 2px solid var(--red);
   border-radius: 50%;
   background: rgba(227, 6, 19, 0.06);
@@ -1325,7 +1338,13 @@ a.ci-value:hover { color: var(--orange); }
 
 /* ── RESPONSIVE ──────────────────────────────────────────── */
 @media (max-width: 1024px) {
-  .hero-badges { gap: var(--sp-sm); }
+  .hero-badges {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--sp-sm);
+  }
 
   .infra-grid { grid-template-columns: 1fr; }
   .infra-item--wide { grid-column: auto; }
