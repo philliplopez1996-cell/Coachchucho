@@ -233,6 +233,51 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   }, { once: true });
 })();
 
+// ── HOMEPAGE SLIDESHOW ───────────────────────────────────
+(function initSlideshow() {
+  const el = document.getElementById('homepage-slideshow');
+  if (!el) return;
+
+  const slides = el.querySelectorAll('.ss-slide');
+  const numEl  = el.querySelector('.ss-num');
+  const total  = slides.length;
+  if (!total) return;
+
+  let current = 0;
+  let timer;
+
+  function pad(n) { return String(n + 1).padStart(2, '0'); }
+
+  function goTo(index) {
+    slides[current].classList.remove('active');
+    current = (index + total) % total;
+    slides[current].classList.add('active');
+    if (numEl) numEl.textContent = pad(current);
+    resetTimer();
+  }
+
+  function resetTimer() {
+    clearInterval(timer);
+    timer = setInterval(() => goTo(current + 1), 4500);
+  }
+
+  el.querySelector('.ss-prev').addEventListener('click', () => goTo(current - 1));
+  el.querySelector('.ss-next').addEventListener('click', () => goTo(current + 1));
+
+  el.addEventListener('mouseenter', () => clearInterval(timer));
+  el.addEventListener('mouseleave', resetTimer);
+
+  // Touch swipe support
+  let touchStartX = 0;
+  el.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  el.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 40) goTo(dx < 0 ? current + 1 : current - 1);
+  });
+
+  resetTimer();
+})();
+
 // ── PHOTO GALLERY FILTER ─────────────────────────────────
 (function initGalleryFilter() {
   const filterBtns = document.querySelectorAll('.filter-btn');
