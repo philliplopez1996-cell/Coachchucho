@@ -15,14 +15,14 @@
   --ui-overlay-bg:rgba(255,255,255,.04);--ui-overlay-border:rgba(255,255,255,.08);
 }
 :root[data-theme="light"]{
-  --bg:#a8cfc0;--surface:rgba(255,255,255,.42);--surface2:rgba(220,242,232,.38);--sidebar-bg:rgba(255,255,255,.48);
+  --bg:#a8cfc0;--surface:rgba(255,255,255,.28);--surface2:rgba(220,242,232,.30);--sidebar-bg:rgba(255,255,255,.38);
   --green:#00843F;--gold:#B07800;--orange:#D4610A;--red:#C0362A;--blue:#1A6BBF;
   --text:#0D1F14;--muted:#3a7a58;--dim:#6aaa88;
   --border:rgba(0,132,63,.18);--border2:rgba(0,100,50,.12);
-  --topbar-bg:rgba(255,255,255,.45);--bottomnav-bg:rgba(220,242,232,.48);
+  --topbar-bg:rgba(255,255,255,.35);--bottomnav-bg:rgba(220,242,232,.38);
   --ui-overlay-bg:rgba(255,255,255,.12);--ui-overlay-border:rgba(0,100,50,.15);
 }
-/* glass pane effect — pseudo-element avoids overflow:hidden breaking backdrop-filter */
+/* frosted glass on structural chrome */
 :root[data-theme="light"] .sidebar::before,
 :root[data-theme="light"] .topbar::before,
 :root[data-theme="light"] .bottom-nav::before,
@@ -33,6 +33,29 @@
 }
 :root[data-theme="light"] .sidebar,:root[data-theme="light"] .topbar,
 :root[data-theme="light"] .bottom-nav,:root[data-theme="light"] .panel-overlay{position:relative}
+/* frosted glass on every surface card / cell */
+:root[data-theme="light"] .tf-card,
+:root[data-theme="light"] .rdr-slot,
+:root[data-theme="light"] .radar-chart-wrap,
+:root[data-theme="light"] .attr-breakdown,
+:root[data-theme="light"] .career-tile,
+:root[data-theme="light"] .prof-edit-form,
+:root[data-theme="light"] .profile-stat,
+:root[data-theme="light"] .profile-stat-tile,
+:root[data-theme="light"] .potm-card,
+:root[data-theme="light"] .auth-card,
+:root[data-theme="light"] .sort-dd-menu,
+:root[data-theme="light"] .addp-sheet{
+  backdrop-filter:blur(16px) saturate(1.2);-webkit-backdrop-filter:blur(16px) saturate(1.2)
+}
+/* overflow:hidden elements can't use backdrop-filter directly — use ::before */
+:root[data-theme="light"] .pitch-field-wrap,
+:root[data-theme="light"] .bench-panel{position:relative}
+:root[data-theme="light"] .pitch-field-wrap::before,
+:root[data-theme="light"] .bench-panel::before{
+  content:'';position:absolute;inset:0;z-index:0;pointer-events:none;
+  backdrop-filter:blur(16px) saturate(1.2);-webkit-backdrop-filter:blur(16px) saturate(1.2)
+}
 html[data-theme="light"],html[data-theme="light"] body{background:#a8cfc0!important}
 html,body{
   height:100%;
