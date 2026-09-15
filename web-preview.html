@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found]){display:none!important}</style></head><body>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <!doctype html>
 <title>Roster Radar</title>
 <meta charset="utf-8">
@@ -215,22 +215,27 @@ html{height:-webkit-fill-available}
 .icon-btn{display:flex;align-items:center;gap:6px;padding:7px 13px;border-radius:8px;background:rgba(0,229,100,.1);border:1px solid rgba(0,229,100,.35);color:var(--green);font-size:11px;font-weight:800;cursor:pointer}
 .icon-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round}
 .teams-count{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:10px}
-.team-banner{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface);border-radius:12px;border:1px solid var(--border2);border-left:3px solid var(--green);margin-bottom:8px;cursor:pointer;transition:background .15s}
-.team-banner:hover{background:var(--surface2)}
-.team-initial{width:40px;height:40px;border-radius:10px;background:rgba(0,229,100,.1);border:1px solid rgba(0,229,100,.3);display:flex;align-items:center;justify-content:center;font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:18px;color:var(--green);flex-shrink:0}
-.team-body{flex:1;min-width:0}
-.team-name{font-size:14px;font-weight:800;color:var(--text)}
-.team-sub{font-size:10px;color:var(--muted);margin-top:2px}
-.team-record{display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap}
+.teams-list{display:flex;flex-direction:column;gap:14px}
+.team-folder{display:flex;flex-direction:column;cursor:pointer;transition:transform .18s,filter .18s,opacity .08s}
+.team-folder:hover{transform:translateY(-4px)}
+.team-folder:hover .tf-card{filter:brightness(1.06)}
+.team-folder:active{transform:scale(0.98)!important}
+.tf-tab{height:28px;padding:0 14px;border-radius:8px 14px 0 0;display:inline-flex;align-items:center;gap:7px;font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,.95);width:62%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}
+.tf-card{border-radius:0 13px 13px 13px;border:1px solid;background:var(--surface);padding:13px 14px;display:flex;align-items:center;gap:12px}
+.tf-initial{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:22px;color:#fff;flex-shrink:0}
+.tf-body{flex:1;min-width:0}
+.tf-name{font-size:14px;font-weight:800;color:var(--text)}
+.tf-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.tf-record{display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap}
 .rec-stat{font-size:10px;font-weight:700;padding:2px 6px;border-radius:5px}
 .rec-w{background:rgba(0,229,100,.1);color:var(--green)}
 .rec-l{background:rgba(255,96,96,.08);color:var(--red)}
 .rec-t{background:rgba(255,215,0,.08);color:var(--gold)}
-.rec-gf{color:var(--muted)}
-.rec-ga{color:var(--muted)}
-.team-ovr{font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:26px;color:var(--gold);flex-shrink:0}
+.tf-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.tf-ovr{font-family:'Impact','Arial Narrow',Arial,sans-serif;font-size:26px;color:var(--gold);flex-shrink:0}
 .team-del-btn{width:28px;height:28px;border-radius:7px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .team-del-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.team-banner{transition:transform .08s,opacity .08s}
 
 /* ── Roster: Players View ── */
 .players-topbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
@@ -800,18 +805,16 @@ html{height:-webkit-fill-available}
 
 /* ── Tap micro-interactions ── */
 button,-webkit-tap-highlight-color{-webkit-tap-highlight-color:transparent}
-.action-row,.action-player-item,.picker-player-item,.game-picker-row,.team-banner,.potm-card,.bench-chip-m,.player-card,.tc-chip{-webkit-tap-highlight-color:transparent}
+.action-row,.action-player-item,.picker-player-item,.game-picker-row,.team-banner,.team-folder,.potm-card,.bench-chip-m,.player-card,.tc-chip{-webkit-tap-highlight-color:transparent}
 /* Buttons: quick 80ms scale on press */
 button:active:not(:disabled){transform:scale(0.94);opacity:.88}
 /* List rows: subtle shrink */
 .action-row:active,.action-player-item:active,.picker-player-item:active,.game-picker-row:active{transform:scale(0.98);background:rgba(255,255,255,.06)!important}
 /* Cards: deeper press */
 .potm-card:active{transform:scale(0.91)!important}
-.team-banner:active{transform:scale(0.98)}
 .bench-chip-m:active{transform:scale(0.9)}
 .player-card:active{transform:scale(0.97)}
 /* Ensure elements with existing transitions also cover transform */
-.team-banner{transition:background .15s,transform .08s,opacity .08s}
 .action-row{transition:background .12s,transform .08s}
 .picker-player-item{transition:background .12s,transform .08s}
 .potm-card{transition:all .15s,transform .08s}
@@ -1141,7 +1144,7 @@ button:active:not(:disabled){transform:scale(0.94);opacity:.88}
           </button>
         </div>
         <div class="teams-count" id="teamsCount">3 Teams</div>
-        <div id="teamsList"></div>
+        <div id="teamsList" class="teams-list"></div>
       </div>
       <!-- Players list -->
       <div id="playersView" style="display:none">
@@ -2129,30 +2132,33 @@ function showTeamsList(){
   list.innerHTML=TEAMS.map(t=>{
     const rec=getTeamRecord(t.id);
     const col=t.color||'#00E564';
-    return `<div class="team-banner" data-tid="${t.id}" style="border-left-color:${col}">
-      <div class="team-initial" style="background:${col}18;border-color:${col}55;color:${col}">${t.initial}</div>
-      <div class="team-body">
-        <div class="team-name">${t.name}</div>
-        <div class="team-sub">${t.players.length} player${t.players.length!==1?'s':''} · ${t.format||'11v11'} · ${t.formation} · ${t.season}</div>
-        <div class="team-record">
-          <span class="rec-stat rec-w">${rec.w}W</span>
-          <span class="rec-stat rec-l">${rec.l}L</span>
-          <span class="rec-stat rec-t">${rec.t}T</span>
-          <span style="color:#3D5845;font-size:10px">·</span>
-          <span class="rec-stat" style="color:#4B9FFF">GF ${rec.gf}</span>
-          <span class="rec-stat" style="color:#FF6060">GA ${rec.ga}</span>
+    return `<div class="team-folder" data-tid="${t.id}">
+      <div class="tf-tab" style="background:${col}">${t.name}</div>
+      <div class="tf-card" style="border-color:${col}38;box-shadow:0 0 0 1px ${col}18,0 8px 28px ${col}1a,0 4px 14px rgba(0,0,0,.5)">
+        <div class="tf-initial" style="background:${col}28">${t.initial}</div>
+        <div class="tf-body">
+          <div class="tf-name">${t.name}</div>
+          <div class="tf-sub">${t.players.length} player${t.players.length!==1?'s':''} · ${t.format||'11v11'} · ${t.formation} · ${t.season}</div>
+          <div class="tf-record">
+            <span class="rec-stat rec-w">${rec.w}W</span>
+            <span class="rec-stat rec-l">${rec.l}L</span>
+            <span class="rec-stat rec-t">${rec.t}T</span>
+            <span style="color:#3D5845;font-size:10px">·</span>
+            <span class="rec-stat" style="color:#4B9FFF">GF ${rec.gf}</span>
+            <span class="rec-stat" style="color:#FF6060">GA ${rec.ga}</span>
+          </div>
         </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px">
-        <div class="team-ovr">${t.ovr||'—'}</div>
-        <button class="team-del-btn" data-tid="${t.id}" title="Delete">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-        </button>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3D5845" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        <div class="tf-right">
+          <div class="tf-ovr">${t.ovr||'—'}</div>
+          <button class="team-del-btn" data-tid="${t.id}" title="Delete">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${col}88" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
       </div>
     </div>`;
   }).join('');
-  list.querySelectorAll('.team-banner').forEach(el=>{
+  list.querySelectorAll('.team-folder').forEach(el=>{
     el.addEventListener('click',e=>{
       if(e.target.closest('.team-del-btn'))return;
       const t=TEAMS.find(x=>x.id===el.dataset.tid);
