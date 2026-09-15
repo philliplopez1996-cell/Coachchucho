@@ -5113,9 +5113,9 @@ function initAuth(){
     /* ── vanishing point — slightly off-center ── */
     const VX=W*.42,VY=H*.38;
 
-    /* accent colours */
-    const [ar,ag,ab]=dark?[0,229,100]:[0,120,210];
-    const [cr,cg,cb]=dark?[0,200,255]:[0,80,180];
+    /* accent colours — same palette for both themes, adjusted per ground */
+    const [ar,ag,ab]=dark?[0,229,100]:[0,180,80];
+    const [cr,cg,cb]=dark?[0,200,255]:[0,140,220];
 
     /* ── speed lines ── */
     const rr=rng42(9182);
@@ -5123,7 +5123,6 @@ function initAuth(){
     ctx.save();
     for(let i=0;i<LINE_COUNT;i++){
       const angle=rr()*Math.PI*2;
-      /* vary length: short bright near center, long dim at edge */
       const near=Math.max(W,H)*.04+rr()*Math.max(W,H)*.08;
       const far=Math.max(W,H)*(0.55+rr()*.7);
       const x1=VX+Math.cos(angle)*near;
@@ -5131,11 +5130,10 @@ function initAuth(){
       const x2=VX+Math.cos(angle)*far;
       const y2=VY+Math.sin(angle)*far;
 
-      /* alternate green / cyan lines */
       const useCyan=rr()<0.35;
       const [lr,lg,lb]=useCyan?[cr,cg,cb]:[ar,ag,ab];
-      const baseAlpha=dark?(0.06+rr()*.22):(0.04+rr()*.14);
-      const lineW=dark?(0.4+rr()*1.6):(0.3+rr()*1.0);
+      const baseAlpha=0.06+rr()*.22;           /* same range both themes */
+      const lineW=0.4+rr()*1.6;
 
       const grad=ctx.createLinearGradient(x1,y1,x2,y2);
       grad.addColorStop(0,`rgba(${lr},${lg},${lb},${baseAlpha*2.2})`);
@@ -5144,7 +5142,7 @@ function initAuth(){
 
       ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);
       ctx.strokeStyle=grad;ctx.lineWidth=lineW;
-      if(dark&&rr()<0.18){ctx.shadowColor=`rgba(${lr},${lg},${lb},.5)`;ctx.shadowBlur=6;}
+      if(rr()<0.18){ctx.shadowColor=`rgba(${lr},${lg},${lb},${dark?.5:.35})`;ctx.shadowBlur=dark?6:5;}
       else ctx.shadowBlur=0;
       ctx.stroke();
     }
@@ -5153,15 +5151,12 @@ function initAuth(){
     /* ── diagonal grid overlay ── */
     ctx.save();
     const GRID=Math.max(40,W*.055);
-    const gAlpha=dark?.028:.05;
-    const [gr,gg,gb]=dark?[0,200,100]:[60,120,200];
-    ctx.strokeStyle=`rgba(${gr},${gg},${gb},${gAlpha})`;
-    ctx.lineWidth=dark?.5:.4;
-    /* forward diagonals */
+    const [gr,gg,gb]=dark?[0,200,100]:[0,160,80];
+    ctx.strokeStyle=`rgba(${gr},${gg},${gb},${dark?.028:.04})`;
+    ctx.lineWidth=dark?.5:.5;
     for(let x=-H;x<W+H;x+=GRID){
       ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+H,H);ctx.stroke();
     }
-    /* backward diagonals */
     for(let x=-H;x<W+H;x+=GRID){
       ctx.beginPath();ctx.moveTo(x,H);ctx.lineTo(x+H,0);ctx.stroke();
     }
@@ -5169,16 +5164,16 @@ function initAuth(){
 
     /* ── vanishing-point core bloom ── */
     const bloom=ctx.createRadialGradient(VX,VY,0,VX,VY,W*.38);
-    bloom.addColorStop(0,`rgba(${ar},${ag},${ab},${dark?.14:.06})`);
-    bloom.addColorStop(.22,`rgba(${ar},${ag},${ab},${dark?.06:.025})`);
-    bloom.addColorStop(.55,`rgba(${cr},${cg},${cb},${dark?.025:.01})`);
+    bloom.addColorStop(0,`rgba(${ar},${ag},${ab},${dark?.14:.18})`);
+    bloom.addColorStop(.22,`rgba(${ar},${ag},${ab},${dark?.06:.08})`);
+    bloom.addColorStop(.55,`rgba(${cr},${cg},${cb},${dark?.025:.04})`);
     bloom.addColorStop(1,'transparent');
     ctx.fillStyle=bloom;ctx.fillRect(0,0,W,H);
 
     /* ── vignette ── */
     const vg=ctx.createRadialGradient(VX,VY,H*.08,VX,VY,H*.9);
     vg.addColorStop(0,'transparent');
-    vg.addColorStop(1,dark?'rgba(0,0,0,.72)':'rgba(0,0,0,.22)');
+    vg.addColorStop(1,dark?'rgba(0,0,0,.72)':'rgba(0,0,0,.32)');
     ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
   }
   requestAnimationFrame(draw);
