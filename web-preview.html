@@ -5136,13 +5136,13 @@ function initAuth(){
   let W,H,ctx;
   const DPR=Math.min(window.devicePixelRatio||1,2);
   const VXr=0.42,VYr=0.38;
-  const N=140;
+  const N=100;
   const ang=new Float32Array(N),dst=new Float32Array(N),mxd=new Float32Array(N);
   const spd=new Float32Array(N),alf=new Float32Array(N),lwd=new Float32Array(N);
   const cyn=new Uint8Array(N),glw=new Uint8Array(N);
   function seed(i,partial){
     ang[i]=Math.random()*Math.PI*2;
-    spd[i]=0.09+Math.random()*0.38;
+    spd[i]=0.045+Math.random()*0.2;
     mxd[i]=(0.42+Math.random()*0.72)*Math.max(W,H);
     dst[i]=partial?Math.random()*mxd[i]:0;
     alf[i]=0.48+Math.random()*0.52;
