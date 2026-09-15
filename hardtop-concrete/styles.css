@@ -1661,6 +1661,53 @@ a.ci-value:hover { color: var(--orange); }
   .hp-label { max-width: none; }
 }
 
+/* ── PHOTO PREVIEW (homepage) ───────────────────────────── */
+.photo-preview {
+  background: var(--black);
+  padding-block: var(--sp-2xl);
+}
+
+.photo-preview-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-lg);
+  margin-bottom: var(--sp-xl);
+  flex-wrap: wrap;
+}
+
+.photo-preview-header h2 {
+  margin: 0;
+  font-size: var(--fs-5xl);
+}
+
+.photo-preview-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  grid-template-rows: 420px;
+  gap: var(--sp-sm);
+}
+
+.photo-card--tall {
+  grid-row: span 1;
+}
+
+@media (max-width: 768px) {
+  .photo-preview-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 260px 260px;
+  }
+  .photo-card--tall { grid-column: span 2; }
+}
+
+@media (max-width: 480px) {
+  .photo-preview-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: 260px 200px 200px;
+  }
+  .photo-card--tall { grid-column: span 1; }
+}
+
 /* ── PHOTO GALLERY PAGE ──────────────────────────────────── */
 .gallery-filters {
   display: flex;
