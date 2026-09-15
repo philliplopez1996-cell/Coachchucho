@@ -5136,19 +5136,19 @@ function initAuth(){
   let W,H,ctx;
   const DPR=Math.min(window.devicePixelRatio||1,2);
   const VXr=0.42,VYr=0.38;
-  const N=88;
+  const N=140;
   const ang=new Float32Array(N),dst=new Float32Array(N),mxd=new Float32Array(N);
   const spd=new Float32Array(N),alf=new Float32Array(N),lwd=new Float32Array(N);
   const cyn=new Uint8Array(N),glw=new Uint8Array(N);
   function seed(i,partial){
     ang[i]=Math.random()*Math.PI*2;
-    spd[i]=0.045+Math.random()*0.2;
-    mxd[i]=(0.38+Math.random()*0.68)*Math.max(W,H);
+    spd[i]=0.09+Math.random()*0.38;
+    mxd[i]=(0.42+Math.random()*0.72)*Math.max(W,H);
     dst[i]=partial?Math.random()*mxd[i]:0;
-    alf[i]=0.22+Math.random()*0.55;
-    lwd[i]=0.5+Math.random()*2.0;
-    cyn[i]=Math.random()<0.3?1:0;
-    glw[i]=Math.random()<0.4?1:0;
+    alf[i]=0.48+Math.random()*0.52;
+    lwd[i]=0.8+Math.random()*3.2;
+    cyn[i]=Math.random()<0.35?1:0;
+    glw[i]=Math.random()<0.65?1:0;
   }
   function resize(){
     W=cv.width=cv.offsetWidth*DPR;
@@ -5167,27 +5167,27 @@ function initAuth(){
     if(dark){bg.addColorStop(0,'#020508');bg.addColorStop(.45,'#04090f');bg.addColorStop(1,'#020407');}
     else{bg.addColorStop(0,'#a8cfc0');bg.addColorStop(.45,'#9dc4d8');bg.addColorStop(1,'#b2d4c4');}
     ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-    const [ar,ag,ab]=dark?[0,229,100]:[0,120,50];
-    const [cr,cg,cb]=dark?[0,200,255]:[0,90,190];
+    const [ar,ag,ab]=dark?[0,255,110]:[0,160,70];
+    const [cr,cg,cb]=dark?[0,220,255]:[0,110,220];
     /* streaking particles */
     for(let i=0;i<N;i++){
       dst[i]+=spd[i]*dt;
       if(dst[i]>mxd[i]){seed(i,false);continue;}
       const prog=dst[i]/mxd[i];
       const [lr,lg,lb]=cyn[i]?[cr,cg,cb]:[ar,ag,ab];
-      const tail=spd[i]*dt*28+8;
+      const tail=spd[i]*dt*42+14;
       const d0=Math.max(0,dst[i]-tail);
       const x1=VX+Math.cos(ang[i])*d0,y1=VY+Math.sin(ang[i])*d0;
       const x2=VX+Math.cos(ang[i])*dst[i],y2=VY+Math.sin(ang[i])*dst[i];
-      const a=alf[i]*(1-prog*.6)*(dark?1:1.15);
+      const a=alf[i]*(1-prog*.35)*(dark?1:1.2);
       const g=ctx.createLinearGradient(x1,y1,x2,y2);
-      g.addColorStop(0,`rgba(${lr},${lg},${lb},${a*.12})`);
-      g.addColorStop(.5,`rgba(${lr},${lg},${lb},${a*.55})`);
+      g.addColorStop(0,`rgba(${lr},${lg},${lb},0)`);
+      g.addColorStop(.4,`rgba(${lr},${lg},${lb},${a*.5})`);
       g.addColorStop(1,`rgba(${lr},${lg},${lb},${a})`);
       ctx.save();
       ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);
       ctx.strokeStyle=g;ctx.lineWidth=lwd[i];
-      if(glw[i]){ctx.shadowColor=`rgba(${lr},${lg},${lb},${dark?.7:.6})`;ctx.shadowBlur=dark?9:7;}
+      if(glw[i]){ctx.shadowColor=`rgba(${lr},${lg},${lb},1)`;ctx.shadowBlur=dark?18:14;}
       else ctx.shadowBlur=0;
       ctx.stroke();ctx.restore();
     }
@@ -5196,24 +5196,30 @@ function initAuth(){
     const drift=(ts*.005)%GRID;
     const [gr,gg,gb]=dark?[0,200,100]:[0,140,60];
     ctx.save();
-    ctx.strokeStyle=`rgba(${gr},${gg},${gb},${dark?.032:.06})`;
-    ctx.lineWidth=.5;
+    ctx.strokeStyle=`rgba(${gr},${gg},${gb},${dark?.055:.09})`;
+    ctx.lineWidth=.6;
     for(let x=-H+drift;x<W+H;x+=GRID){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x+H,H);ctx.stroke();}
     for(let x=-H+drift;x<W+H;x+=GRID){ctx.beginPath();ctx.moveTo(x,H);ctx.lineTo(x+H,0);ctx.stroke();}
     ctx.restore();
     /* pulsing bloom */
     const pulse=.5+.5*Math.sin(ts*.0009);
-    const bA=dark?(.12+.06*pulse):(.07+.04*pulse);
-    const bloom=ctx.createRadialGradient(VX,VY,0,VX,VY,W*.38);
+    const bA=dark?(.22+.10*pulse):(.12+.07*pulse);
+    const bloom=ctx.createRadialGradient(VX,VY,0,VX,VY,W*.48);
     bloom.addColorStop(0,`rgba(${ar},${ag},${ab},${bA})`);
-    bloom.addColorStop(.22,`rgba(${ar},${ag},${ab},${bA*.4})`);
-    bloom.addColorStop(.55,`rgba(${cr},${cg},${cb},${dark?.025:.02})`);
+    bloom.addColorStop(.18,`rgba(${ar},${ag},${ab},${bA*.55})`);
+    bloom.addColorStop(.45,`rgba(${cr},${cg},${cb},${dark?.06:.04})`);
     bloom.addColorStop(1,'transparent');
     ctx.fillStyle=bloom;ctx.fillRect(0,0,W,H);
+    /* second accent bloom — offset */
+    const bA2=dark?(.08+.05*pulse):(.04+.02*pulse);
+    const bloom2=ctx.createRadialGradient(W*.72,H*.65,0,W*.72,H*.65,W*.35);
+    bloom2.addColorStop(0,`rgba(${cr},${cg},${cb},${bA2})`);
+    bloom2.addColorStop(1,'transparent');
+    ctx.fillStyle=bloom2;ctx.fillRect(0,0,W,H);
     /* vignette */
-    const vg=ctx.createRadialGradient(VX,VY,H*.08,VX,VY,H*.9);
+    const vg=ctx.createRadialGradient(VX,VY,H*.05,VX,VY,H*.85);
     vg.addColorStop(0,'transparent');
-    vg.addColorStop(1,dark?'rgba(0,0,0,.72)':'rgba(200,220,210,.35)');
+    vg.addColorStop(1,dark?'rgba(0,0,0,.88)':'rgba(60,100,80,.45)');
     ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
     requestAnimationFrame(frame);
   }
