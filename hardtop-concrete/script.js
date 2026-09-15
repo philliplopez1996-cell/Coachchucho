@@ -76,7 +76,7 @@ const observer = new IntersectionObserver(entries => {
     const el = entry.target;
 
     // Reveal animation
-    if (el.classList.contains('reveal')) {
+    if (el.classList.contains('reveal') || el.classList.contains('reveal-left')) {
       el.classList.add('visible');
     }
 
@@ -90,21 +90,44 @@ const observer = new IntersectionObserver(entries => {
   });
 }, { threshold: 0.15 });
 
-// Apply reveal to key elements
-const revealTargets = [
+// Slide-up reveals — grid items get staggered delays
+const revealUpTargets = [
   '.service-card',
   '.process-step',
-  '.about-text',
   '.about-visual',
   '.contact-form-wrap',
   '.ci-list',
+  '.photo-card',
+  '.sp-col',
+  '.ls-teaser',
+  '.footer-col',
 ];
 
-revealTargets.forEach(selector => {
+revealUpTargets.forEach(selector => {
   document.querySelectorAll(selector).forEach((el, i) => {
     el.classList.add('reveal');
-    if (i > 0 && i <= 3) el.classList.add(`reveal-delay-${i}`);
+    const delay = Math.min(i, 5);
+    if (delay > 0) el.classList.add(`reveal-delay-${delay}`);
     observer.observe(el);
+  });
+});
+
+// Slide-in-from-left — section eyebrows and headings
+const revealLeftTargets = [
+  '.eyebrow',
+  '.sp-title',
+  '.page-hero h1',
+  '.contact-info h2',
+  '.about-text',
+  'section h2',
+];
+
+revealLeftTargets.forEach(selector => {
+  document.querySelectorAll(selector).forEach(el => {
+    if (!el.closest('.hero')) {
+      el.classList.add('reveal-left');
+      observer.observe(el);
+    }
   });
 });
 
@@ -155,6 +178,43 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     window.scrollTo({ top, behavior: 'smooth' });
   });
 });
+
+// ── STAMP DUST EFFECT ────────────────────────────────────
+(function stampDust() {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const logoImg = document.querySelector('.nav-center .logo-img');
+  if (!logoImg) return;
+
+  logoImg.addEventListener('animationend', () => {
+    const rect = logoImg.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const count = 8;
+
+    for (let i = 0; i < count; i++) {
+      const angle = (i / count) * Math.PI * 2;
+      const dist = 28 + Math.random() * 20;
+      const dx = Math.round(Math.cos(angle) * dist);
+      const dy = Math.round(Math.sin(angle) * dist);
+      const size = 3 + Math.random() * 4;
+
+      const mote = document.createElement('div');
+      mote.className = 'dust-mote';
+      mote.style.cssText = `
+        left: ${cx - size / 2}px;
+        top:  ${cy - size / 2}px;
+        width: ${size}px;
+        height: ${size}px;
+        --dx: ${dx}px;
+        --dy: ${dy}px;
+        animation-delay: ${Math.random() * 0.06}s;
+      `;
+      document.body.appendChild(mote);
+      mote.addEventListener('animationend', () => mote.remove(), { once: true });
+    }
+  }, { once: true });
+})();
 
 // ── PHOTO GALLERY FILTER ─────────────────────────────────
 (function initGalleryFilter() {
