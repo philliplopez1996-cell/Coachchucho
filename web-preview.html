@@ -15,13 +15,15 @@
   --ui-overlay-bg:rgba(255,255,255,.04);--ui-overlay-border:rgba(255,255,255,.08);
 }
 :root[data-theme="light"]{
-  --bg:#EFF6F2;--surface:#FFFFFF;--surface2:#E6F0EB;--sidebar-bg:#FFFFFF;
+  --bg:#EFF6F2;--surface:rgba(255,255,255,.62);--surface2:rgba(228,242,234,.55);--sidebar-bg:rgba(255,255,255,.72);
   --green:#00843F;--gold:#B07800;--orange:#D4610A;--red:#C0362A;--blue:#1A6BBF;
   --text:#0D1F14;--muted:#5A8A6E;--dim:#87AE98;
   --border:rgba(0,132,63,.15);--border2:rgba(0,132,63,.08);
-  --topbar-bg:rgba(255,255,255,.97);--bottomnav-bg:rgba(240,246,242,.97);
+  --topbar-bg:rgba(255,255,255,.62);--bottomnav-bg:rgba(240,246,242,.65);
   --ui-overlay-bg:rgba(0,0,0,.04);--ui-overlay-border:rgba(0,0,0,.1);
 }
+:root[data-theme="light"] .sidebar,
+:root[data-theme="light"] .panel-overlay{backdrop-filter:blur(20px) saturate(1.35);-webkit-backdrop-filter:blur(20px) saturate(1.35)}
 html[data-theme="light"],html[data-theme="light"] body{background:var(--bg)!important}
 html,body{
   height:100%;
