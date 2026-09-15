@@ -301,6 +301,31 @@ h3 { font-size: var(--fs-2xl); }
   text-transform: uppercase;
 }
 
+/* ── NAV LOGO / BRAND ENTRANCE ANIMATION ───────────────── */
+@keyframes stampIn {
+  0%   { transform: scale(0.78); opacity: 0; }
+  65%  { transform: scale(1.06); opacity: 1; }
+  82%  { transform: scale(0.97); }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+@keyframes slideUpFade {
+  from { transform: translateY(7px); opacity: 0; }
+  to   { transform: translateY(0);   opacity: 1; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nav-center .logo-img {
+    animation: stampIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .nav-brand-top {
+    animation: slideUpFade 0.3s ease-out 0.32s both;
+  }
+  .nav-brand-bottom {
+    animation: slideUpFade 0.3s ease-out 0.44s both;
+  }
+}
+
 .nav-links a {
   font-family: 'Oswald', sans-serif;
   font-size: var(--fs-sm);
