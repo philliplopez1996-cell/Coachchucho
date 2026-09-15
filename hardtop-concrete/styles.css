@@ -621,22 +621,30 @@ h3 { font-size: var(--fs-2xl); }
   flex-wrap: wrap;
 }
 
-/* Badge */
-.hero-badge {
+/* Badges */
+.hero-badges {
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
 }
 
 .badge-ring {
-  width: 148px;
-  height: 148px;
+  width: 128px;
+  height: 128px;
   border: 2px solid var(--red);
   border-radius: 50%;
-  background: rgba(227, 6, 19, 0.05);
+  background: rgba(227, 6, 19, 0.06);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0.3em;
+}
+
+.badge-ring--white {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .badge-num {
@@ -1313,7 +1321,7 @@ a.ci-value:hover { color: var(--orange); }
 
 /* ── RESPONSIVE ──────────────────────────────────────────── */
 @media (max-width: 1024px) {
-  .hero-badge { display: none; }
+  .hero-badges { display: none; }
 
   .infra-grid { grid-template-columns: 1fr; }
   .infra-item--wide { grid-column: auto; }
