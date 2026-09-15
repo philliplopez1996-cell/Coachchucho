@@ -15,16 +15,25 @@
   --ui-overlay-bg:rgba(255,255,255,.04);--ui-overlay-border:rgba(255,255,255,.08);
 }
 :root[data-theme="light"]{
-  --bg:#EFF6F2;--surface:rgba(255,255,255,.62);--surface2:rgba(228,242,234,.55);--sidebar-bg:rgba(255,255,255,.72);
+  --bg:#a8cfc0;--surface:rgba(255,255,255,.42);--surface2:rgba(220,242,232,.38);--sidebar-bg:rgba(255,255,255,.48);
   --green:#00843F;--gold:#B07800;--orange:#D4610A;--red:#C0362A;--blue:#1A6BBF;
-  --text:#0D1F14;--muted:#5A8A6E;--dim:#87AE98;
-  --border:rgba(0,132,63,.15);--border2:rgba(0,132,63,.08);
-  --topbar-bg:rgba(255,255,255,.62);--bottomnav-bg:rgba(240,246,242,.65);
-  --ui-overlay-bg:rgba(0,0,0,.04);--ui-overlay-border:rgba(0,0,0,.1);
+  --text:#0D1F14;--muted:#3a7a58;--dim:#6aaa88;
+  --border:rgba(0,132,63,.18);--border2:rgba(0,100,50,.12);
+  --topbar-bg:rgba(255,255,255,.45);--bottomnav-bg:rgba(220,242,232,.48);
+  --ui-overlay-bg:rgba(255,255,255,.12);--ui-overlay-border:rgba(0,100,50,.15);
 }
-:root[data-theme="light"] .sidebar,
-:root[data-theme="light"] .panel-overlay{backdrop-filter:blur(20px) saturate(1.35);-webkit-backdrop-filter:blur(20px) saturate(1.35)}
-html[data-theme="light"],html[data-theme="light"] body{background:var(--bg)!important}
+/* glass pane effect — pseudo-element avoids overflow:hidden breaking backdrop-filter */
+:root[data-theme="light"] .sidebar::before,
+:root[data-theme="light"] .topbar::before,
+:root[data-theme="light"] .bottom-nav::before,
+:root[data-theme="light"] .panel-overlay::before{
+  content:'';position:absolute;inset:0;z-index:-1;
+  backdrop-filter:blur(22px) saturate(1.4);-webkit-backdrop-filter:blur(22px) saturate(1.4);
+  pointer-events:none
+}
+:root[data-theme="light"] .sidebar,:root[data-theme="light"] .topbar,
+:root[data-theme="light"] .bottom-nav,:root[data-theme="light"] .panel-overlay{position:relative}
+html[data-theme="light"],html[data-theme="light"] body{background:#a8cfc0!important}
 html,body{
   height:100%;
   background:var(--bg);
@@ -5133,7 +5142,7 @@ function initAuth(){
     /* background fill */
     const bg=ctx.createLinearGradient(0,0,W*.6,H);
     if(dark){bg.addColorStop(0,'#020508');bg.addColorStop(.45,'#04090f');bg.addColorStop(1,'#020407');}
-    else{bg.addColorStop(0,'#eef6f1');bg.addColorStop(.45,'#e8f2ec');bg.addColorStop(1,'#edf5ef');}
+    else{bg.addColorStop(0,'#a8cfc0');bg.addColorStop(.45,'#9dc4d8');bg.addColorStop(1,'#b2d4c4');}
     ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
     const [ar,ag,ab]=dark?[0,229,100]:[0,120,50];
     const [cr,cg,cb]=dark?[0,200,255]:[0,90,190];
