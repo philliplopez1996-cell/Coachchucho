@@ -560,6 +560,9 @@ h3 { font-size: var(--fs-2xl); }
 .hero-content {
   width: 100%;
   max-width: 920px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
   background: linear-gradient(135deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 100%);
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
@@ -577,7 +580,7 @@ h3 { font-size: var(--fs-2xl); }
   text-transform: uppercase;
   line-height: 0.9;
   letter-spacing: -0.01em;
-  margin-block: var(--sp-md) var(--sp-md);
+  margin: 0;
   text-shadow: 0 2px 20px rgba(0,0,0,0.6), 0 1px 4px rgba(0,0,0,0.8);
 }
 
@@ -612,7 +615,7 @@ h3 { font-size: var(--fs-2xl); }
   color: var(--text-muted);
   max-width: 50ch;
   line-height: 1.7;
-  margin-bottom: var(--sp-lg);
+  margin: 0;
 }
 
 .hero-ctas {
@@ -626,14 +629,12 @@ h3 { font-size: var(--fs-2xl); }
   display: flex;
   flex-direction: row;
   gap: var(--sp-lg);
-  margin-top: var(--sp-xl);
-  margin-bottom: var(--sp-xl);
   flex-wrap: wrap;
 }
 
 .badge-ring {
-  width: 108px;
-  height: 108px;
+  width: 120px;
+  height: 120px;
   border: 2px solid var(--red);
   border-radius: 50%;
   background: rgba(227, 6, 19, 0.06);
