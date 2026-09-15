@@ -325,10 +325,10 @@ h3 { font-size: var(--fs-2xl); }
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: rgba(220, 210, 195, 0.85);
+  background: rgba(220, 210, 195, 0.9);
   pointer-events: none;
   z-index: 9999;
-  animation: dustMote 0.6s ease-out forwards;
+  animation: dustMote 0.9s ease-out forwards;
 }
 
 @media (prefers-reduced-motion: no-preference) {

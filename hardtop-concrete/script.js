@@ -190,14 +190,29 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     const rect = logoImg.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
-    const count = 8;
 
+    // Concrete-dust colors: light gray, warm beige, faint orange sparks
+    const palette = [
+      'rgba(210,200,185,0.95)',
+      'rgba(235,225,210,0.90)',
+      'rgba(180,170,155,0.85)',
+      'rgba(255,255,255,0.70)',
+      'rgba(230,115,40,0.80)',   // orange spark
+      'rgba(230,115,40,0.60)',
+    ];
+
+    const count = 22;
     for (let i = 0; i < count; i++) {
-      const angle = (i / count) * Math.PI * 2;
-      const dist = 28 + Math.random() * 20;
+      // Spread evenly around the circle with slight random jitter
+      const baseAngle = (i / count) * Math.PI * 2;
+      const angle = baseAngle + (Math.random() - 0.5) * 0.5;
+      const dist = 38 + Math.random() * 48;          // 38–86 px travel
       const dx = Math.round(Math.cos(angle) * dist);
       const dy = Math.round(Math.sin(angle) * dist);
-      const size = 3 + Math.random() * 4;
+      const size = 4 + Math.random() * 7;             // 4–11 px
+      const color = palette[Math.floor(Math.random() * palette.length)];
+      const dur = 0.7 + Math.random() * 0.4;         // 0.7–1.1 s
+      const delay = Math.random() * 0.08;
 
       const mote = document.createElement('div');
       mote.className = 'dust-mote';
@@ -206,9 +221,11 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         top:  ${cy - size / 2}px;
         width: ${size}px;
         height: ${size}px;
+        background: ${color};
         --dx: ${dx}px;
         --dy: ${dy}px;
-        animation-delay: ${Math.random() * 0.06}s;
+        animation-duration: ${dur}s;
+        animation-delay: ${delay}s;
       `;
       document.body.appendChild(mote);
       mote.addEventListener('animationend', () => mote.remove(), { once: true });
