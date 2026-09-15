@@ -623,15 +623,16 @@ h3 { font-size: var(--fs-2xl); }
 
 /* Badges */
 .hero-badges {
-  flex-shrink: 0;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: var(--sp-md);
+  margin-top: var(--sp-lg);
+  flex-wrap: wrap;
 }
 
 .badge-ring {
-  width: 128px;
-  height: 128px;
+  width: 108px;
+  height: 108px;
   border: 2px solid var(--red);
   border-radius: 50%;
   background: rgba(227, 6, 19, 0.06);
@@ -639,7 +640,8 @@ h3 { font-size: var(--fs-2xl); }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.3em;
+  gap: 0.25em;
+  flex-shrink: 0;
 }
 
 .badge-ring--white {
@@ -649,7 +651,7 @@ h3 { font-size: var(--fs-2xl); }
 
 .badge-num {
   font-family: 'Oswald', sans-serif;
-  font-size: var(--fs-4xl);
+  font-size: var(--fs-2xl);
   font-weight: 700;
   color: var(--white);
   line-height: 1;
@@ -1321,7 +1323,7 @@ a.ci-value:hover { color: var(--orange); }
 
 /* ── RESPONSIVE ──────────────────────────────────────────── */
 @media (max-width: 1024px) {
-  .hero-badges { display: none; }
+  .hero-badges { gap: var(--sp-sm); }
 
   .infra-grid { grid-template-columns: 1fr; }
   .infra-item--wide { grid-column: auto; }
