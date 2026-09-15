@@ -637,12 +637,11 @@ h3 { font-size: var(--fs-2xl); }
 
 /* Badges */
 .hero-badges {
-  position: absolute;
-  top: var(--sp-xl);
-  right: var(--sp-xl);
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  flex-direction: row;
+  justify-content: center;
+  gap: var(--sp-lg);
+  flex-wrap: wrap;
 }
 
 .badge-ring {
@@ -1338,13 +1337,7 @@ a.ci-value:hover { color: var(--orange); }
 
 /* ── RESPONSIVE ──────────────────────────────────────────── */
 @media (max-width: 1024px) {
-  .hero-badges {
-    position: static;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: var(--sp-sm);
-  }
+  .hero-badges { gap: var(--sp-sm); }
 
   .infra-grid { grid-template-columns: 1fr; }
   .infra-item--wide { grid-column: auto; }
