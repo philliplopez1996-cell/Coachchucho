@@ -269,7 +269,7 @@ h3 { font-size: var(--fs-2xl); }
   width: auto;
   display: block;
   border-radius: 50%;
-  transition: opacity var(--ease);
+  transition: opacity var(--ease), transform 0.4s ease;
 }
 
 .nav-center:hover .logo-img { opacity: 0.88; }
