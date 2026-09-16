@@ -339,13 +339,13 @@ h3 { font-size: var(--fs-2xl); }
 
 @media (prefers-reduced-motion: no-preference) {
   .nav-center .logo-img {
-    animation: stampIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: stampIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) backwards;
   }
   .nav-brand-top {
-    animation: slideUpFade 0.28s ease-out 0.22s both;
+    animation: slideUpFade 0.28s ease-out 0.22s backwards;
   }
   .nav-brand-bottom {
-    animation: slideUpFade 0.28s ease-out 0.32s both;
+    animation: slideUpFade 0.28s ease-out 0.32s backwards;
   }
 }
 
