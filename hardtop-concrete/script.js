@@ -5,10 +5,13 @@ const yearEl = document.getElementById('footer-year');
 if (yearEl) yearEl.textContent = new Date().getFullYear();
 
 // ── NAV SCROLL EFFECT ────────────────────────────────────
-const header = document.getElementById('site-header');
+const header  = document.getElementById('site-header');
+const navBrand = document.querySelector('.nav-brand');
 
 function onScroll() {
-  header.classList.toggle('scrolled', window.scrollY > 24);
+  const isScrolled = window.scrollY > 24;
+  header.classList.toggle('scrolled', isScrolled);
+  if (navBrand) navBrand.style.opacity = isScrolled ? '0' : '';
   highlightActiveSection();
 }
 
